@@ -9,6 +9,7 @@ use App\Modules\Identity\Enums\AdminRole;
 use App\Support\HasPublicId;
 use Database\Factories\AdminUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Carbon;
 
@@ -63,6 +64,11 @@ final class AdminUser extends Authenticatable
 
     protected $fillable = ['email', 'password', 'name', 'role'];
 
+    /**
+     * The TOTP secret never leaves the server after enrolment: it is
+     * returned once, by BeginTwoFactorEnrolment, and is hidden from every
+     * serialisation thereafter.
+     */
     protected $hidden = ['password', 'remember_token', 'two_factor_secret'];
 
     protected function casts(): array
@@ -74,6 +80,8 @@ final class AdminUser extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
             'locked_until' => 'datetime',
             'last_active_at' => 'datetime',
+            'two_factor_enrolled_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -103,8 +111,28 @@ final class AdminUser extends Authenticatable
         return $this->locked_until !== null && $this->locked_until->isFuture();
     }
 
+    /**
+     * Enrolment that was started but never proved does not count: an
+     * unconfirmed secret must never be able to satisfy a login.
+     */
     public function hasTwoFactorEnabled(): bool
     {
-        return $this->two_factor_confirmed_at !== null;
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    public function isEnrollingTwoFactor(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at === null;
+    }
+
+    /** @return HasMany<AdminRecoveryCode, $this> */
+    public function recoveryCodes(): HasMany
+    {
+        return $this->hasMany(AdminRecoveryCode::class);
+    }
+
+    public function unusedRecoveryCodeCount(): int
+    {
+        return $this->recoveryCodes()->whereNull('used_at')->count();
     }
 }

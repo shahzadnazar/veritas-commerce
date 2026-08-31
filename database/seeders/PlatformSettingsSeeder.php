@@ -25,7 +25,15 @@ final class PlatformSettingsSeeder extends Seeder
             ['identity', 'billing_email', config('veritas.identity.billing_email'), 'Finance and billing address'],
             ['identity', 'business_address', config('veritas.identity.business_address'), 'Registered address'],
             ['identity', 'country', config('veritas.identity.country'), 'Operating country'],
-            ['identity', 'app_url', config('app.url'), 'Storefront URL'],
+            ['identity', 'public_url', config('veritas.identity.public_url'), 'Public storefront URL'],
+            ['identity', 'sender_email', config('veritas.identity.sender_email'), 'Envelope sender for outbound mail'],
+            ['identity', 'sender_name', config('veritas.identity.sender_name'), 'Display name on outbound mail'],
+            ['identity', 'timezone', config('veritas.identity.timezone'), 'Platform reporting timezone'],
+
+            ['branding', 'logo_path', config('veritas.branding.logo_path'), 'Marketplace logo on the media disk'],
+            ['branding', 'favicon_path', config('veritas.branding.favicon_path'), 'Browser tab icon'],
+            ['branding', 'email_logo_path', config('veritas.branding.email_logo_path'), 'Logo used in email headers'],
+            ['branding', 'email_accent', config('veritas.branding.email_accent'), 'Accent colour in email templates'],
 
             ['money', 'default_currency', config('veritas.money.default_currency'), 'Single currency in Phase 1'],
 

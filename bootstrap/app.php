@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\EnsureAdminPermission;
 use App\Http\Middleware\EnsureSellerMembership;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequireAdminTwoFactor;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'seller' => EnsureSellerMembership::class,
             'admin.can' => EnsureAdminPermission::class,
+            'admin.mfa' => RequireAdminTwoFactor::class,
         ]);
 
         // A guest on an admin route is sent to the staff sign-in page, not

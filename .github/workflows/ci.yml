@@ -113,6 +113,51 @@ jobs:
             - name: Production build
               run: npm run build:ssr
 
+    docker:
+        name: Docker environment
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build images
+              run: docker compose build
+
+            - name: Start the stack
+              run: |
+                  cp .env.example .env
+                  docker compose up -d postgres redis
+                  docker compose run --rm app composer install --no-interaction --prefer-dist
+                  docker compose run --rm app php artisan key:generate
+                  docker compose up -d app
+                  docker compose ps
+
+            - name: Wait for the application to answer
+              run: |
+                  for attempt in $(seq 1 30); do
+                    if curl -fsS http://127.0.0.1:8000/up > /dev/null; then
+                      echo "Application is up after ${attempt} attempt(s)."
+                      exit 0
+                    fi
+                    sleep 2
+                  done
+                  echo "Application never became reachable."
+                  docker compose logs app
+                  exit 1
+
+            - name: Migrate and smoke-test over HTTP
+              run: |
+                  docker compose exec -T app php artisan migrate:fresh --seed --force
+                  curl -fsS -o /dev/null -w 'storefront %{http_code}\n' http://127.0.0.1:8000/
+                  curl -fsS -o /dev/null -w 'admin login %{http_code}\n' http://127.0.0.1:8000/admin/login
+
+            - name: Test database exists
+              run: docker compose exec -T postgres psql -U veritas -lqt | grep -q veritas_test
+
+            - name: Tear down
+              if: always()
+              run: docker compose down -v
+
     generated-files:
         name: Generated files are current
         runs-on: ubuntu-latest

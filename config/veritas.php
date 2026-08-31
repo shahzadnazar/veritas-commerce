@@ -11,13 +11,59 @@ declare(strict_types=1);
  * risk-based rule changes this resolution and nothing else.
  */
 return [
+    /*
+     * Platform identity. Development placeholders are fine here; production
+     * values arrive through the environment, and none of this is ever
+     * written into application logic.
+     */
     'identity' => [
-        'legal_name' => env('VERITAS_LEGAL_NAME', 'Veritas Commerce, Inc.'),
         'display_name' => env('VERITAS_DISPLAY_NAME', 'Veritas Commerce'),
+        'legal_name' => env('VERITAS_LEGAL_NAME', 'Veritas Commerce, Inc.'),
+        'public_url' => env('VERITAS_PUBLIC_URL', env('APP_URL', 'http://localhost:8000')),
         'support_email' => env('VERITAS_SUPPORT_EMAIL', 'support@veritas.test'),
         'billing_email' => env('VERITAS_BILLING_EMAIL', 'billing@veritas.test'),
-        'business_address' => env('VERITAS_BUSINESS_ADDRESS', ''),
+        'sender_email' => env('VERITAS_SENDER_EMAIL', env('MAIL_FROM_ADDRESS', 'orders@veritas.test')),
+        'sender_name' => env('VERITAS_SENDER_NAME', env('VERITAS_DISPLAY_NAME', 'Veritas Commerce')),
+        'business_address' => env('VERITAS_BUSINESS_ADDRESS', '1 Placeholder Way, Portland, OR 97232'),
         'country' => env('VERITAS_COUNTRY', 'US'),
+        'timezone' => env('VERITAS_TIMEZONE', env('APP_TIMEZONE', 'UTC')),
+    ],
+
+    /*
+     * Brand assets. Paths resolve against the media disk, so swapping a
+     * logo is an upload rather than a deploy.
+     */
+    'branding' => [
+        'logo_path' => env('VERITAS_LOGO_PATH'),
+        'favicon_path' => env('VERITAS_FAVICON_PATH'),
+        'email_logo_path' => env('VERITAS_EMAIL_LOGO_PATH'),
+        'email_accent' => env('VERITAS_EMAIL_ACCENT', '#ec3013'),
+        'email_footer_note' => env('VERITAS_EMAIL_FOOTER_NOTE'),
+    ],
+
+    /*
+     * Media. The architecture targets Cloudflare R2; nothing outside this
+     * key names a provider, so local development uses a local disk and
+     * production swaps the value.
+     */
+    'media' => [
+        'disk' => env('VERITAS_MEDIA_DISK', env('FILESYSTEM_DISK', 'local')),
+        'max_upload_kb' => (int) env('VERITAS_MAX_UPLOAD_KB', 5120),
+        'logo_min_pixels' => 400,
+        'banner_min_width' => 1600,
+        'banner_min_height' => 400,
+        'accepted_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
+    ],
+
+    /*
+     * Seller onboarding. Document requirements are configuration because
+     * KYC rules change by market and by regulator, not by release.
+     */
+    'sellers' => [
+        'required_documents' => array_values(array_filter(
+            explode(',', (string) env('VERITAS_REQUIRED_SELLER_DOCUMENTS', '')),
+        )),
+        'invitation_expiry_days' => (int) env('VERITAS_INVITATION_EXPIRY_DAYS', 14),
     ],
 
     'money' => [
