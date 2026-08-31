@@ -1,9 +1,61 @@
 @import 'tailwindcss';
-
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+@import './tokens.css';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: 'Archivo', system-ui, sans-serif;
+  --radius-none: 0px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--vc-bg);
+  color: var(--vc-text);
+  font-family: var(--vc-font-body);
+  font-size: var(--vc-body-size);
+  line-height: var(--vc-body-leading);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--vc-font-heading);
+  font-weight: var(--vc-font-heading-weight);
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+/*
+ * Interaction states are themed, never browser defaults. The 2px accent
+ * focus ring is required on every interactive element — WCAG 2.2 AA, and
+ * the design system says so explicitly.
+ */
+:focus-visible {
+  outline: 2px solid var(--vc-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--vc-accent-200);
+}
+
+/* Money and quantity columns align. */
+.vc-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

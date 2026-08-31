@@ -1,0 +1,88 @@
+/*
+ * Veritas Commerce — Modernist design tokens.
+ *
+ * Values are taken verbatim from the delivered design system at
+ * design/prototype/_ds/modernist-<id>/styles.css. This file is the runtime
+ * source of truth; nothing in the application may hard-code a colour, a
+ * font or a spacing value that a token already carries. The ESLint rule
+ * `no-restricted-syntax` fails a build that tries.
+ */
+
+:root {
+  /* Ground and ink */
+  --vc-bg: #f3f2f2;
+  --vc-surface: #eae9e9;
+  --vc-text: #201e1d;
+  --vc-divider: color-mix(in srgb, #201e1d 40%, transparent);
+
+  /* Accent — used for the primary action and small emphasis only. */
+  --vc-accent: #ec3013;
+
+  /* Neutral ramp */
+  --vc-neutral-100: #f8f4f4;
+  --vc-neutral-200: #eae7e7;
+  --vc-neutral-300: #d7d3d3;
+  --vc-neutral-400: #bab6b6;
+  --vc-neutral-500: #9b9797;
+  --vc-neutral-600: #7d7979;
+  --vc-neutral-700: #605d5d;
+  --vc-neutral-800: #444141;
+  --vc-neutral-900: #2d2b2b;
+
+  /* Accent ramp */
+  --vc-accent-100: #fff2ef;
+  --vc-accent-200: #ffe0d9;
+  --vc-accent-300: #ffc4b8;
+  --vc-accent-400: #ff9783;
+  --vc-accent-500: #ff563c;
+  --vc-accent-600: #dd2b0f;
+  --vc-accent-700: #ae1800;
+  --vc-accent-800: #7c1405;
+  --vc-accent-900: #4d170e;
+
+  /* Type */
+  --vc-font-heading: 'Archivo', system-ui, sans-serif;
+  --vc-font-body: 'Archivo', system-ui, sans-serif;
+  --vc-font-heading-weight: 800;
+
+  /* Space */
+  --vc-space-1: 4px;
+  --vc-space-2: 8px;
+  --vc-space-3: 12px;
+  --vc-space-4: 16px;
+  --vc-space-6: 24px;
+  --vc-space-8: 32px;
+  --vc-space-14: 56px;
+
+  /* Radius — 0 everywhere, on purpose. Do not round a corner. */
+  --vc-radius: 0px;
+
+  /* Elevation — flat is the default; most surfaces have no shadow. */
+  --vc-shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --vc-shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+  --vc-shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+
+  /* Layout metrics */
+  --vc-container-storefront: 1280px;
+  --vc-sidebar: 240px;
+  --vc-sidebar-collapsed: 64px;
+  --vc-header-storefront: 64px;
+  --vc-header-portal: 56px;
+
+  /*
+     * The density step: the one intentional divergence between the
+     * storefront and the operating portals. Same tokens, same components,
+     * different breathing room.
+     */
+  --vc-body-size: 15px;
+  --vc-body-leading: 1.55;
+  --vc-grid-gap: var(--vc-space-6);
+  --vc-table-size: 14px;
+}
+
+[data-density='compact'] {
+  --vc-body-size: 14px;
+  --vc-body-leading: 1.45;
+  --vc-grid-gap: 2px;
+  --vc-table-size: 13px;
+}
