@@ -15,6 +15,7 @@ use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Enums\SellerStatus;
+use BackedEnum;
 
 /**
  * The single list of status enums the UI renders.
@@ -62,7 +63,7 @@ final class StatusRegistry
         $out = [];
 
         foreach (self::map() as $domain => $enum) {
-            /** @var array<int, HasStatusTone&\BackedEnum> $cases */
+            /** @var array<int, HasStatusTone&BackedEnum> $cases */
             $cases = $enum::cases();
 
             foreach ($cases as $case) {

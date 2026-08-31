@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Commission\Models;
+
+use App\Modules\Commission\Enums\CommissionScope;
+use App\Support\HasPublicId;
+use Database\Factories\CommissionRuleFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
+
+/**
+ * APPEND ONLY. Setting a rate inserts a row with a future effective_from;
+ * it never updates the previous one, so the rate history is exact and a
+ * historical order can always be explained.
+ *
+ * Phase 1 ships a single global rule. Category, seller and campaign rules
+ * are the same table with a different scope.
+ */
+final class CommissionRule extends Model
+{
+    /** @use HasFactory<CommissionRuleFactory> */
+    use HasFactory;
+
+    use HasPublicId;
+
+    protected $table = 'commission_rules';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'scope', 'category_id', 'seller_account_id', 'campaign_code',
+        'rate_percent', 'effective_from', 'effective_until', 'note',
+        'created_by_admin_id', 'created_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'scope' => CommissionScope::class,
+            'effective_from' => 'datetime',
+            'effective_until' => 'datetime',
+            'created_at' => 'datetime',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        self::updating(function (): never {
+            throw new RuntimeException('commission_rules is append-only; insert a new rule with a future effective_from.');
+        });
+
+        self::deleting(function (): never {
+            throw new RuntimeException('commission_rules is append-only.');
+        });
+    }
+
+    /** The rate as a decimal string — never a float. */
+    public function ratePercent(): string
+    {
+        return (string) $this->rate_percent;
+    }
+}

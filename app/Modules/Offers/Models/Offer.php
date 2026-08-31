@@ -1,0 +1,119 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Offers\Models;
+
+use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductVariant;
+use App\Modules\Inventory\Models\InventoryBalance;
+use App\Modules\Offers\Enums\OfferStatus;
+use App\Modules\Sellers\Concerns\BelongsToSellerAccount;
+use App\Modules\Sellers\Models\SellerAccount;
+use App\Modules\Stores\Models\Store;
+use App\Support\HasPublicId;
+use App\Support\Money;
+use Database\Factories\OfferFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * A seller's commercial listing against a canonical product variant.
+ *
+ * This is what a customer buys. It carries price, condition, stock and
+ * fulfilment terms; the product carries identity.
+ */
+final class Offer extends Model
+{
+    /** @use HasFactory<OfferFactory> */
+    use BelongsToSellerAccount;
+
+    use HasFactory;
+    use HasPublicId;
+
+    protected $table = 'offers';
+
+    protected $fillable = [
+        'seller_account_id',
+        'store_id',
+        'product_id',
+        'product_variant_id',
+        'seller_sku',
+        'condition',
+        'price_minor',
+        'compare_at_price_minor',
+        'currency',
+        'status',
+        'handling_days',
+        'shipping_flat_minor',
+        'free_shipping_threshold_minor',
+        'seller_notes',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => OfferStatus::class,
+            'price_minor' => 'integer',
+            'compare_at_price_minor' => 'integer',
+            'published_at' => 'datetime',
+            'archived_at' => 'datetime',
+        ];
+    }
+
+    /** @return BelongsTo<Product, $this> */
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /** @return BelongsTo<ProductVariant, $this> */
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
+    }
+
+    /** @return BelongsTo<SellerAccount, $this> */
+    public function sellerAccount(): BelongsTo
+    {
+        return $this->belongsTo(SellerAccount::class);
+    }
+
+    /** @return BelongsTo<Store, $this> */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    /** @return HasMany<InventoryBalance, $this> */
+    public function inventoryBalances(): HasMany
+    {
+        return $this->hasMany(InventoryBalance::class);
+    }
+
+    public function price(): Money
+    {
+        return Money::of($this->price_minor, $this->currency);
+    }
+
+    public function compareAtPrice(): ?Money
+    {
+        return $this->compare_at_price_minor === null
+            ? null
+            : Money::of($this->compare_at_price_minor, $this->currency);
+    }
+
+    public function isPurchasable(): bool
+    {
+        return $this->status->isPurchasable();
+    }
+
+    /** @param  Builder<Offer>  $query */
+    public function scopePurchasable(Builder $query): void
+    {
+        $query->where('status', OfferStatus::Published->value);
+    }
+}

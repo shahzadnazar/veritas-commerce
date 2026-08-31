@@ -1,0 +1,110 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Orders\Models;
+
+use App\Modules\Commission\Enums\CommissionScope;
+use App\Support\HasPublicId;
+use App\Support\Money;
+use Database\Factories\OrderItemFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use RuntimeException;
+
+/**
+ * Where the financial snapshot lives.
+ *
+ * Every value the customer saw and every value the commission split
+ * produced is written once, here, and never recalculated. Changing an offer
+ * price, the platform rate, or a category rule tomorrow leaves this row
+ * exactly as it is — which is what the whole marketplace's auditability
+ * rests on.
+ *
+ * The snapshot columns are guarded below: once written they cannot be
+ * changed through the model, so a well-meaning "recalculate totals" job
+ * fails loudly instead of quietly rewriting history.
+ */
+final class OrderItem extends Model
+{
+    /** @use HasFactory<OrderItemFactory> */
+    use HasFactory;
+
+    use HasPublicId;
+
+    /** Once written, these are permanent. */
+    public const IMMUTABLE_SNAPSHOT_COLUMNS = [
+        'unit_price_snapshot_minor',
+        'discount_snapshot_minor',
+        'line_total_minor',
+        'tax_amount_minor',
+        'tax_rate_snapshot',
+        'commission_rate_snapshot',
+        'commission_amount_minor',
+        'seller_earning_amount_minor',
+        'commission_scope_snapshot',
+        'snapshotted_at',
+        'currency',
+    ];
+
+    protected $table = 'order_items';
+
+    protected $fillable = [
+        'seller_order_id', 'offer_id', 'product_id', 'product_variant_id',
+        'product_title', 'variant_name', 'seller_sku', 'currency',
+        'unit_price_snapshot_minor', 'quantity', 'discount_snapshot_minor',
+        'line_total_minor', 'tax_amount_minor', 'tax_rate_snapshot', 'tax_source',
+        'commission_rate_snapshot', 'commission_rule_id', 'commission_scope_snapshot',
+        'commission_amount_minor', 'seller_earning_amount_minor', 'snapshotted_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'commission_scope_snapshot' => CommissionScope::class,
+            'quantity' => 'integer',
+            'unit_price_snapshot_minor' => 'integer',
+            'line_total_minor' => 'integer',
+            'commission_amount_minor' => 'integer',
+            'seller_earning_amount_minor' => 'integer',
+            'refunded_amount_minor' => 'integer',
+            'snapshotted_at' => 'datetime',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        self::updating(function (self $item): void {
+            foreach (self::IMMUTABLE_SNAPSHOT_COLUMNS as $column) {
+                if ($item->isDirty($column)) {
+                    throw new RuntimeException(
+                        "order_items.{$column} is a financial snapshot and cannot be changed. ".
+                        'Record a refund or an adjustment instead.'
+                    );
+                }
+            }
+        });
+    }
+
+    /** @return BelongsTo<SellerOrder, $this> */
+    public function sellerOrder(): BelongsTo
+    {
+        return $this->belongsTo(SellerOrder::class);
+    }
+
+    public function lineTotal(): Money
+    {
+        return Money::of($this->line_total_minor, $this->currency);
+    }
+
+    public function commissionAmount(): Money
+    {
+        return Money::of($this->commission_amount_minor, $this->currency);
+    }
+
+    public function sellerEarning(): Money
+    {
+        return Money::of($this->seller_earning_amount_minor, $this->currency);
+    }
+}

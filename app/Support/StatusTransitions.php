@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use BackedEnum;
-
 /**
  * Implemented by every enum that is a workflow state rather than a plain label.
  *

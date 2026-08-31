@@ -1,0 +1,67 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Identity\Models;
+
+use App\Modules\Sellers\Models\SellerMembership;
+use App\Support\HasPublicId;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+/**
+ * Customers and sellers share one identity: a seller is a person who also
+ * shops, and two password records for one human is a support burden and a
+ * security liability. A user becomes a seller by holding a membership.
+ *
+ * Platform staff are deliberately NOT here — see AdminUser.
+ */
+final class User extends Authenticatable
+{
+    /** @use HasFactory<UserFactory> */
+    use HasFactory;
+
+    use HasPublicId;
+    use Notifiable;
+
+    protected $table = 'users';
+
+    protected $fillable = [
+        'email',
+        'password',
+        'first_name',
+        'last_name',
+        'phone',
+        'marketing_opt_in',
+    ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'marketing_opt_in' => 'boolean',
+        ];
+    }
+
+    /** @return HasMany<SellerMembership, $this> */
+    public function sellerMemberships(): HasMany
+    {
+        return $this->hasMany(SellerMembership::class);
+    }
+
+    public function isSeller(): bool
+    {
+        return $this->sellerMemberships()->whereNotNull('accepted_at')->exists();
+    }
+
+    public function fullName(): string
+    {
+        return trim($this->first_name.' '.$this->last_name);
+    }
+}

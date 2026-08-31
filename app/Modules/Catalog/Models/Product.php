@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Catalog\Models;
+
+use App\Modules\Offers\Models\Offer;
+use App\Support\HasPublicId;
+use Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * The canonical catalogue product — shared identity, owned by the platform.
+ *
+ * Several sellers list against one product; each of their listings is an
+ * Offer. A one-of-a-kind handmade item is the same shape with a single
+ * offer, so unique and commodity goods share one model rather than two.
+ */
+final class Product extends Model
+{
+    /** @use HasFactory<ProductFactory> */
+    use HasFactory;
+
+    use HasPublicId;
+
+    protected $table = 'products';
+
+    protected $fillable = [
+        'category_id',
+        'brand_id',
+        'title',
+        'slug',
+        'description',
+        'gtin',
+        'mpn',
+        'specifications',
+        'attributes',
+        'created_by_seller_account_id',
+        'is_active',
+        'seo_title',
+        'seo_description',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'specifications' => 'array',
+            'attributes' => 'array',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    /** @return BelongsTo<Category, $this> */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /** @return BelongsTo<Brand, $this> */
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    /** @return HasMany<ProductVariant, $this> */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    /**
+     * Every seller's listing against this product.
+     *
+     * Deliberately not tenant-scoped: the storefront comparing three
+     * sellers' prices is the point of the catalogue model.
+     */
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
+}

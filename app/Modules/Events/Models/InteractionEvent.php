@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Events\Models;
+
+use App\Modules\Events\Enums\InteractionEventType;
+use Database\Factories\InteractionEventFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+/**
+ * Behavioural events, captured from the first release.
+ *
+ * No recommendation model ships in M0 — this exists so that the model built
+ * in month six has history to learn from, and so result_position is on
+ * record at click time, which is the only thing that makes search-ranking
+ * training data usable later.
+ *
+ * Carries no PII: an anonymous visitor gets a rotating pseudonymous session
+ * id, never a durable fingerprint.
+ */
+final class InteractionEvent extends Model
+{
+    /** @use HasFactory<InteractionEventFactory> */
+    use HasFactory;
+
+    protected $table = 'interaction_events';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'event_id', 'user_id', 'anonymous_session_id', 'event_type',
+        'product_id', 'offer_id', 'seller_account_id',
+        'search_query', 'result_position', 'context', 'value_minor',
+        'metadata', 'created_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'event_type' => InteractionEventType::class,
+            'metadata' => 'array',
+            'result_position' => 'integer',
+            'value_minor' => 'integer',
+            'created_at' => 'datetime',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        self::creating(function (self $event): void {
+            if (blank($event->event_id)) {
+                $event->event_id = (string) Str::ulid();
+            }
+
+            if (blank($event->created_at)) {
+                $event->created_at = now();
+            }
+        });
+    }
+}
