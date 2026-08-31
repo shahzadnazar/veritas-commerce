@@ -13,6 +13,7 @@ use App\Modules\Orders\Enums\MarketplaceOrderStatus;
 use App\Modules\Orders\Enums\SellerOrderStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
+use App\Modules\Sellers\Enums\InvitationStatus;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Enums\SellerStatus;
 use BackedEnum;
@@ -41,6 +42,7 @@ final class StatusRegistry
         return [
             'seller_application' => SellerApplicationStatus::class,
             'seller' => SellerStatus::class,
+            'seller_invitation' => InvitationStatus::class,
             'offer' => OfferStatus::class,
             'marketplace_order' => MarketplaceOrderStatus::class,
             'seller_order' => SellerOrderStatus::class,

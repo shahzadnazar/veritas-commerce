@@ -62,6 +62,7 @@ use Illuminate\Support\Carbon;
  * @property-read Category|null $category
  * @property-read Brand|null $brand
  * @property-read Collection<int, ProductVariant> $variants
+ * @property-read Collection<int, Offer> $offers
  */
 final class Product extends Model
 {

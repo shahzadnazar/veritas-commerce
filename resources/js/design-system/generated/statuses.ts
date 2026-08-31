@@ -13,6 +13,10 @@ export interface StatusPresentation {
 
 export const STATUS_PRESENTATION = {
     "seller_application": {
+        "draft": {
+            "tone": "inactive",
+            "label": "Draft"
+        },
         "submitted": {
             "tone": "pending",
             "label": "Submitted"
@@ -21,6 +25,10 @@ export const STATUS_PRESENTATION = {
             "tone": "pending",
             "label": "Under review"
         },
+        "changes_requested": {
+            "tone": "pending",
+            "label": "Changes requested"
+        },
         "approved": {
             "tone": "neutral",
             "label": "Approved"
@@ -28,10 +36,6 @@ export const STATUS_PRESENTATION = {
         "rejected": {
             "tone": "critical",
             "label": "Rejected"
-        },
-        "suspended": {
-            "tone": "critical",
-            "label": "Suspended"
         }
     },
     "seller": {
@@ -50,6 +54,24 @@ export const STATUS_PRESENTATION = {
         "closed": {
             "tone": "inactive",
             "label": "Closed"
+        }
+    },
+    "seller_invitation": {
+        "pending": {
+            "tone": "pending",
+            "label": "Pending"
+        },
+        "accepted": {
+            "tone": "neutral",
+            "label": "Accepted"
+        },
+        "revoked": {
+            "tone": "critical",
+            "label": "Revoked"
+        },
+        "expired": {
+            "tone": "inactive",
+            "label": "Expired"
         }
     },
     "offer": {

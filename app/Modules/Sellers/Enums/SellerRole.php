@@ -5,45 +5,96 @@ declare(strict_types=1);
 namespace App\Modules\Sellers\Enums;
 
 /**
- * A user's role within one seller account.
+ * A user's role within one seller organisation.
  *
- * Phase 1 creates only an Owner per seller, but authorisation already asks
- * "which seller is this actor scoped to, and with what role", so adding
- * staff to a store later changes data, not the authorisation model.
+ * Owner is deliberately the only role that can change the team or move
+ * money: those two capabilities are how a compromised staff account turns
+ * into a stolen business, so they stay with the person who owns it.
  */
 enum SellerRole: string
 {
     case Owner = 'owner';
-    case Manager = 'manager';
-    case Staff = 'staff';
+    case Administrator = 'administrator';
+    case CatalogManager = 'catalog_manager';
+    case InventoryManager = 'inventory_manager';
+    case FulfillmentManager = 'fulfillment_manager';
+    case FinanceManager = 'finance_manager';
+    case Viewer = 'viewer';
 
-    public function canManageStore(): bool
+    /** @return array<int, SellerPermission> */
+    public function permissions(): array
+    {
+        return match ($this) {
+            self::Owner => SellerPermission::cases(),
+
+            // Everything operational, but not the team and not the money:
+            // an administrator runs the shop, the owner owns it.
+            self::Administrator => [
+                SellerPermission::StoreManage,
+                SellerPermission::MembersView,
+                SellerPermission::CatalogView,
+                SellerPermission::CatalogManage,
+                SellerPermission::InventoryView,
+                SellerPermission::InventoryManage,
+                SellerPermission::OrdersView,
+                SellerPermission::OrdersManage,
+                SellerPermission::FinanceView,
+            ],
+
+            self::CatalogManager => [
+                SellerPermission::CatalogView,
+                SellerPermission::CatalogManage,
+                SellerPermission::InventoryView,
+            ],
+
+            self::InventoryManager => [
+                SellerPermission::CatalogView,
+                SellerPermission::InventoryView,
+                SellerPermission::InventoryManage,
+                SellerPermission::OrdersView,
+            ],
+
+            self::FulfillmentManager => [
+                SellerPermission::CatalogView,
+                SellerPermission::InventoryView,
+                SellerPermission::OrdersView,
+                SellerPermission::OrdersManage,
+            ],
+
+            self::FinanceManager => [
+                SellerPermission::OrdersView,
+                SellerPermission::FinanceView,
+            ],
+
+            self::Viewer => [
+                SellerPermission::CatalogView,
+                SellerPermission::InventoryView,
+                SellerPermission::OrdersView,
+            ],
+        };
+    }
+
+    public function can(SellerPermission $permission): bool
+    {
+        return in_array($permission, $this->permissions(), true);
+    }
+
+    /** Only the owner may transfer or dissolve the organisation. */
+    public function isOwner(): bool
     {
         return $this === self::Owner;
-    }
-
-    public function canManageOffers(): bool
-    {
-        return in_array($this, [self::Owner, self::Manager, self::Staff], true);
-    }
-
-    public function canFulfilOrders(): bool
-    {
-        return true;
-    }
-
-    public function canRequestPayout(): bool
-    {
-        return $this === self::Owner;
-    }
-
-    public function canViewEarnings(): bool
-    {
-        return in_array($this, [self::Owner, self::Manager], true);
     }
 
     public function label(): string
     {
-        return ucfirst($this->value);
+        return match ($this) {
+            self::Owner => 'Owner',
+            self::Administrator => 'Administrator',
+            self::CatalogManager => 'Catalog manager',
+            self::InventoryManager => 'Inventory manager',
+            self::FulfillmentManager => 'Fulfillment manager',
+            self::FinanceManager => 'Finance manager',
+            self::Viewer => 'Viewer',
+        };
     }
 }

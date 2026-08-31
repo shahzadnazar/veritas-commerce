@@ -8,6 +8,7 @@ use App\Modules\Identity\Enums\AdminPermission;
 use App\Modules\Identity\Enums\AdminRole;
 use App\Support\HasPublicId;
 use Database\Factories\AdminUserFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -52,6 +53,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $two_factor_enrolled_at
+ * @property Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property-read Collection<int, AdminRecoveryCode> $recoveryCodes
  */
 final class AdminUser extends Authenticatable
 {

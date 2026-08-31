@@ -30,7 +30,15 @@ final class SellerApplicationFactory extends Factory
             'contact_name' => $this->faker->name(),
             'contact_email' => $this->faker->safeEmail(),
             'status' => SellerApplicationStatus::Submitted->value,
+            'submitted_at' => now(),
+            'intended_categories' => ['home-kitchen'],
+            'expected_catalogue_type' => 'own_brand',
             'terms_accepted_at' => now(),
         ];
+    }
+
+    public function status(SellerApplicationStatus $status): self
+    {
+        return $this->state(fn (): array => ['status' => $status->value]);
     }
 }

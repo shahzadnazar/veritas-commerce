@@ -7,8 +7,10 @@ namespace App\Modules\Sellers\Models;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Support\HasPublicId;
 use Database\Factories\SellerApplicationFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -80,6 +82,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $decision_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $website
+ * @property array<string, mixed>|null $intended_categories
+ * @property string|null $expected_catalogue_type
+ * @property string|null $operational_notes
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $review_started_at
+ * @property int|null $reviewer_admin_id
+ * @property string|null $internal_notes
+ * @property int|null $seller_account_id
+ * @property-read Collection<int, SellerApplicationEvent> $events
+ * @property-read Collection<int, SellerApplicationDocument> $documents
  */
 final class SellerApplication extends Model
 {
@@ -92,11 +105,24 @@ final class SellerApplication extends Model
 
     protected $fillable = [
         'reference', 'user_id', 'legal_name', 'trading_name', 'business_type', 'tax_id',
+        'website', 'intended_categories', 'expected_catalogue_type', 'operational_notes',
         'address_line1', 'address_line2', 'address_city', 'address_state',
         'address_postcode', 'address_country', 'contact_name', 'contact_role',
         'contact_email', 'contact_phone', 'primary_category_id', 'planned_listings',
         'existing_site', 'blurb', 'status', 'terms_accepted_at',
     ];
+
+    /** @return HasMany<SellerApplicationEvent, $this> */
+    public function events(): HasMany
+    {
+        return $this->hasMany(SellerApplicationEvent::class);
+    }
+
+    /** @return HasMany<SellerApplicationDocument, $this> */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(SellerApplicationDocument::class);
+    }
 
     protected function casts(): array
     {
@@ -105,6 +131,9 @@ final class SellerApplication extends Model
             'tax_id' => 'encrypted',
             'terms_accepted_at' => 'datetime',
             'decided_at' => 'datetime',
+            'submitted_at' => 'datetime',
+            'review_started_at' => 'datetime',
+            'intended_categories' => 'array',
         ];
     }
 }

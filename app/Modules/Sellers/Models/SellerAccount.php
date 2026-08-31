@@ -63,6 +63,7 @@ final class SellerAccount extends Model
     protected $table = 'seller_accounts';
 
     protected $fillable = [
+        'application_id',
         'legal_name',
         'business_type',
         'tax_id',

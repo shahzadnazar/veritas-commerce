@@ -48,6 +48,10 @@ use Illuminate\Support\Carbon;
  * @property bool $is_open
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $timezone
+ * @property string|null $business_city
+ * @property string|null $business_state
+ * @property string|null $business_country
  * @property-read SellerAccount|null $sellerAccount
  */
 final class Store extends Model

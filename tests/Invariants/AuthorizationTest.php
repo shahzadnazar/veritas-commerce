@@ -8,6 +8,7 @@ use App\Modules\Identity\Enums\AdminPermission;
 use App\Modules\Identity\Enums\AdminRole;
 use App\Modules\Identity\Models\AdminUser;
 use App\Modules\Identity\Models\User;
+use App\Modules\Sellers\Enums\SellerPermission;
 use App\Modules\Sellers\Enums\SellerRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -107,21 +108,80 @@ final class AuthorizationTest extends TestCase
     }
 
     #[Test]
-    public function seller_roles_gate_money_and_store_settings(): void
+    public function only_the_owner_holds_the_team_and_the_money(): void
     {
-        $this->assertTrue(SellerRole::Owner->canRequestPayout());
-        $this->assertFalse(SellerRole::Manager->canRequestPayout());
-        $this->assertFalse(SellerRole::Staff->canRequestPayout());
+        // These two capabilities are how a compromised staff account turns
+        // into a stolen business, so they stay with the owner.
+        foreach ([SellerPermission::MembersManage, SellerPermission::PayoutsRequest] as $permission) {
+            $this->assertTrue(SellerRole::Owner->can($permission));
 
-        $this->assertTrue(SellerRole::Owner->canManageStore());
-        $this->assertFalse(SellerRole::Staff->canManageStore());
+            foreach (SellerRole::cases() as $role) {
+                if ($role === SellerRole::Owner) {
+                    continue;
+                }
 
-        $this->assertTrue(SellerRole::Manager->canViewEarnings());
-        $this->assertFalse(SellerRole::Staff->canViewEarnings());
+                $this->assertFalse($role->can($permission), "{$role->value} must not hold {$permission->value}.");
+            }
+        }
+    }
 
-        // Everyone attached to a store can pack and ship — that is the job.
-        foreach (SellerRole::cases() as $role) {
-            $this->assertTrue($role->canFulfilOrders());
+    #[Test]
+    public function an_administrator_runs_the_shop_but_does_not_own_it(): void
+    {
+        $administrator = SellerRole::Administrator;
+
+        $this->assertTrue($administrator->can(SellerPermission::StoreManage));
+        $this->assertTrue($administrator->can(SellerPermission::CatalogManage));
+        $this->assertTrue($administrator->can(SellerPermission::OrdersManage));
+        $this->assertTrue($administrator->can(SellerPermission::FinanceView));
+
+        $this->assertFalse($administrator->can(SellerPermission::MembersManage));
+        $this->assertFalse($administrator->can(SellerPermission::PayoutsRequest));
+    }
+
+    #[Test]
+    public function a_viewer_holds_no_write_capability(): void
+    {
+        $writes = [
+            SellerPermission::StoreManage,
+            SellerPermission::MembersManage,
+            SellerPermission::CatalogManage,
+            SellerPermission::InventoryManage,
+            SellerPermission::OrdersManage,
+            SellerPermission::PayoutsRequest,
+        ];
+
+        foreach ($writes as $permission) {
+            $this->assertFalse(SellerRole::Viewer->can($permission), "A viewer must not hold {$permission->value}.");
+        }
+
+        $this->assertTrue(SellerRole::Viewer->can(SellerPermission::CatalogView));
+        $this->assertTrue(SellerRole::Viewer->can(SellerPermission::OrdersView));
+    }
+
+    #[Test]
+    public function each_specialist_role_is_scoped_to_its_own_area(): void
+    {
+        $this->assertTrue(SellerRole::CatalogManager->can(SellerPermission::CatalogManage));
+        $this->assertFalse(SellerRole::CatalogManager->can(SellerPermission::OrdersManage));
+        $this->assertFalse(SellerRole::CatalogManager->can(SellerPermission::FinanceView));
+
+        $this->assertTrue(SellerRole::InventoryManager->can(SellerPermission::InventoryManage));
+        $this->assertFalse(SellerRole::InventoryManager->can(SellerPermission::CatalogManage));
+
+        $this->assertTrue(SellerRole::FulfillmentManager->can(SellerPermission::OrdersManage));
+        $this->assertFalse(SellerRole::FulfillmentManager->can(SellerPermission::InventoryManage));
+
+        $this->assertTrue(SellerRole::FinanceManager->can(SellerPermission::FinanceView));
+        $this->assertFalse(SellerRole::FinanceManager->can(SellerPermission::CatalogManage));
+        $this->assertFalse(SellerRole::FinanceManager->can(SellerPermission::PayoutsRequest));
+    }
+
+    #[Test]
+    public function the_owner_holds_every_seller_capability(): void
+    {
+        foreach (SellerPermission::cases() as $permission) {
+            $this->assertTrue(SellerRole::Owner->can($permission));
         }
     }
 
