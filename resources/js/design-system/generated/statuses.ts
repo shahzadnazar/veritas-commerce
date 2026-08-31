@@ -12,344 +12,347 @@ export interface StatusPresentation {
 }
 
 export const STATUS_PRESENTATION = {
-    seller_application: {
-        submitted: {
-            tone: 'pending',
-            label: 'Submitted',
+    "seller_application": {
+        "submitted": {
+            "tone": "pending",
+            "label": "Submitted"
         },
-        under_review: {
-            tone: 'pending',
-            label: 'Under review',
+        "under_review": {
+            "tone": "pending",
+            "label": "Under review"
         },
-        approved: {
-            tone: 'neutral',
-            label: 'Approved',
+        "approved": {
+            "tone": "neutral",
+            "label": "Approved"
         },
-        rejected: {
-            tone: 'critical',
-            label: 'Rejected',
+        "rejected": {
+            "tone": "critical",
+            "label": "Rejected"
         },
-        suspended: {
-            tone: 'critical',
-            label: 'Suspended',
-        },
+        "suspended": {
+            "tone": "critical",
+            "label": "Suspended"
+        }
     },
-    seller: {
-        pending: {
-            tone: 'pending',
-            label: 'Pending',
+    "seller": {
+        "pending": {
+            "tone": "pending",
+            "label": "Pending"
         },
-        approved: {
-            tone: 'neutral',
-            label: 'Approved',
+        "approved": {
+            "tone": "neutral",
+            "label": "Approved"
         },
-        suspended: {
-            tone: 'critical',
-            label: 'Suspended',
+        "suspended": {
+            "tone": "critical",
+            "label": "Suspended"
         },
-        closed: {
-            tone: 'inactive',
-            label: 'Closed',
-        },
+        "closed": {
+            "tone": "inactive",
+            "label": "Closed"
+        }
     },
-    offer: {
-        draft: {
-            tone: 'inactive',
-            label: 'Draft',
+    "offer": {
+        "draft": {
+            "tone": "inactive",
+            "label": "Draft"
         },
-        pending_review: {
-            tone: 'pending',
-            label: 'Pending review',
+        "pending_review": {
+            "tone": "pending",
+            "label": "Pending review"
         },
-        approved: {
-            tone: 'neutral',
-            label: 'Approved',
+        "approved": {
+            "tone": "neutral",
+            "label": "Approved"
         },
-        published: {
-            tone: 'neutral',
-            label: 'Published',
+        "published": {
+            "tone": "neutral",
+            "label": "Published"
         },
-        rejected: {
-            tone: 'critical',
-            label: 'Rejected',
+        "rejected": {
+            "tone": "critical",
+            "label": "Rejected"
         },
-        suspended: {
-            tone: 'critical',
-            label: 'Suspended',
+        "suspended": {
+            "tone": "critical",
+            "label": "Suspended"
         },
-        archived: {
-            tone: 'inactive',
-            label: 'Archived',
-        },
+        "archived": {
+            "tone": "inactive",
+            "label": "Archived"
+        }
     },
-    marketplace_order: {
-        pending_payment: {
-            tone: 'pending',
-            label: 'Pending payment',
+    "marketplace_order": {
+        "pending_payment": {
+            "tone": "pending",
+            "label": "Pending payment"
         },
-        paid: {
-            tone: 'neutral',
-            label: 'Paid',
+        "paid": {
+            "tone": "neutral",
+            "label": "Paid"
         },
-        processing: {
-            tone: 'pending',
-            label: 'Processing',
+        "processing": {
+            "tone": "pending",
+            "label": "Processing"
         },
-        partially_shipped: {
-            tone: 'pending',
-            label: 'Partially shipped',
+        "partially_shipped": {
+            "tone": "pending",
+            "label": "Partially shipped"
         },
-        shipped: {
-            tone: 'pending',
-            label: 'Shipped',
+        "shipped": {
+            "tone": "pending",
+            "label": "Shipped"
         },
-        partially_delivered: {
-            tone: 'pending',
-            label: 'Partially delivered',
+        "partially_delivered": {
+            "tone": "pending",
+            "label": "Partially delivered"
         },
-        delivered: {
-            tone: 'neutral',
-            label: 'Delivered',
+        "delivered": {
+            "tone": "neutral",
+            "label": "Delivered"
         },
-        completed: {
-            tone: 'neutral',
-            label: 'Completed',
+        "completed": {
+            "tone": "neutral",
+            "label": "Completed"
         },
-        cancelled: {
-            tone: 'inactive',
-            label: 'Cancelled',
+        "cancelled": {
+            "tone": "inactive",
+            "label": "Cancelled"
         },
-        partially_refunded: {
-            tone: 'critical',
-            label: 'Partially refunded',
+        "partially_refunded": {
+            "tone": "critical",
+            "label": "Partially refunded"
         },
-        refunded: {
-            tone: 'critical',
-            label: 'Refunded',
-        },
+        "refunded": {
+            "tone": "critical",
+            "label": "Refunded"
+        }
     },
-    seller_order: {
-        pending_payment: {
-            tone: 'pending',
-            label: 'Pending payment',
+    "seller_order": {
+        "pending_payment": {
+            "tone": "pending",
+            "label": "Pending payment"
         },
-        paid: {
-            tone: 'neutral',
-            label: 'Paid',
+        "paid": {
+            "tone": "neutral",
+            "label": "Paid"
         },
-        confirmed: {
-            tone: 'pending',
-            label: 'Confirmed',
+        "confirmed": {
+            "tone": "pending",
+            "label": "Confirmed"
         },
-        processing: {
-            tone: 'pending',
-            label: 'Processing',
+        "processing": {
+            "tone": "pending",
+            "label": "Processing"
         },
-        packed: {
-            tone: 'pending',
-            label: 'Packed',
+        "packed": {
+            "tone": "pending",
+            "label": "Packed"
         },
-        shipped: {
-            tone: 'pending',
-            label: 'Shipped',
+        "shipped": {
+            "tone": "pending",
+            "label": "Shipped"
         },
-        delivered: {
-            tone: 'neutral',
-            label: 'Delivered',
+        "delivered": {
+            "tone": "neutral",
+            "label": "Delivered"
         },
-        completed: {
-            tone: 'neutral',
-            label: 'Completed',
+        "completed": {
+            "tone": "neutral",
+            "label": "Completed"
         },
-        cancelled: {
-            tone: 'inactive',
-            label: 'Cancelled',
+        "cancelled": {
+            "tone": "inactive",
+            "label": "Cancelled"
         },
-        partially_refunded: {
-            tone: 'critical',
-            label: 'Partially refunded',
+        "partially_refunded": {
+            "tone": "critical",
+            "label": "Partially refunded"
         },
-        refunded: {
-            tone: 'critical',
-            label: 'Refunded',
+        "refunded": {
+            "tone": "critical",
+            "label": "Refunded"
         },
-        disputed: {
-            tone: 'critical',
-            label: 'Disputed',
-        },
+        "disputed": {
+            "tone": "critical",
+            "label": "Disputed"
+        }
     },
-    payment: {
-        pending: {
-            tone: 'pending',
-            label: 'Pending',
+    "payment": {
+        "pending": {
+            "tone": "pending",
+            "label": "Pending"
         },
-        authorized: {
-            tone: 'neutral',
-            label: 'Authorized',
+        "authorized": {
+            "tone": "neutral",
+            "label": "Authorized"
         },
-        captured: {
-            tone: 'neutral',
-            label: 'Captured',
+        "captured": {
+            "tone": "neutral",
+            "label": "Captured"
         },
-        failed: {
-            tone: 'critical',
-            label: 'Failed',
+        "failed": {
+            "tone": "critical",
+            "label": "Failed"
         },
-        refunded: {
-            tone: 'critical',
-            label: 'Refunded',
+        "refunded": {
+            "tone": "critical",
+            "label": "Refunded"
         },
-        partially_refunded: {
-            tone: 'critical',
-            label: 'Partially refunded',
-        },
+        "partially_refunded": {
+            "tone": "critical",
+            "label": "Partially refunded"
+        }
     },
-    payout: {
-        requested: {
-            tone: 'pending',
-            label: 'Requested',
+    "payout": {
+        "requested": {
+            "tone": "pending",
+            "label": "Requested"
         },
-        under_review: {
-            tone: 'pending',
-            label: 'Under review',
+        "under_review": {
+            "tone": "pending",
+            "label": "Under review"
         },
-        approved: {
-            tone: 'neutral',
-            label: 'Approved',
+        "approved": {
+            "tone": "neutral",
+            "label": "Approved"
         },
-        rejected: {
-            tone: 'critical',
-            label: 'Rejected',
+        "rejected": {
+            "tone": "critical",
+            "label": "Rejected"
         },
-        processing: {
-            tone: 'pending',
-            label: 'Processing',
+        "processing": {
+            "tone": "pending",
+            "label": "Processing"
         },
-        paid: {
-            tone: 'neutral',
-            label: 'Paid',
+        "paid": {
+            "tone": "neutral",
+            "label": "Paid"
         },
-        failed: {
-            tone: 'critical',
-            label: 'Failed',
+        "failed": {
+            "tone": "critical",
+            "label": "Failed"
         },
-        cancelled: {
-            tone: 'inactive',
-            label: 'Cancelled',
-        },
+        "cancelled": {
+            "tone": "inactive",
+            "label": "Cancelled"
+        }
     },
-    ledger_entry_status: {
-        pending: {
-            tone: 'pending',
-            label: 'Pending',
+    "ledger_entry_status": {
+        "pending": {
+            "tone": "pending",
+            "label": "Pending"
         },
-        clearing: {
-            tone: 'pending',
-            label: 'Clearing',
+        "clearing": {
+            "tone": "pending",
+            "label": "Clearing"
         },
-        available: {
-            tone: 'neutral',
-            label: 'Available',
+        "available": {
+            "tone": "neutral",
+            "label": "Available"
         },
-        reserved_for_payout: {
-            tone: 'pending',
-            label: 'Reserved for payout',
+        "reserved_for_payout": {
+            "tone": "pending",
+            "label": "Reserved for payout"
         },
-        paid: {
-            tone: 'neutral',
-            label: 'Paid',
+        "paid": {
+            "tone": "neutral",
+            "label": "Paid"
         },
-        reversed: {
-            tone: 'critical',
-            label: 'Reversed',
-        },
+        "reversed": {
+            "tone": "critical",
+            "label": "Reversed"
+        }
     },
-    ledger_entry_type: {
-        sale_earning: {
-            tone: 'neutral',
-            label: 'Sale earning',
+    "ledger_entry_type": {
+        "sale_earning": {
+            "tone": "neutral",
+            "label": "Sale earning"
         },
-        commission: {
-            tone: 'inactive',
-            label: 'Commission',
+        "commission": {
+            "tone": "inactive",
+            "label": "Commission"
         },
-        refund_reversal: {
-            tone: 'inactive',
-            label: 'Refund reversal',
+        "refund_reversal": {
+            "tone": "inactive",
+            "label": "Refund reversal"
         },
-        adjustment: {
-            tone: 'critical',
-            label: 'Adjustment',
+        "adjustment": {
+            "tone": "critical",
+            "label": "Adjustment"
         },
-        payout_reservation: {
-            tone: 'pending',
-            label: 'Payout reservation',
+        "payout_reservation": {
+            "tone": "pending",
+            "label": "Payout reservation"
         },
-        payout: {
-            tone: 'inactive',
-            label: 'Payout',
+        "payout": {
+            "tone": "inactive",
+            "label": "Payout"
         },
-        reversal: {
-            tone: 'neutral',
-            label: 'Reversal',
-        },
+        "reversal": {
+            "tone": "neutral",
+            "label": "Reversal"
+        }
     },
-    inventory_movement_reason: {
-        opening_stock: {
-            tone: 'neutral',
-            label: 'Opening stock',
+    "inventory_movement_reason": {
+        "opening_stock": {
+            "tone": "neutral",
+            "label": "Opening stock"
         },
-        restock_received: {
-            tone: 'neutral',
-            label: 'Restock received',
+        "restock_received": {
+            "tone": "neutral",
+            "label": "Restock received"
         },
-        count_correction: {
-            tone: 'pending',
-            label: 'Count correction',
+        "count_correction": {
+            "tone": "pending",
+            "label": "Count correction"
         },
-        damaged: {
-            tone: 'critical',
-            label: 'Damaged',
+        "damaged": {
+            "tone": "critical",
+            "label": "Damaged"
         },
-        returned_to_supplier: {
-            tone: 'critical',
-            label: 'Returned to supplier',
+        "returned_to_supplier": {
+            "tone": "critical",
+            "label": "Returned to supplier"
         },
-        manual_edit: {
-            tone: 'pending',
-            label: 'Manual edit',
+        "manual_edit": {
+            "tone": "pending",
+            "label": "Manual edit"
         },
-        sale_completed: {
-            tone: 'inactive',
-            label: 'Sale completed',
+        "sale_completed": {
+            "tone": "inactive",
+            "label": "Sale completed"
         },
-        order_cancelled: {
-            tone: 'neutral',
-            label: 'Order cancelled',
+        "order_cancelled": {
+            "tone": "neutral",
+            "label": "Order cancelled"
         },
-        refund_restock: {
-            tone: 'neutral',
-            label: 'Refund restock',
-        },
+        "refund_restock": {
+            "tone": "neutral",
+            "label": "Refund restock"
+        }
     },
-    inventory_reservation: {
-        held: {
-            tone: 'pending',
-            label: 'Held',
+    "inventory_reservation": {
+        "held": {
+            "tone": "pending",
+            "label": "Held"
         },
-        consumed: {
-            tone: 'neutral',
-            label: 'Consumed',
+        "consumed": {
+            "tone": "neutral",
+            "label": "Consumed"
         },
-        released: {
-            tone: 'inactive',
-            label: 'Released',
+        "released": {
+            "tone": "inactive",
+            "label": "Released"
         },
-        expired: {
-            tone: 'critical',
-            label: 'Expired',
-        },
-    },
-} as const satisfies Record<string, Record<string, StatusPresentation>>;
+        "expired": {
+            "tone": "critical",
+            "label": "Expired"
+        }
+    }
+} as const satisfies Record<
+    string,
+    Record<string, StatusPresentation>
+>;
 
 export type StatusDomain = keyof typeof STATUS_PRESENTATION;

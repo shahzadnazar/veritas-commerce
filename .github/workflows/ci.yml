@@ -1,0 +1,133 @@
+name: CI
+
+on:
+    push:
+        branches: ['**']
+    pull_request:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    backend:
+        name: Backend
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_DB: veritas_test
+                    POSTGRES_USER: veritas
+                    POSTGRES_PASSWORD: veritas
+                ports: ['5432:5432']
+                options: >-
+                    --health-cmd="pg_isready -U veritas"
+                    --health-interval=5s
+                    --health-timeout=5s
+                    --health-retries=10
+
+            redis:
+                image: redis:7
+                ports: ['6379:6379']
+                options: >-
+                    --health-cmd="redis-cli ping"
+                    --health-interval=5s
+                    --health-timeout=3s
+                    --health-retries=10
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: pdo_pgsql, pgsql, redis, intl, bcmath, zip
+                  coverage: none
+
+            - name: Cache Composer
+              uses: actions/cache@v4
+              with:
+                  path: ~/.composer/cache
+                  key: composer-${{ hashFiles('composer.lock') }}
+
+            - run: composer install --no-interaction --prefer-dist --no-progress
+
+            - name: Prepare environment
+              run: |
+                  cp .env.example .env
+                  php artisan key:generate
+
+            # Migrations must run cleanly on an empty database, every time.
+            - name: Migrate a clean database
+              run: php artisan migrate:fresh --seed --force
+              env:
+                  DB_CONNECTION: pgsql
+                  DB_HOST: 127.0.0.1
+                  DB_DATABASE: veritas_test
+                  DB_USERNAME: veritas
+                  DB_PASSWORD: veritas
+
+            - name: Code style
+              run: ./vendor/bin/pint --test
+
+            # The architectural invariants run first and on their own: if
+            # money or tenant isolation is broken, nothing else in the suite
+            # is interesting.
+            - name: Architectural invariants
+              run: ./vendor/bin/phpunit --testsuite=Invariants
+
+            - name: Full test suite
+              run: ./vendor/bin/phpunit
+
+    frontend:
+        name: Frontend
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Type check
+              run: npm run typecheck
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Format check
+              run: npm run format:check
+
+            - name: Production build
+              run: npm run build:ssr
+
+    generated-files:
+        name: Generated files are current
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: pdo_pgsql, intl, bcmath
+                  coverage: none
+
+            - run: composer install --no-interaction --prefer-dist --no-progress
+
+            - run: |
+                  cp .env.example .env
+                  php artisan key:generate
+
+            # A status added to a PHP enum without regenerating the
+            # TypeScript would render an unstyled badge in production. This
+            # fails the build instead.
+            - name: Status presentation map is up to date
+              run: php artisan statuses:export --check

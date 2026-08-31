@@ -1,0 +1,9 @@
+# Machine-generated: written by `php artisan statuses:export` and verified
+# byte-for-byte in CI. Formatting it by hand would break that comparison.
+resources/js/design-system/generated/
+
+# Build output and vendor code.
+public/build
+node_modules
+vendor
+bootstrap/ssr
