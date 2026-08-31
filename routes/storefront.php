@@ -3,16 +3,49 @@
 declare(strict_types=1);
 
 use App\Modules\Catalog\Http\Controllers\HomeController;
+use App\Modules\Identity\Http\Controllers\EmailVerificationController;
+use App\Modules\Identity\Http\Controllers\LoginController;
+use App\Modules\Identity\Http\Controllers\PasswordResetController;
+use App\Modules\Identity\Http\Controllers\ProfileController;
+use App\Modules\Identity\Http\Controllers\RegisterController;
+use App\Modules\Stores\Http\Controllers\PublicStoreController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
  * The customer storefront — server-rendered, indexable, public.
- *
- * M0 ships the shell. Catalogue, cart and checkout arrive in M2 and M3.
  */
 Route::get('/', HomeController::class)->name('home');
 
-// The sign-in shell. The credential flow itself is M1; the named route
-// exists now because the seller portal's auth middleware redirects to it.
-Route::get('/login', fn () => Inertia::render('Auth/Login'))->name('login');
+// The public seller store. Only an eligible store resolves; everything
+// else is a 404 rather than an empty shell, so a suspended store leaves no
+// trace in search results.
+Route::get('/stores/{slug}', PublicStoreController::class)->name('stores.show');
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('register', [RegisterController::class, 'show'])->name('register');
+    Route::post('register', [RegisterController::class, 'store']);
+
+    Route::get('login', [LoginController::class, 'show'])->name('login');
+    Route::post('login', [LoginController::class, 'store']);
+
+    Route::get('forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetController::class, 'email'])->name('password.email');
+    Route::get('reset-password/{token}', [PasswordResetController::class, 'reset'])->name('password.reset');
+    Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+});
+
+Route::middleware('auth')->group(function (): void {
+    Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('verify-email/send', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+
+    Route::get('account', [ProfileController::class, 'show'])->name('account');
+    Route::put('account', [ProfileController::class, 'update'])->name('account.update');
+    Route::put('account/password', [ProfileController::class, 'updatePassword'])->name('account.password');
+});

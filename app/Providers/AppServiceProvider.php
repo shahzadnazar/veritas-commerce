@@ -9,6 +9,7 @@ use App\Modules\Payments\Gateways\FakePaymentGateway;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use RuntimeException;
 
 final class AppServiceProvider extends ServiceProvider
@@ -38,6 +39,19 @@ final class AppServiceProvider extends ServiceProvider
             throw new RuntimeException(
                 'Declare $model explicitly on '.$factory::class.'; module namespaces cannot be guessed.'
             );
+        });
+
+        // One password policy for the whole application, so registration,
+        // reset and profile change cannot drift apart.
+        //
+        // The breach check queries the Pwned Passwords range API using
+        // k-anonymity, so the password itself never leaves this server —
+        // but it is still a network call, and a test suite must not make
+        // one. It is enabled everywhere except testing.
+        Password::defaults(function (): Password {
+            $rule = Password::min(8);
+
+            return $this->app->runningUnitTests() ? $rule : $rule->uncompromised();
         });
 
         // A lazy load is a performance bug that reaches production as an N+1.

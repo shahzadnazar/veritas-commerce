@@ -25,4 +25,9 @@ final class UserFactory extends Factory
             'email_verified_at' => now(),
         ];
     }
+
+    public function unverified(): self
+    {
+        return $this->state(fn (): array => ['email_verified_at' => null]);
+    }
 }

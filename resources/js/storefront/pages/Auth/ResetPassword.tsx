@@ -1,32 +1,27 @@
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { StorefrontLayout } from '../../../design-system/layout/StorefrontLayout';
 import { AuthCard } from '../../../design-system/patterns/AuthCard';
 import { Button } from '../../../design-system/primitives/Button';
 import { Field, Input } from '../../../design-system/primitives/Field';
 import type { SharedPageProps } from '../../../shared/types';
 
-export default function Login() {
-    const { status } = usePage<SharedPageProps & { status?: string }>().props;
-    const form = useForm({ email: '', password: '', remember: false });
+interface ResetPasswordProps extends SharedPageProps {
+    token: string;
+    email: string;
+}
+
+export default function ResetPassword() {
+    const { token, email } = usePage<ResetPasswordProps>().props;
+    const form = useForm({ token, email, password: '', password_confirmation: '' });
 
     return (
         <StorefrontLayout>
-            <AuthCard
-                title="Welcome back"
-                lede="Sign in to track orders, save addresses and check out faster."
-                status={status}
-                footer={
-                    <>
-                        New here? <Link href="/register" className="underline">Create an account</Link> — it takes
-                        about a minute.
-                    </>
-                }
-            >
+            <AuthCard title="Choose a new password" lede="This link works once, and expires after 60 minutes.">
                 <form
                     className="flex flex-col gap-4"
                     onSubmit={(event) => {
                         event.preventDefault();
-                        form.post('/login');
+                        form.post('/reset-password');
                     }}
                 >
                     <Field label="Email" error={form.errors.email}>
@@ -43,12 +38,16 @@ export default function Login() {
                         )}
                     </Field>
 
-                    <Field label="Password" error={form.errors.password}>
+                    <Field
+                        label="New password"
+                        error={form.errors.password}
+                        hint="At least eight characters, and not one that has appeared in a known breach."
+                    >
                         {({ id, describedBy, invalid }) => (
                             <Input
                                 id={id}
                                 type="password"
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 aria-describedby={describedBy}
                                 invalid={invalid}
                                 value={form.data.password}
@@ -57,22 +56,20 @@ export default function Login() {
                         )}
                     </Field>
 
-                    <div className="flex items-center justify-between text-[13px]">
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={form.data.remember}
-                                onChange={(event) => form.setData('remember', event.target.checked)}
+                    <Field label="Confirm new password">
+                        {({ id }) => (
+                            <Input
+                                id={id}
+                                type="password"
+                                autoComplete="new-password"
+                                value={form.data.password_confirmation}
+                                onChange={(event) => form.setData('password_confirmation', event.target.value)}
                             />
-                            Stay signed in
-                        </label>
-                        <Link href="/forgot-password" className="underline">
-                            Forgot your password?
-                        </Link>
-                    </div>
+                        )}
+                    </Field>
 
-                    <Button type="submit" variant="primary" loading={form.processing} loadingLabel="Signing in…">
-                        Sign in
+                    <Button type="submit" variant="primary" loading={form.processing} loadingLabel="Saving…">
+                        Set new password
                     </Button>
                 </form>
             </AuthCard>
