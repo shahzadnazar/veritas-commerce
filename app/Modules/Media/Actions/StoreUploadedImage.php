@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Media\Actions;
 
 use App\Modules\Media\Contracts\MediaStore;
+use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -58,7 +59,16 @@ final class StoreUploadedImage implements MediaStore
 
     public function url(string $disk, string $path): string
     {
-        return Storage::disk($disk)->url($path);
+        $filesystem = Storage::disk($disk);
+
+        // A disk that cannot address its own files is not usable as a
+        // media disk — better to say so here than to hand a page a broken
+        // image source.
+        if (! $filesystem instanceof Cloud) {
+            throw new RuntimeException("The {$disk} disk cannot produce public URLs.");
+        }
+
+        return $filesystem->url($path);
     }
 
     public function delete(string $disk, string $path): void

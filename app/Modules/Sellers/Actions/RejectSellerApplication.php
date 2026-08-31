@@ -7,6 +7,7 @@ namespace App\Modules\Sellers\Actions;
 use App\Modules\Audit\Actions\RecordAuditEvent;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Models\SellerApplication;
+use App\Modules\Sellers\Notifications\SellerApplicationDecided;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -45,6 +46,16 @@ final class RejectSellerApplication
                 subjectId: $application->id,
                 reason: $reason,
             );
+
+            // After commit, so a rolled-back decision never reaches an
+            // inbox — an email cannot be recalled, a transaction can.
+            DB::afterCommit(function () use ($rejected, $reason): void {
+                $rejected->applicant()->first()?->notify(new SellerApplicationDecided(
+                    reference: $rejected->reference,
+                    status: SellerApplicationStatus::Rejected,
+                    reason: $reason,
+                ));
+            });
 
             return $rejected;
         });

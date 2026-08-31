@@ -7,17 +7,15 @@ namespace App\Modules\AdminPortal\Http\Controllers;
 use App\Modules\Audit\Actions\RecordAuditEvent;
 use App\Modules\Identity\Actions\VerifyTwoFactorChallenge;
 use App\Modules\Identity\Models\AdminUser;
-use Illuminate\Contracts\Auth\StatefulGuard;
+use App\Support\Guards;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use RuntimeException;
 
 /**
  * Staff sign-in.
@@ -86,13 +84,7 @@ final class AdminLoginController
 
         RateLimiter::clear($this->throttleKey($request, $credentials['email']));
 
-        $guard = Auth::guard('admin');
-
-        if (! $guard instanceof StatefulGuard) {
-            throw new RuntimeException('The admin guard must be session-based.');
-        }
-
-        $guard->login($admin);
+        Guards::session('admin')->login($admin);
 
         // Rotate the session id so a token captured before sign-in is
         // worthless afterwards.
@@ -124,7 +116,7 @@ final class AdminLoginController
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('admin')->logout();
+        Guards::session('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

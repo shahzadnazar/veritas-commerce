@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Controllers;
 
+use App\Support\Guards;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -82,7 +82,7 @@ final class PasswordResetController
 
         // Every other session for this account is invalidated by the new
         // remember token; sign the user in fresh on this one.
-        Auth::guard('web')->logout();
+        Guards::session('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

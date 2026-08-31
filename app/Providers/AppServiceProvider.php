@@ -6,8 +6,11 @@ namespace App\Providers;
 
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Gateways\FakePaymentGateway;
+use App\Modules\Sellers\Events\SellerApproved;
+use App\Modules\Sellers\Listeners\NotifyApprovedSeller;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use RuntimeException;
@@ -28,6 +31,10 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Domain events are wired here rather than discovered, so the set
+        // of listeners is readable in one place.
+        Event::listen(SellerApproved::class, NotifyApprovedSeller::class);
+
         // Models live in module namespaces (App\Modules\Orders\Models\...),
         // so the default factory guess does not apply. Factories stay in one
         // flat namespace keyed by class basename.

@@ -7,6 +7,7 @@ namespace App\Modules\Sellers\Actions;
 use App\Modules\Audit\Actions\RecordAuditEvent;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Models\SellerApplication;
+use App\Modules\Sellers\Notifications\SellerApplicationDecided;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -42,6 +43,17 @@ final class RequestApplicationChanges
                 subjectId: $application->id,
                 reason: $reason,
             );
+
+            // The applicant is told what to change, verbatim: a request
+            // for changes that does not say what to change is a rejection
+            // in slow motion.
+            DB::afterCommit(function () use ($updated, $reason): void {
+                $updated->applicant()->first()?->notify(new SellerApplicationDecided(
+                    reference: $updated->reference,
+                    status: SellerApplicationStatus::ChangesRequested,
+                    reason: $reason,
+                ));
+            });
 
             return $updated;
         });

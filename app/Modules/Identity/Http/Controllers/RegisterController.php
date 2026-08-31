@@ -6,8 +6,8 @@ namespace App\Modules\Identity\Http\Controllers;
 
 use App\Modules\Identity\Actions\RegisterCustomer;
 use App\Modules\Identity\Http\Requests\RegisterRequest;
+use App\Support\Guards;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +24,7 @@ final class RegisterController
     {
         $user = ($this->register)($request->validated());
 
-        Auth::guard('web')->login($user);
+        Guards::session('web')->login($user);
         $request->session()->regenerate();
 
         return redirect()->route('verification.notice');

@@ -44,7 +44,11 @@ final class SubmitApplicationRequest extends FormRequest
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param  array<int, string>|int|string|null  $key
+     * @param  mixed  $default
+     * @return array<string, mixed>
+     */
     public function validated($key = null, $default = null): array
     {
         $data = parent::validated();

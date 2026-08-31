@@ -7,6 +7,7 @@ namespace App\Modules\Sellers\Actions;
 use App\Modules\Audit\Actions\RecordAuditEvent;
 use App\Modules\Identity\Models\User;
 use App\Modules\Sellers\Enums\InvitationStatus;
+use App\Modules\Sellers\Exceptions\InvitationExpired;
 use App\Modules\Sellers\Models\SellerInvitation;
 use App\Modules\Sellers\Models\SellerMembership;
 use Illuminate\Support\Carbon;
@@ -27,6 +28,23 @@ final class AcceptSellerInvitation
 
     public function __invoke(string $publicId, string $token, User $user): SellerMembership
     {
+        try {
+            return $this->redeem($publicId, $token, $user);
+        } catch (InvitationExpired $expired) {
+            // The refusal rolled its own transaction back, so the expiry is
+            // recorded here, outside it. Without this the row stays Pending
+            // and every later attempt re-discovers the same lapse.
+            SellerInvitation::query()
+                ->where('public_id', $publicId)
+                ->where('status', InvitationStatus::Pending->value)
+                ->update(['status' => InvitationStatus::Expired->value]);
+
+            throw new RuntimeException($expired->getMessage());
+        }
+    }
+
+    private function redeem(string $publicId, string $token, User $user): SellerMembership
+    {
         return DB::transaction(function () use ($publicId, $token, $user): SellerMembership {
             $invitation = SellerInvitation::query()
                 ->where('public_id', $publicId)
@@ -38,9 +56,7 @@ final class AcceptSellerInvitation
             }
 
             if ($invitation->hasExpired()) {
-                $invitation->update(['status' => InvitationStatus::Expired->value]);
-
-                throw new RuntimeException('That invitation has expired. Ask for a new one.');
+                throw new InvitationExpired('That invitation has expired. Ask for a new one.');
             }
 
             if (! $invitation->status->isRedeemable()) {

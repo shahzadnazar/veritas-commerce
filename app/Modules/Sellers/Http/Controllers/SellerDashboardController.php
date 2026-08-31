@@ -24,7 +24,7 @@ final class SellerDashboardController
         $membership = CurrentSeller::membership();
         $seller = $membership?->sellerAccount;
 
-        abort_if($seller === null || $membership === null, 404);
+        abort_if($seller === null, 404);
 
         $store = Store::query()->where('seller_account_id', $seller->id)->first();
 
@@ -52,7 +52,7 @@ final class SellerDashboardController
             [
                 'key' => 'team',
                 'label' => 'Invite the people who will run the store',
-                'done' => $membership->sellerAccount->memberships()->count() > 1,
+                'done' => $seller->memberships()->count() > 1,
                 'href' => '/seller/team',
             ],
         ];
@@ -62,8 +62,8 @@ final class SellerDashboardController
                 'legalName' => $seller->legal_name,
                 'reference' => $seller->public_id,
                 'status' => $seller->status->value,
-                'role' => $membership->role->value,
-                'roleLabel' => $membership->role->label(),
+                'role' => $membership?->role->value,
+                'roleLabel' => $membership?->role->label(),
             ],
             'store' => $store === null ? null : [
                 'name' => $store->name,

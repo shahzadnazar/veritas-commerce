@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Sellers\Actions;
 
 use App\Modules\Audit\Actions\RecordAuditEvent;
+use App\Modules\Sellers\Enums\SellerRole;
 use App\Modules\Sellers\Enums\SellerStatus;
 use App\Modules\Sellers\Models\SellerAccount;
+use App\Modules\Sellers\Notifications\SellerStatusChanged;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -72,6 +74,26 @@ final class ChangeSellerStatus
                 changes: ['status' => ['from' => $from->value, 'to' => $to->value]],
                 reason: $reason,
             );
+
+            // The owners are told, after commit. Every owner, not just the
+            // one who applied: a store with two owners has two people who
+            // need to know it has gone dark.
+            DB::afterCommit(function () use ($seller, $to, $reason): void {
+                $storeName = $seller->store()->value('name') ?? $seller->legal_name;
+
+                $owners = $seller->memberships()
+                    ->where('role', SellerRole::Owner->value)
+                    ->with('user')
+                    ->get();
+
+                foreach ($owners as $membership) {
+                    $membership->user?->notify(new SellerStatusChanged(
+                        storeName: $storeName,
+                        status: $to,
+                        reason: $reason,
+                    ));
+                }
+            });
 
             return $seller;
         });

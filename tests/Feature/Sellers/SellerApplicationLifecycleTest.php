@@ -278,9 +278,9 @@ final class SellerApplicationLifecycleTest extends TestCase
         app(ChangeSellerStatus::class)($seller, SellerStatus::Suspended, $admin->id, 'Chargeback rate above threshold.');
 
         $fresh = $seller->fresh();
-        $this->assertSame(SellerStatus::Suspended, $fresh?->status);
-        $this->assertSame('Chargeback rate above threshold.', $fresh?->suspension_reason);
         $this->assertNotNull($fresh, 'Suspension never deletes the seller.');
+        $this->assertSame(SellerStatus::Suspended, $fresh->status);
+        $this->assertSame('Chargeback rate above threshold.', $fresh->suspension_reason);
 
         $event = AuditLog::query()->where('action', 'seller.suspended')->firstOrFail();
         $this->assertSame('Chargeback rate above threshold.', $event->reason);

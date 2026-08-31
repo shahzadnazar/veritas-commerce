@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Controllers;
 
-use Illuminate\Contracts\Auth\StatefulGuard;
+use App\Support\Guards;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use RuntimeException;
 
 /**
  * Customer sign-in.
@@ -48,13 +46,7 @@ final class LoginController
             ]);
         }
 
-        $guard = Auth::guard('web');
-
-        if (! $guard instanceof StatefulGuard) {
-            throw new RuntimeException('The web guard must be session-based.');
-        }
-
-        $succeeded = $guard->attempt(
+        $succeeded = Guards::session('web')->attempt(
             ['email' => strtolower($credentials['email']), 'password' => $credentials['password']],
             (bool) ($credentials['remember'] ?? false),
         );
@@ -77,7 +69,7 @@ final class LoginController
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        Guards::session('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
