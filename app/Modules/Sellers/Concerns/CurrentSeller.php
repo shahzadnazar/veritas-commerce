@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Sellers\Concerns;
 
+use App\Modules\Sellers\Enums\SellerPermission;
 use App\Modules\Sellers\Enums\SellerRole;
 use App\Modules\Sellers\Models\SellerMembership;
 
@@ -57,6 +58,48 @@ final class CurrentSeller
     public static function isActing(): bool
     {
         return self::id() !== null;
+    }
+
+    /**
+     * Whether the current actor holds a capability for the seller they are
+     * acting as.
+     *
+     * Suspension is answered here, once, rather than at each call site: a
+     * suspended seller keeps read access — they must still see the orders
+     * they owe customers — and loses every write.
+     */
+    public static function can(SellerPermission $permission): bool
+    {
+        $membership = self::membership();
+
+        if ($membership === null) {
+            return false;
+        }
+
+        if (! $membership->role->can($permission)) {
+            return false;
+        }
+
+        $seller = $membership->sellerAccount;
+
+        if ($seller === null) {
+            return false;
+        }
+
+        return $seller->status->canSell() || ! self::isWrite($permission);
+    }
+
+    /** Capabilities that change something, and so stop at suspension. */
+    private static function isWrite(SellerPermission $permission): bool
+    {
+        return in_array($permission, [
+            SellerPermission::StoreManage,
+            SellerPermission::MembersManage,
+            SellerPermission::CatalogManage,
+            SellerPermission::InventoryManage,
+            SellerPermission::OrdersManage,
+            SellerPermission::PayoutsRequest,
+        ], true);
     }
 
     /**

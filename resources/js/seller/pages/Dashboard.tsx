@@ -1,103 +1,165 @@
-import { usePage } from '@inertiajs/react';
-import { PortalLayout } from '../../design-system/layout/PortalLayout';
-import type { NavItem } from '../../design-system/layout/PortalLayout';
+import { Link, usePage } from '@inertiajs/react';
+import { SellerLayout } from '../layouts/SellerLayout';
 import { Button } from '../../design-system/primitives/Button';
 import { StatusBadge } from '../../design-system/primitives/StatusBadge';
-import { EmptyState } from '../../design-system/patterns/States';
-import { Table } from '../../design-system/patterns/Table';
-import type { Column } from '../../design-system/patterns/Table';
+import { FlashBanner } from '../../design-system/patterns/States';
 import type { SharedPageProps } from '../../shared/types';
 
-interface RecentOrder {
-    reference: string;
-    customer: string;
-    total: string;
-    earning: string;
-    status: string;
+interface SetupStep {
+    key: string;
+    label: string;
+    done: boolean;
+    href: string;
 }
 
 interface DashboardProps extends SharedPageProps {
-    store: { name: string; status: string };
-    balance: { clearing: string; available: string; held: string };
-    recentOrders: RecentOrder[];
+    seller: {
+        legalName: string;
+        reference: string;
+        status: string;
+        role: string;
+        roleLabel: string;
+    };
+    store: {
+        name: string;
+        slug: string;
+        isOpen: boolean;
+        publicUrl: string;
+    } | null;
+    setup: SetupStep[];
+    can: { manageStore: boolean; manageMembers: boolean };
 }
 
-const NAV: NavItem[] = [
-    { label: 'Dashboard', href: '/seller' },
-    { label: 'Products', href: '/seller/offers' },
-    { label: 'Inventory', href: '/seller/inventory' },
-    { label: 'Orders', href: '/seller/orders' },
-    { label: 'Earnings', href: '/seller/earnings' },
-    { label: 'Store settings', href: '/seller/store' },
-];
-
-/** The seller shell: sidebar, stat strip, order queue. */
+/**
+ * Deliberately thin.
+ *
+ * A seller who has just been approved has no orders, no earnings and no
+ * stock, so this screen shows what is true — who they are, that they are
+ * approved, and what is left to set up — instead of stat cards reading
+ * zero, or worse, sample figures.
+ */
 export default function Dashboard() {
-    const { store, balance, recentOrders, auth } = usePage<DashboardProps>().props;
+    const { seller, store, setup, can, flash } = usePage<DashboardProps>().props;
 
-    const columns: Column<RecentOrder>[] = [
-        {
-            key: 'reference',
-            header: 'Order',
-            render: (row) => <span className="vc-tabular">{row.reference}</span>,
-        },
-        { key: 'customer', header: 'Customer', render: (row) => row.customer },
-        { key: 'total', header: 'Total', numeric: true, render: (row) => row.total },
-        { key: 'earning', header: 'Your earning', numeric: true, render: (row) => row.earning },
-        {
-            key: 'status',
-            header: 'Status',
-            render: (row) => <StatusBadge domain="seller_order" value={row.status} />,
-        },
-    ];
+    const remaining = setup.filter((step) => !step.done);
 
     return (
-        <PortalLayout
-            area="Seller portal"
-            nav={NAV}
+        <SellerLayout
             title="Dashboard"
-            identity={{ primary: store.name, secondary: auth.user?.name ?? '' }}
-            actions={<Button variant="primary">Add product</Button>}
+            actions={
+                store !== null ? (
+                    <a href={store.publicUrl} className="text-[13px] underline underline-offset-4">
+                        View your store page
+                    </a>
+                ) : undefined
+            }
         >
-            <div className="mb-8 grid grid-cols-3 gap-[2px]">
-                {[
-                    {
-                        label: 'Clearing',
-                        value: balance.clearing,
-                        note: 'Earned, not yet withdrawable',
-                    },
-                    { label: 'Available', value: balance.available, note: 'Ready to withdraw' },
-                    { label: 'Held', value: balance.held, note: 'Against an open request' },
-                ].map((stat) => (
-                    <div key={stat.label} className="bg-[var(--vc-surface)] p-4">
-                        <p className="mb-[6px] text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase">
-                            {stat.label}
-                        </p>
-                        <p className="vc-tabular text-[28px] leading-none font-extrabold">
-                            {stat.value}
-                        </p>
-                        <p className="mt-[6px] text-[12px] text-[var(--vc-neutral-600)]">
-                            {stat.note}
-                        </p>
+            <FlashBanner success={flash.success} error={flash.error} />
+
+            <section className="mb-10 border-2 border-[var(--vc-divider)] p-5">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h2 className="text-[24px]">{store?.name ?? seller.legalName}</h2>
+                    <StatusBadge domain="seller" value={seller.status} />
+                    {store !== null && !store.isOpen ? (
+                        <span className="text-[12px] text-[var(--vc-neutral-600)]">
+                            Closed for orders
+                        </span>
+                    ) : null}
+                </div>
+
+                <dl className="mt-4 grid gap-x-8 gap-y-1 text-[13px] sm:grid-cols-2">
+                    <div className="flex gap-2">
+                        <dt className="text-[var(--vc-neutral-600)]">Registered as</dt>
+                        <dd>{seller.legalName}</dd>
                     </div>
-                ))}
-            </div>
+                    <div className="flex gap-2">
+                        <dt className="text-[var(--vc-neutral-600)]">Your role</dt>
+                        <dd>{seller.roleLabel}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                        <dt className="text-[var(--vc-neutral-600)]">Seller reference</dt>
+                        <dd className="vc-tabular">{seller.reference}</dd>
+                    </div>
+                    {store !== null ? (
+                        <div className="flex gap-2">
+                            <dt className="text-[var(--vc-neutral-600)]">Store address</dt>
+                            <dd className="vc-tabular">/stores/{store.slug}</dd>
+                        </div>
+                    ) : null}
+                </dl>
 
-            <h2 className="mb-4 text-[22px]">Recent orders</h2>
+                {seller.status === 'suspended' ? (
+                    <p
+                        role="alert"
+                        className="mt-4 max-w-[62ch] text-[13px] text-[var(--vc-accent-800)]"
+                    >
+                        This account is suspended. Your records are intact and nothing has been
+                        deleted, but the store is not visible to customers and no changes can be
+                        made until the marketplace team lifts the suspension.
+                    </p>
+                ) : null}
+            </section>
 
-            <Table
-                columns={columns}
-                rows={recentOrders}
-                rowKey={(row) => row.reference}
-                caption="Recent orders for this store"
-                empty={
-                    <EmptyState
-                        title="No orders yet"
-                        body="Orders appear here as soon as a customer buys one of your published offers. Each one arrives with its commission already fixed."
-                        actions={<Button variant="secondary">Add a product</Button>}
-                    />
-                }
-            />
-        </PortalLayout>
+            <section>
+                <h2 className="mb-1 text-[22px]">
+                    {remaining.length === 0 ? 'Setup complete' : 'Finish setting up'}
+                </h2>
+                <p className="mb-5 max-w-[62ch] text-[14px] text-[var(--vc-neutral-700)]">
+                    {remaining.length === 0
+                        ? 'Your store is ready. Products, stock and orders arrive in the next release.'
+                        : 'These are the steps left before your store page is worth sending someone to.'}
+                </p>
+
+                <ol className="max-w-[620px] border-t-2 border-[var(--vc-text)]">
+                    {setup.map((step) => (
+                        <li
+                            key={step.key}
+                            className="flex items-center gap-4 border-b border-[var(--vc-divider)] py-3"
+                        >
+                            <span
+                                aria-hidden="true"
+                                className={[
+                                    'flex h-[22px] w-[22px] shrink-0 items-center justify-center border-2 text-[12px] font-bold',
+                                    step.done
+                                        ? 'border-[var(--vc-text)] bg-[var(--vc-text)] text-[var(--vc-bg)]'
+                                        : 'border-dashed border-[var(--vc-neutral-400)]',
+                                ].join(' ')}
+                            >
+                                {step.done ? '✓' : ''}
+                            </span>
+
+                            <span className="flex-1 text-[14px]">
+                                {step.label}
+                                <span className="sr-only">
+                                    {step.done ? ' — done' : ' — to do'}
+                                </span>
+                            </span>
+
+                            {!step.done ? (
+                                <Link
+                                    href={step.href}
+                                    className="text-[13px] underline underline-offset-4"
+                                >
+                                    Do this
+                                </Link>
+                            ) : null}
+                        </li>
+                    ))}
+                </ol>
+            </section>
+
+            <section className="mt-10 flex flex-wrap gap-2">
+                {can.manageStore ? (
+                    <Link href="/seller/store">
+                        <Button variant="primary">Store settings</Button>
+                    </Link>
+                ) : null}
+                {can.manageMembers ? (
+                    <Link href="/seller/team">
+                        <Button variant="secondary">Invite a colleague</Button>
+                    </Link>
+                ) : null}
+            </section>
+        </SellerLayout>
     );
 }

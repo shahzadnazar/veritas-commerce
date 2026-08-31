@@ -106,8 +106,8 @@ final class ModuleBoundaryTest extends TestCase
         $expected = [
             'AdminPortal', 'Audit', 'Cart', 'Catalog', 'Commission', 'Customers',
             'Events', 'Fulfillment', 'Identity', 'Inventory', 'Ledger',
-            'Notifications', 'Offers', 'Orders', 'Payments', 'Payouts',
-            'Search', 'Sellers', 'Stores',
+            'Media', 'Notifications', 'Offers', 'Orders', 'Payments',
+            'Payouts', 'Search', 'Sellers', 'Stores',
         ];
 
         $actual = array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR) ?: []);

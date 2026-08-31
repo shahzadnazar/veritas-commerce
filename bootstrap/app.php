@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\EnsureAdminPermission;
 use App\Http\Middleware\EnsureSellerMembership;
+use App\Http\Middleware\EnsureSellerPermission;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireAdminTwoFactor;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'seller' => EnsureSellerMembership::class,
+            'seller.can' => EnsureSellerPermission::class,
             'admin.can' => EnsureAdminPermission::class,
             'admin.mfa' => RequireAdminTwoFactor::class,
         ]);

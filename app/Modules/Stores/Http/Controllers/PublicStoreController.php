@@ -48,8 +48,8 @@ final class PublicStoreController
                 'returnPolicy' => $store->return_policy,
                 'isOpen' => $store->is_open,
                 'shipsFrom' => trim(implode(', ', array_filter([
-                    $store->sellerAccount?->ships_from_city,
-                    $store->sellerAccount?->ships_from_state,
+                    $store->business_city,
+                    $store->business_state,
                 ]))),
             ],
             'seo' => [

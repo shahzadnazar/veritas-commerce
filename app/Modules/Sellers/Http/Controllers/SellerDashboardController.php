@@ -4,54 +4,78 @@ declare(strict_types=1);
 
 namespace App\Modules\Sellers\Http\Controllers;
 
-use App\Modules\Ledger\Queries\GetSellerBalance;
-use App\Modules\Orders\Data\SellerOrderSummary;
-use App\Modules\Orders\Queries\RecentSellerOrders;
 use App\Modules\Sellers\Concerns\CurrentSeller;
+use App\Modules\Sellers\Enums\SellerPermission;
+use App\Modules\Stores\Models\Store;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Controllers orchestrate: authorise, call a query, hand the result to a
- * view. No business rules, and no reaching into another module's models —
- * the order queue arrives as DTOs from the Orders module.
+ * The seller's landing screen.
+ *
+ * Deliberately thin for M1: it answers "who am I, am I approved, and what
+ * is left to set up". There are no trading figures here because there is
+ * no trading yet — inventing them would be worse than an empty screen.
  */
 final class SellerDashboardController
 {
-    public function __construct(
-        private readonly GetSellerBalance $getBalance,
-        private readonly RecentSellerOrders $recentOrders,
-    ) {}
-
     public function __invoke(): Response
     {
         $membership = CurrentSeller::membership();
         $seller = $membership?->sellerAccount;
 
-        abort_if($seller === null, 404);
+        abort_if($seller === null || $membership === null, 404);
 
-        $balance = ($this->getBalance)($seller->id);
+        $store = Store::query()->where('seller_account_id', $seller->id)->first();
+
+        // Setup steps are read from the record, not tracked in a separate
+        // "onboarding progress" column that can drift out of step with it.
+        $steps = [
+            [
+                'key' => 'store',
+                'label' => 'Name your store and claim its address',
+                'done' => $store !== null,
+                'href' => '/seller/store',
+            ],
+            [
+                'key' => 'branding',
+                'label' => 'Upload a logo and banner',
+                'done' => $store?->logo_media_id !== null && $store?->banner_media_id !== null,
+                'href' => '/seller/store',
+            ],
+            [
+                'key' => 'policies',
+                'label' => 'Write your shipping and return policies',
+                'done' => $store?->shipping_policy !== null && $store?->return_policy !== null,
+                'href' => '/seller/store',
+            ],
+            [
+                'key' => 'team',
+                'label' => 'Invite the people who will run the store',
+                'done' => $membership->sellerAccount->memberships()->count() > 1,
+                'href' => '/seller/team',
+            ],
+        ];
 
         return Inertia::render('Dashboard', [
-            'store' => [
-                'name' => $seller->store?->name ?? $seller->legal_name,
+            'seller' => [
+                'legalName' => $seller->legal_name,
+                'reference' => $seller->public_id,
                 'status' => $seller->status->value,
+                'role' => $membership->role->value,
+                'roleLabel' => $membership->role->label(),
             ],
-            'balance' => [
-                'clearing' => $balance->clearing->format(),
-                'available' => $balance->available->format(),
-                'held' => $balance->held->format(),
+            'store' => $store === null ? null : [
+                'name' => $store->name,
+                'slug' => $store->slug,
+                'isOpen' => $store->is_open,
+                'publicUrl' => rtrim((string) config('veritas.identity.public_url'), '/').'/stores/'.$store->slug,
             ],
-            'recentOrders' => array_map(
-                static fn (SellerOrderSummary $order): array => [
-                    'reference' => $order->reference,
-                    'customer' => $order->customerName,
-                    'total' => $order->orderTotal,
-                    'earning' => $order->sellerEarning,
-                    'status' => $order->status,
-                ],
-                ($this->recentOrders)(),
-            ),
+            'setup' => $steps,
+            'can' => [
+                'manageStore' => CurrentSeller::can(SellerPermission::StoreManage),
+                'manageMembers' => CurrentSeller::can(SellerPermission::MembersManage),
+            ],
         ]);
     }
 }

@@ -58,10 +58,13 @@ final class AreaShellsTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Dashboard')
-                ->has('balance.available')
-                ->has('balance.clearing')
-                ->has('balance.held')
-                ->has('recentOrders'));
+                ->has('seller.legalName')
+                ->has('seller.status')
+                ->has('seller.roleLabel')
+                // Onboarding state, not trading figures: there is nothing
+                // to trade with yet, and inventing numbers would be worse
+                // than an honest empty screen.
+                ->has('setup', 4));
     }
 
     #[Test]

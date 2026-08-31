@@ -92,3 +92,34 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
         </div>
     );
 }
+
+/**
+ * The one-line confirmation after a redirect, fed by the shared `flash`
+ * prop. Success is announced politely; a failure is an alert, because a
+ * screen-reader user must not miss that the change did not happen.
+ */
+export function FlashBanner({
+    success,
+    error,
+}: {
+    success?: string | undefined;
+    error?: string | undefined;
+}) {
+    if (!success && !error) {
+        return null;
+    }
+
+    return (
+        <p
+            role={error ? 'alert' : 'status'}
+            className={[
+                'mb-6 border-2 px-4 py-3 text-[14px]',
+                error
+                    ? 'border-[var(--vc-accent)] text-[var(--vc-accent-800)]'
+                    : 'border-[var(--vc-text)]',
+            ].join(' ')}
+        >
+            {error ?? success}
+        </p>
+    );
+}
