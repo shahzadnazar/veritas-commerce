@@ -34,7 +34,10 @@ export default function Profile() {
             <h1 className="mb-8 text-[42px]">Your account</h1>
 
             {status ? (
-                <p role="status" className="mb-8 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]">
+                <p
+                    role="status"
+                    className="mb-8 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]"
+                >
                     {status}
                 </p>
             ) : null}
@@ -56,7 +59,9 @@ export default function Profile() {
                                 aria-describedby={describedBy}
                                 invalid={invalid}
                                 value={details.data.first_name}
-                                onChange={(event) => details.setData('first_name', event.target.value)}
+                                onChange={(event) =>
+                                    details.setData('first_name', event.target.value)
+                                }
                             />
                         )}
                     </Field>
@@ -68,7 +73,9 @@ export default function Profile() {
                                 aria-describedby={describedBy}
                                 invalid={invalid}
                                 value={details.data.last_name}
-                                onChange={(event) => details.setData('last_name', event.target.value)}
+                                onChange={(event) =>
+                                    details.setData('last_name', event.target.value)
+                                }
                             />
                         )}
                     </Field>
@@ -112,14 +119,22 @@ export default function Profile() {
                             type="checkbox"
                             className="mt-1"
                             checked={details.data.marketing_opt_in}
-                            onChange={(event) => details.setData('marketing_opt_in', event.target.checked)}
+                            onChange={(event) =>
+                                details.setData('marketing_opt_in', event.target.checked)
+                            }
                         />
                         <span>
-                            New arrivals and seller news. Order emails are transactional and always sent.
+                            New arrivals and seller news. Order emails are transactional and always
+                            sent.
                         </span>
                     </label>
 
-                    <Button type="submit" variant="primary" loading={details.processing} loadingLabel="Saving…">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        loading={details.processing}
+                        loadingLabel="Saving…"
+                    >
                         Save changes
                     </Button>
                 </form>
@@ -142,7 +157,9 @@ export default function Profile() {
                                 aria-describedby={describedBy}
                                 invalid={invalid}
                                 value={password.data.current_password}
-                                onChange={(event) => password.setData('current_password', event.target.value)}
+                                onChange={(event) =>
+                                    password.setData('current_password', event.target.value)
+                                }
                             />
                         )}
                     </Field>
@@ -156,7 +173,9 @@ export default function Profile() {
                                 aria-describedby={describedBy}
                                 invalid={invalid}
                                 value={password.data.password}
-                                onChange={(event) => password.setData('password', event.target.value)}
+                                onChange={(event) =>
+                                    password.setData('password', event.target.value)
+                                }
                             />
                         )}
                     </Field>
@@ -168,12 +187,19 @@ export default function Profile() {
                                 type="password"
                                 autoComplete="new-password"
                                 value={password.data.password_confirmation}
-                                onChange={(event) => password.setData('password_confirmation', event.target.value)}
+                                onChange={(event) =>
+                                    password.setData('password_confirmation', event.target.value)
+                                }
                             />
                         )}
                     </Field>
 
-                    <Button type="submit" variant="secondary" loading={password.processing} loadingLabel="Updating…">
+                    <Button
+                        type="submit"
+                        variant="secondary"
+                        loading={password.processing}
+                        loadingLabel="Updating…"
+                    >
                         Update password
                     </Button>
                 </form>

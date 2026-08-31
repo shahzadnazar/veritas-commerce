@@ -175,7 +175,7 @@ final class SellerApplicationLifecycleTest extends TestCase
         Event::fake([SellerApproved::class]);
 
         $user = User::factory()->create();
-        $admin = AdminUser::factory()->role(AdminRole::Operations)->create();
+        $admin = AdminUser::factory()->role(AdminRole::SellerOperations)->create();
         $application = SellerApplication::factory()->create(['user_id' => $user->id]);
 
         $seller = app(ApproveSellerApplication::class)($application, $admin->id);

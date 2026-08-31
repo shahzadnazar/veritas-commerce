@@ -54,7 +54,9 @@ export default function Show() {
                 </p>
 
                 {store.description ? (
-                    <p className="mt-5 max-w-[62ch] text-[var(--vc-neutral-700)]">{store.description}</p>
+                    <p className="mt-5 max-w-[62ch] text-[var(--vc-neutral-700)]">
+                        {store.description}
+                    </p>
                 ) : null}
 
                 {!store.isOpen ? (

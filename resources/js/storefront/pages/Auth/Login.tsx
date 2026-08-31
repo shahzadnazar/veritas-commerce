@@ -17,8 +17,11 @@ export default function Login() {
                 status={status}
                 footer={
                     <>
-                        New here? <Link href="/register" className="underline">Create an account</Link> — it takes
-                        about a minute.
+                        New here?{' '}
+                        <Link href="/register" className="underline">
+                            Create an account
+                        </Link>{' '}
+                        — it takes about a minute.
                     </>
                 }
             >
@@ -71,7 +74,12 @@ export default function Login() {
                         </Link>
                     </div>
 
-                    <Button type="submit" variant="primary" loading={form.processing} loadingLabel="Signing in…">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        loading={form.processing}
+                        loadingLabel="Signing in…"
+                    >
                         Sign in
                     </Button>
                 </form>

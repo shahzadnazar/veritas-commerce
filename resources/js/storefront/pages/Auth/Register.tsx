@@ -21,7 +21,10 @@ export default function Register() {
                 lede="One account for every store on the marketplace. You can check out as a guest too — an account just keeps your orders and addresses."
                 footer={
                     <>
-                        Already have one? <Link href="/login" className="underline">Sign in</Link>
+                        Already have one?{' '}
+                        <Link href="/login" className="underline">
+                            Sign in
+                        </Link>
                     </>
                 }
             >
@@ -41,7 +44,9 @@ export default function Register() {
                                     aria-describedby={describedBy}
                                     invalid={invalid}
                                     value={form.data.first_name}
-                                    onChange={(event) => form.setData('first_name', event.target.value)}
+                                    onChange={(event) =>
+                                        form.setData('first_name', event.target.value)
+                                    }
                                 />
                             )}
                         </Field>
@@ -53,7 +58,9 @@ export default function Register() {
                                     aria-describedby={describedBy}
                                     invalid={invalid}
                                     value={form.data.last_name}
-                                    onChange={(event) => form.setData('last_name', event.target.value)}
+                                    onChange={(event) =>
+                                        form.setData('last_name', event.target.value)
+                                    }
                                 />
                             )}
                         </Field>
@@ -98,7 +105,9 @@ export default function Register() {
                                 type="password"
                                 autoComplete="new-password"
                                 value={form.data.password_confirmation}
-                                onChange={(event) => form.setData('password_confirmation', event.target.value)}
+                                onChange={(event) =>
+                                    form.setData('password_confirmation', event.target.value)
+                                }
                             />
                         )}
                     </Field>
@@ -108,14 +117,21 @@ export default function Register() {
                             type="checkbox"
                             className="mt-1"
                             checked={form.data.marketing_opt_in}
-                            onChange={(event) => form.setData('marketing_opt_in', event.target.checked)}
+                            onChange={(event) =>
+                                form.setData('marketing_opt_in', event.target.checked)
+                            }
                         />
                         <span>
                             Email me new arrivals and seller news. Order emails are sent either way.
                         </span>
                     </label>
 
-                    <Button type="submit" variant="primary" loading={form.processing} loadingLabel="Creating account…">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        loading={form.processing}
+                        loadingLabel="Creating account…"
+                    >
                         Create account
                     </Button>
                 </form>

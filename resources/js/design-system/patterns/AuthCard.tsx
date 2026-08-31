@@ -21,14 +21,19 @@ export function AuthCard({ title, lede, status, children, footer }: AuthCardProp
             <p className="mb-7 text-[var(--vc-neutral-700)]">{lede}</p>
 
             {status ? (
-                <p role="status" className="mb-6 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]">
+                <p
+                    role="status"
+                    className="mb-6 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]"
+                >
                     {status}
                 </p>
             ) : null}
 
             {children}
 
-            {footer ? <div className="mt-6 text-[13px] text-[var(--vc-neutral-700)]">{footer}</div> : null}
+            {footer ? (
+                <div className="mt-6 text-[13px] text-[var(--vc-neutral-700)]">{footer}</div>
+            ) : null}
         </div>
     );
 }

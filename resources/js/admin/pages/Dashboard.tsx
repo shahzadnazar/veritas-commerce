@@ -1,6 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { PortalLayout } from '../../design-system/layout/PortalLayout';
-import type { NavItem } from '../../design-system/layout/PortalLayout';
+import { AdminLayout } from '../layouts/AdminLayout';
 import { StatusBadge } from '../../design-system/primitives/StatusBadge';
 import { EmptyState } from '../../design-system/patterns/States';
 import { NoFigure, Table } from '../../design-system/patterns/Table';
@@ -22,17 +21,6 @@ interface AdminDashboardProps extends SharedPageProps {
     commissionRate: string;
 }
 
-const NAV: NavItem[] = [
-    { label: 'Dashboard', href: '/admin' },
-    { label: 'Sellers', href: '/admin/sellers' },
-    { label: 'Applications', href: '/admin/applications' },
-    { label: 'Offer review', href: '/admin/offers' },
-    { label: 'Orders', href: '/admin/orders' },
-    { label: 'Commission', href: '/admin/commission' },
-    { label: 'Payouts', href: '/admin/payouts' },
-    { label: 'Settings', href: '/admin/settings' },
-];
-
 /**
  * The admin shell.
  *
@@ -42,7 +30,7 @@ const NAV: NavItem[] = [
  * portal uses, at a different density.
  */
 export default function Dashboard() {
-    const { queues, recentOrders, commissionRate, auth } = usePage<AdminDashboardProps>().props;
+    const { queues, recentOrders, commissionRate } = usePage<AdminDashboardProps>().props;
 
     const columns: Column<QueueRow>[] = [
         {
@@ -68,12 +56,7 @@ export default function Dashboard() {
     ];
 
     return (
-        <PortalLayout
-            area="Admin"
-            nav={NAV}
-            title="Marketplace control centre"
-            identity={{ primary: auth.admin?.name ?? 'Staff', secondary: auth.admin?.role ?? '' }}
-        >
+        <AdminLayout title="Marketplace control centre">
             <div className="mb-8 grid grid-cols-4 gap-[2px]">
                 {queues.map((queue) => (
                     <div key={queue.label} className="bg-[var(--vc-surface)] p-4">
@@ -111,6 +94,6 @@ export default function Dashboard() {
                     />
                 }
             />
-        </PortalLayout>
+        </AdminLayout>
     );
 }

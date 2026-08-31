@@ -23,7 +23,7 @@ final class AdminUserFactory extends Factory
             'email' => $this->faker->unique()->companyEmail(),
             'password' => Hash::make('password'),
             'name' => $this->faker->name(),
-            'role' => AdminRole::Operations->value,
+            'role' => AdminRole::SellerOperations->value,
         ];
     }
 

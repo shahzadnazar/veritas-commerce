@@ -26,50 +26,57 @@ final class AuthorizationTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
-    public function only_owner_and_finance_can_change_the_commission_rate(): void
+    public function only_finance_and_the_super_admin_can_move_money(): void
     {
-        $this->assertTrue(AdminRole::Owner->can(AdminPermission::ManageCommission));
-        $this->assertTrue(AdminRole::Finance->can(AdminPermission::ManageCommission));
-        $this->assertFalse(AdminRole::Operations->can(AdminPermission::ManageCommission));
-        $this->assertFalse(AdminRole::Support->can(AdminPermission::ManageCommission));
-    }
+        foreach ([AdminPermission::ManageCommission, AdminPermission::DecidePayouts, AdminPermission::IssueRefunds] as $permission) {
+            $this->assertTrue(AdminRole::SuperAdmin->can($permission));
+            $this->assertTrue(AdminRole::FinanceAdmin->can($permission));
 
-    #[Test]
-    public function only_owner_and_finance_can_decide_payouts(): void
-    {
-        $this->assertTrue(AdminRole::Owner->can(AdminPermission::DecidePayouts));
-        $this->assertTrue(AdminRole::Finance->can(AdminPermission::DecidePayouts));
-        $this->assertFalse(AdminRole::Operations->can(AdminPermission::DecidePayouts));
-        $this->assertFalse(AdminRole::Support->can(AdminPermission::DecidePayouts));
-    }
-
-    #[Test]
-    public function only_operations_and_owner_can_suspend_a_seller(): void
-    {
-        $this->assertTrue(AdminRole::Owner->can(AdminPermission::SuspendSellers));
-        $this->assertTrue(AdminRole::Operations->can(AdminPermission::SuspendSellers));
-        $this->assertFalse(AdminRole::Finance->can(AdminPermission::SuspendSellers));
-        $this->assertFalse(AdminRole::Support->can(AdminPermission::SuspendSellers));
-    }
-
-    #[Test]
-    public function only_the_owner_manages_staff_and_company_settings(): void
-    {
-        foreach ([AdminPermission::ManageStaff, AdminPermission::ManageCompanySettings] as $permission) {
-            $this->assertTrue(AdminRole::Owner->can($permission));
-
-            foreach ([AdminRole::Operations, AdminRole::Finance, AdminRole::Support] as $role) {
+            foreach ([AdminRole::SellerOperations, AdminRole::CatalogModerator, AdminRole::Support, AdminRole::Analyst] as $role) {
                 $this->assertFalse($role->can($permission), "{$role->value} must not hold {$permission->value}.");
             }
         }
     }
 
     #[Test]
-    public function support_is_read_only(): void
+    public function seller_governance_belongs_to_seller_operations_not_to_finance(): void
     {
-        $writePermissions = [
-            AdminPermission::ReviewSellerApplications,
-            AdminPermission::SuspendSellers,
+        $governance = [
+            AdminPermission::SellerApprove,
+            AdminPermission::SellerReject,
+            AdminPermission::SellerSuspend,
+            AdminPermission::SellerReactivate,
+        ];
+
+        foreach ($governance as $permission) {
+            $this->assertTrue(AdminRole::SellerOperations->can($permission));
+            $this->assertTrue(AdminRole::MarketplaceAdmin->can($permission));
+
+            // Approving a seller and setting the commission rate are
+            // different jobs; one account holding both is how a single
+            // compromise becomes a revenue incident.
+            $this->assertFalse(AdminRole::FinanceAdmin->can($permission));
+            $this->assertFalse(AdminRole::CatalogModerator->can($permission));
+            $this->assertFalse(AdminRole::Support->can($permission));
+            $this->assertFalse(AdminRole::Analyst->can($permission));
+        }
+    }
+
+    #[Test]
+    public function seller_operations_holds_no_catalogue_or_finance_authority(): void
+    {
+        foreach ([AdminPermission::ReviewOffers, AdminPermission::ManageTaxonomy, AdminPermission::ManageCommission, AdminPermission::DecidePayouts] as $permission) {
+            $this->assertFalse(AdminRole::SellerOperations->can($permission));
+        }
+    }
+
+    #[Test]
+    public function support_and_analyst_are_read_only(): void
+    {
+        $writes = [
+            AdminPermission::SellerApprove,
+            AdminPermission::SellerReject,
+            AdminPermission::SellerSuspend,
             AdminPermission::ReviewOffers,
             AdminPermission::ManageTaxonomy,
             AdminPermission::IssueRefunds,
@@ -78,28 +85,44 @@ final class AuthorizationTest extends TestCase
             AdminPermission::ManageStaff,
         ];
 
-        foreach ($writePermissions as $permission) {
-            $this->assertFalse(
-                AdminRole::Support->can($permission),
-                "Support must not hold the write permission {$permission->value}.",
-            );
+        foreach ([AdminRole::Support, AdminRole::Analyst] as $role) {
+            foreach ($writes as $permission) {
+                $this->assertFalse($role->can($permission), "{$role->value} must not hold {$permission->value}.");
+            }
         }
 
         $this->assertTrue(AdminRole::Support->can(AdminPermission::ViewOrders));
+        $this->assertTrue(AdminRole::Analyst->can(AdminPermission::ViewOrders));
     }
 
     #[Test]
-    public function the_owner_holds_every_permission(): void
+    public function only_the_super_admin_manages_staff_and_company_settings(): void
+    {
+        foreach ([AdminPermission::ManageStaff, AdminPermission::ManageCompanySettings, AdminPermission::ResetAdminMfa] as $permission) {
+            $this->assertTrue(AdminRole::SuperAdmin->can($permission));
+
+            foreach (AdminRole::cases() as $role) {
+                if ($role === AdminRole::SuperAdmin) {
+                    continue;
+                }
+
+                $this->assertFalse($role->can($permission), "{$role->value} must not hold {$permission->value}.");
+            }
+        }
+    }
+
+    #[Test]
+    public function the_super_admin_holds_every_permission(): void
     {
         foreach (AdminPermission::cases() as $permission) {
-            $this->assertTrue(AdminRole::Owner->can($permission));
+            $this->assertTrue(AdminRole::SuperAdmin->can($permission));
         }
     }
 
     #[Test]
     public function the_admin_model_answers_permission_checks_by_role(): void
     {
-        $finance = AdminUser::factory()->role(AdminRole::Finance)->create();
+        $finance = AdminUser::factory()->role(AdminRole::FinanceAdmin)->create();
         $support = AdminUser::factory()->role(AdminRole::Support)->create();
 
         $this->assertTrue($finance->can(AdminPermission::DecidePayouts));

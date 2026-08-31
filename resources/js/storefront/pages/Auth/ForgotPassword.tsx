@@ -18,7 +18,9 @@ export default function ForgotPassword() {
                 footer={
                     <>
                         For security, the confirmation is the same whether or not an account exists.{' '}
-                        <Link href="/login" className="underline">Back to sign in</Link>
+                        <Link href="/login" className="underline">
+                            Back to sign in
+                        </Link>
                     </>
                 }
             >
@@ -43,7 +45,12 @@ export default function ForgotPassword() {
                         )}
                     </Field>
 
-                    <Button type="submit" variant="primary" loading={form.processing} loadingLabel="Sending…">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        loading={form.processing}
+                        loadingLabel="Sending…"
+                    >
                         Send reset link
                     </Button>
                 </form>

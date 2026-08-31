@@ -84,7 +84,9 @@ export default function TwoFactorSetup() {
                                     aria-describedby={describedBy}
                                     invalid={invalid}
                                     value={regenerateForm.data.password}
-                                    onChange={(event) => regenerateForm.setData('password', event.target.value)}
+                                    onChange={(event) =>
+                                        regenerateForm.setData('password', event.target.value)
+                                    }
                                 />
                             )}
                         </Field>
@@ -103,8 +105,8 @@ export default function TwoFactorSetup() {
                     <div className="border-2 border-[var(--vc-divider)] p-5">
                         <h2 className="mb-2 text-[18px]">Add this account to your authenticator</h2>
                         <p className="mb-3 text-[13px] text-[var(--vc-neutral-700)]">
-                            Scan the setup link, or enter the key by hand. Both disappear when you leave
-                            this page.
+                            Scan the setup link, or enter the key by hand. Both disappear when you
+                            leave this page.
                         </p>
                         <p className="mb-1 text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase">
                             Setup key
@@ -141,7 +143,9 @@ export default function TwoFactorSetup() {
                                     aria-describedby={describedBy}
                                     invalid={invalid}
                                     value={confirmForm.data.code}
-                                    onChange={(event) => confirmForm.setData('code', event.target.value)}
+                                    onChange={(event) =>
+                                        confirmForm.setData('code', event.target.value)
+                                    }
                                 />
                             )}
                         </Field>
@@ -178,11 +182,18 @@ export default function TwoFactorSetup() {
                                 aria-describedby={describedBy}
                                 invalid={invalid}
                                 value={startForm.data.password}
-                                onChange={(event) => startForm.setData('password', event.target.value)}
+                                onChange={(event) =>
+                                    startForm.setData('password', event.target.value)
+                                }
                             />
                         )}
                     </Field>
-                    <Button type="submit" variant="primary" loading={startForm.processing} loadingLabel="Starting…">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        loading={startForm.processing}
+                        loadingLabel="Starting…"
+                    >
                         Start setup
                     </Button>
                 </form>

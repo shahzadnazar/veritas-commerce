@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Sellers\Models;
 
+use App\Modules\Identity\Models\AdminUser;
+use App\Modules\Identity\Models\User;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Support\HasPublicId;
 use Database\Factories\SellerApplicationFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -111,6 +114,18 @@ final class SellerApplication extends Model
         'contact_email', 'contact_phone', 'primary_category_id', 'planned_listings',
         'existing_site', 'blurb', 'status', 'terms_accepted_at',
     ];
+
+    /** @return BelongsTo<AdminUser, $this> */
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(AdminUser::class, 'reviewer_admin_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function applicant(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     /** @return HasMany<SellerApplicationEvent, $this> */
     public function events(): HasMany

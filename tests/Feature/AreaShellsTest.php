@@ -87,7 +87,7 @@ final class AreaShellsTest extends TestCase
 
         // MFA is mandatory for staff, so reaching the dashboard means
         // having a confirmed second factor.
-        $admin = AdminUser::factory()->role(AdminRole::Operations)->withTwoFactor()->create();
+        $admin = AdminUser::factory()->role(AdminRole::SellerOperations)->withTwoFactor()->create();
 
         $this->actingAs($admin, 'admin')->get('/admin')
             ->assertOk()

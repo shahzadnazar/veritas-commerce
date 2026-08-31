@@ -226,7 +226,7 @@ final class AdminTwoFactorTest extends TestCase
     public function an_admin_without_mfa_is_confined_to_enrolment(): void
     {
         $this->seed(CommissionSeeder::class);
-        $admin = AdminUser::factory()->role(AdminRole::Operations)->create();
+        $admin = AdminUser::factory()->role(AdminRole::SellerOperations)->create();
 
         $this->actingAs($admin, 'admin')->get('/admin')->assertRedirect(route('admin.mfa.setup'));
         $this->actingAs($admin, 'admin')->get(route('admin.mfa.setup'))->assertOk();
@@ -236,7 +236,7 @@ final class AdminTwoFactorTest extends TestCase
     public function an_admin_with_mfa_reaches_the_dashboard(): void
     {
         $this->seed(CommissionSeeder::class);
-        $admin = AdminUser::factory()->role(AdminRole::Operations)->withTwoFactor()->create();
+        $admin = AdminUser::factory()->role(AdminRole::SellerOperations)->withTwoFactor()->create();
 
         $this->actingAs($admin, 'admin')->get('/admin')->assertOk();
     }
@@ -265,7 +265,7 @@ final class AdminTwoFactorTest extends TestCase
     public function disabling_mfa_is_audited_without_leaking_the_secret(): void
     {
         $admin = AdminUser::factory()->withTwoFactor()->create();
-        $actor = AdminUser::factory()->role(AdminRole::Owner)->withTwoFactor()->create();
+        $actor = AdminUser::factory()->role(AdminRole::SuperAdmin)->withTwoFactor()->create();
         AdminRecoveryCode::factory()->create(['admin_user_id' => $admin->id]);
 
         app(DisableTwoFactor::class)($admin, $actor, 'Lost device, verified by phone.');

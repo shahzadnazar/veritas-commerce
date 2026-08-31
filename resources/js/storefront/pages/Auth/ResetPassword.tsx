@@ -16,7 +16,10 @@ export default function ResetPassword() {
 
     return (
         <StorefrontLayout>
-            <AuthCard title="Choose a new password" lede="This link works once, and expires after 60 minutes.">
+            <AuthCard
+                title="Choose a new password"
+                lede="This link works once, and expires after 60 minutes."
+            >
                 <form
                     className="flex flex-col gap-4"
                     onSubmit={(event) => {
@@ -63,12 +66,19 @@ export default function ResetPassword() {
                                 type="password"
                                 autoComplete="new-password"
                                 value={form.data.password_confirmation}
-                                onChange={(event) => form.setData('password_confirmation', event.target.value)}
+                                onChange={(event) =>
+                                    form.setData('password_confirmation', event.target.value)
+                                }
                             />
                         )}
                     </Field>
 
-                    <Button type="submit" variant="primary" loading={form.processing} loadingLabel="Saving…">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        loading={form.processing}
+                        loadingLabel="Saving…"
+                    >
                         Set new password
                     </Button>
                 </form>
