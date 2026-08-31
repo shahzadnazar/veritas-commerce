@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:var(--color-bg)}
+@keyframes mh-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes mh-spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="position:sticky;top:0;z-index:50;background:var(--color-bg);border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:24px;padding:14px 40px">
+    <div style="font-family:var(--font-heading);font-weight:800;font-size:18px;letter-spacing:-0.02em">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">Phase 1 · Design System</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Dev annotations</span>
+      <button class="btn btn-secondary" onClick="{{ toggleNotes }}" style="font-size:12px;padding:5px 12px">{{ notesLabel }}</button>
+    </div>
+  </div>
+
+  <section style="padding:64px 40px;border-bottom:2px solid var(--color-divider);display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:64px">
+    <div>
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Phase 1 of 6</div>
+      <h1 style="font-size:56px;margin:0 0 20px;max-width:16ch">The MarketHub design system</h1>
+      <p style="font-size:17px;max-width:60ch;color:color-mix(in srgb, var(--color-text) 75%, transparent)">One visual system for three audiences — a customer storefront, a seller operating portal and an admin control centre. Everything below is the shared vocabulary: tokens, components and states that every screen in Phases 2–4 is assembled from.</p>
+      <div class="hr"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px">
+        <div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:6px">Customer</div>
+          <p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 65%, transparent)">Generous space, large imagery, one action per view. Trust before density.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:6px">Seller</div>
+          <p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 65%, transparent)">Persistent sidebar, tables over cards, status legible at a glance.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:6px">Admin</div>
+          <p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 65%, transparent)">Highest density. Every row is reviewable, every action is auditable.</p>
+        </div>
+      </div>
+    </div>
+    <div style="border-left:2px solid var(--color-divider);padding-left:32px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Assumptions</div>
+      <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:color-mix(in srgb, var(--color-text) 75%, transparent)">
+        <li>General-goods marketplace, USD, US shipping.</li>
+        <li>Scope is exactly the Phase 1 spec — no reviews, wishlists, coupons or time-series charts.</li>
+        <li>Product imagery is drop-in slots; photography renders grayscale per the system.</li>
+        <li>Commission is a snapshot on each order and never re-computed.</li>
+        <li>Prototype carries real state — cart, forms and statuses persist across screens.</li>
+      </ul>
+      <div class="hr"></div>
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Phases</div>
+      <ol style="margin:0;padding-left:18px;font-size:13px;line-height:1.8">
+        <li style="color:var(--color-accent);font-weight:600">Design system <span style="font-size:11px">— you are here</span></li>
+        <li style="color:color-mix(in srgb, var(--color-text) 45%, transparent)">Customer storefront</li>
+        <li style="color:color-mix(in srgb, var(--color-text) 45%, transparent)">Seller portal</li>
+        <li style="color:color-mix(in srgb, var(--color-text) 45%, transparent)">Admin portal</li>
+        <li style="color:color-mix(in srgb, var(--color-text) 45%, transparent)">Responsive refinement</li>
+        <li style="color:color-mix(in srgb, var(--color-text) 45%, transparent)">Consistency review</li>
+      </ol>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</div>
+      <h2 style="margin:0;font-size:32px">Color</h2>
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Mono scheme — ink on ground, one accent</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin-bottom:32px">
+      <div style="background:var(--color-accent);color:var(--color-bg);padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Primary</div>
+        <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">#EC3013</div><div style="font-size:11px;opacity:0.8">Primary action · emphasis</div></div>
+      </div>
+      <div style="background:var(--color-text);color:var(--color-bg);padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Text</div>
+        <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">#201E1D</div><div style="font-size:11px;opacity:0.8">Headings · body</div></div>
+      </div>
+      <div style="background:var(--color-bg);border:1px solid var(--color-divider);padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Background</div>
+        <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">#F3F2F2</div><div style="font-size:11px;opacity:0.7">Page ground</div></div>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-divider);padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Surface</div>
+        <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">#EAE9E9</div><div style="font-size:11px;opacity:0.7">Cards · inputs · rows</div></div>
+      </div>
+      <div style="background:var(--color-neutral-500);color:#fff;padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Muted</div>
+        <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">#9B9797</div><div style="font-size:11px;opacity:0.85">Secondary text · disabled</div></div>
+      </div>
+      <div style="background:var(--color-bg);border:1px solid var(--color-divider);padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Divider</div>
+        <div style="height:2px;background:var(--color-divider)"></div>
+        <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">40% ink</div><div style="font-size:11px;opacity:0.7">2px rules · 1px row lines</div></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;align-items:center;margin-bottom:12px">
+      <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Accent ramp</div>
+      <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:2px">
+        <div style="background:var(--color-accent-100);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">100</div>
+        <div style="background:var(--color-accent-200);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">200</div>
+        <div style="background:var(--color-accent-300);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">300</div>
+        <div style="background:var(--color-accent-400);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">400</div>
+        <div style="background:var(--color-accent-500);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">500</div>
+        <div style="background:var(--color-accent-600);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">600</div>
+        <div style="background:var(--color-accent-700);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">700</div>
+        <div style="background:var(--color-accent-800);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">800</div>
+        <div style="background:var(--color-accent-900);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">900</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;align-items:center;margin-bottom:28px">
+      <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Neutral ramp</div>
+      <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:2px">
+        <div style="background:var(--color-neutral-100);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">100</div>
+        <div style="background:var(--color-neutral-200);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">200</div>
+        <div style="background:var(--color-neutral-300);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">300</div>
+        <div style="background:var(--color-neutral-400);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">400</div>
+        <div style="background:var(--color-neutral-500);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px">500</div>
+        <div style="background:var(--color-neutral-600);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">600</div>
+        <div style="background:var(--color-neutral-700);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">700</div>
+        <div style="background:var(--color-neutral-800);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">800</div>
+        <div style="background:var(--color-neutral-900);height:44px;display:flex;align-items:flex-end;padding:4px;font-size:10px;color:#fff">900</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px">
+      <div style="background:var(--color-accent-100);padding:16px">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Danger / critical</div>
+        <div style="font-size:12px;color:var(--color-accent-900)">Rejected · Failed payment · Out of stock · Suspended. Accent-100 fill, accent-800 text.</div>
+      </div>
+      <div style="background:var(--color-neutral-200);padding:16px">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-800);margin-bottom:6px">Success / settled</div>
+        <div style="font-size:12px;color:var(--color-neutral-900)">Approved · Paid · Delivered. Ink on neutral — in a mono system, done is quiet.</div>
+      </div>
+      <div style="background:var(--color-surface);border:1px dashed var(--color-divider);padding:16px">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:6px">Pending / in progress</div>
+        <div style="font-size:12px;color:var(--color-neutral-800)">Pending review · Processing · Payout requested. Dashed outline, no fill.</div>
+      </div>
+      <div style="background:transparent;border:1px solid var(--color-divider);padding:16px;opacity:0.45">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Disabled / archived</div>
+        <div style="font-size:12px">Draft · Archived · Deactivated. 45% opacity, no interaction.</div>
+      </div>
+    </div>
+
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — status color</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">Only four semantic fills exist. Never introduce green/amber/blue: the system is mono, so status is carried by fill weight and label, not hue. Map every backend status enum to one of these four in a single shared <code>statusTone()</code> helper so storefront, seller and admin can never drift.</div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</div>
+      <h2 style="margin:0;font-size:32px">Typography</h2>
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Archivo — 800 for headings, 400/600 for text</div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:56px">
+      <div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Display 56/800</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:56px;line-height:1.05;letter-spacing:-0.02em">Everything, one market</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">H1 42/800</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:42px;line-height:1.12">Order MH-24081</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">H2 32/800</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:32px;line-height:1.12">Earnings statement</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">H3 25/800</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:25px;line-height:1.15">Shipping address</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Body 15/400</div>
+          <div style="font-size:15px;line-height:1.55;max-width:52ch">Sellers receive orders for their own products only. Stock is reduced when the order is placed and restored if it is cancelled.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Small 13/400</div>
+          <div style="font-size:13px;line-height:1.5;max-width:52ch">Commission rate snapshotted at 12.0% on 4 Aug 2026.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Caption 11/400</div>
+          <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Updated 2 hours ago by Nadia Fischer</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Label 12/400</div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Compare-at price (optional)</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Table 14/400</div>
+          <div style="font-size:14px;display:flex;gap:24px"><span>MH-24081</span><span style="font-variant-numeric:tabular-nums">$328.00</span><span>Aug 6, 2026</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:baseline;padding:14px 0">
+          <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Eyebrow 11/600</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent)">Featured sellers</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Rules</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:color-mix(in srgb, var(--color-text) 75%, transparent)">
+          <li>Everything is flush left. No centred headings, no centred button labels.</li>
+          <li>All money and quantity figures use <code>font-variant-numeric: tabular-nums</code> so columns align.</li>
+          <li>Storefront body is 15px; seller and admin tables drop to 14px — the only density difference between the three apps.</li>
+          <li>Never below 12px, and never below 14px for anything tappable.</li>
+        </ul>
+        <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:24px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px">
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note</div>
+            <div style="font-size:13px;color:var(--color-accent-900)">Type scale is fixed and comes from the stylesheet's <code>h1–h6</code> plus four utility sizes. Do not add intermediate sizes per screen — if something needs to feel bigger, change its weight or the space around it.</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</div>
+      <h2 style="margin:0;font-size:32px">Space, layout &amp; elevation</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:16px">Spacing scale</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:4px;height:16px;background:var(--color-accent)"></div><span style="font-size:12px">4 · icon gap</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:8px;height:16px;background:var(--color-accent)"></div><span style="font-size:12px">8 · inside controls</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:12px;height:16px;background:var(--color-accent)"></div><span style="font-size:12px">12 · card padding</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:16px;height:16px;background:var(--color-accent)"></div><span style="font-size:12px">16 · field stack</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:24px;height:16px;background:var(--color-accent)"></div><span style="font-size:12px">24 · card grid gap</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:32px;height:16px;background:var(--color-accent)"></div><span style="font-size:12px">32 · block spacing</span></div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="width:56px;height:16px;background:var(--color-neutral-500)"></div><span style="font-size:12px">56 · section padding</span></div>
+        </div>
+        <div class="hr"></div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Radius</div>
+        <div style="font-size:13px">0px everywhere — buttons, inputs, cards, modals, images, badges. No exceptions.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:16px">Layout metrics</div>
+        <table class="table" style="font-size:13px">
+          <tbody>
+            <tr><td style="padding-left:0">Storefront container</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">1280 max</td></tr>
+            <tr><td style="padding-left:0">Seller / admin container</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">Fluid, 40 gutter</td></tr>
+            <tr><td style="padding-left:0">Grid</td><td style="text-align:right;padding-right:0">12 col · 24 gap</td></tr>
+            <tr><td style="padding-left:0">Sidebar (seller/admin)</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">240 / 64 collapsed</td></tr>
+            <tr><td style="padding-left:0">Header height</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">64 storefront · 56 portal</td></tr>
+            <tr><td style="padding-left:0">Product grid</td><td style="text-align:right;padding-right:0">4 up ≥1200 · 3 · 2 · 2</td></tr>
+            <tr><td style="padding-left:0">Breakpoints</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">1200 / 900 / 600</td></tr>
+            <tr><td style="padding-left:0">Section rule</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">2px divider</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:16px">Elevation</div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="background:var(--color-surface);padding:14px;box-shadow:var(--shadow-sm)"><div style="font-size:13px;font-weight:600">shadow-sm</div><div style="font-size:12px;opacity:0.7">Sticky headers, hovered cards</div></div>
+          <div style="background:var(--color-surface);padding:14px;box-shadow:var(--shadow-md)"><div style="font-size:13px;font-weight:600">shadow-md</div><div style="font-size:12px;opacity:0.7">Dropdowns, popovers, toasts</div></div>
+          <div style="background:var(--color-surface);padding:14px;box-shadow:var(--shadow-lg)"><div style="font-size:13px;font-weight:600">shadow-lg</div><div style="font-size:12px;opacity:0.7">Modals and drawers only</div></div>
+          <div style="border:1px solid var(--color-divider);padding:14px"><div style="font-size:13px;font-weight:600">flat</div><div style="font-size:12px;opacity:0.7">The default. Most surfaces have no shadow at all.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">04</div>
+      <h2 style="margin:0;font-size:32px">Icons</h2>
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Lucide, 1.5px stroke, 18px in UI · 20px in nav</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:2px">
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><span style="font-size:11px">search</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span style="font-size:11px">shopping-cart</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span style="font-size:11px">user</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg><span style="font-size:11px">package</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><span style="font-size:11px">truck</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span style="font-size:11px">store</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="0"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg><span style="font-size:11px">credit-card</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg><span style="font-size:11px">trending-up</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg><span style="font-size:11px">alert-triangle</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="font-size:11px">check</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg><span style="font-size:11px">x</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg><span style="font-size:11px">filter</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg><span style="font-size:11px">plus</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span style="font-size:11px">trash</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span style="font-size:11px">loader</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span style="font-size:11px">bell</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span style="font-size:11px">settings</span></div>
+      <div style="background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg><span style="font-size:11px">chevron-down</span></div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">05</div>
+      <h2 style="margin:0;font-size:32px">Buttons</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;margin-bottom:2px">
+      <div style="padding:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Variant</div>
+      <div style="padding:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Default</div>
+      <div style="padding:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Hover</div>
+      <div style="padding:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Focus</div>
+      <div style="padding:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Disabled</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;align-items:center">
+      <div style="padding:12px;font-size:13px;font-weight:600">Primary</div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-primary">Add to cart</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn" style="background:var(--color-accent-600);color:var(--color-bg)">Add to cart</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-primary" style="outline:2px solid var(--color-accent);outline-offset:2px">Add to cart</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-primary" disabled="disabled">Add to cart</button></div>
+
+      <div style="padding:12px;font-size:13px;font-weight:600">Secondary</div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary">Save draft</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary" style="background:color-mix(in srgb, var(--color-text) 7%, transparent)">Save draft</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary" style="outline:2px solid var(--color-accent);outline-offset:2px">Save draft</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary" disabled="disabled">Save draft</button></div>
+
+      <div style="padding:12px;font-size:13px;font-weight:600">Ghost / link</div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-ghost">View store</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-ghost" style="background:color-mix(in srgb, var(--color-accent) 10%, transparent)">View store</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-ghost" style="outline:2px solid var(--color-accent);outline-offset:2px">View store</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-ghost" disabled="disabled">View store</button></div>
+
+      <div style="padding:12px;font-size:13px;font-weight:600">Destructive</div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary" style="border-color:var(--color-accent);color:var(--color-accent-700)">Reject application</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn" style="background:var(--color-accent-700);color:var(--color-bg)">Reject application</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary" style="border-color:var(--color-accent);color:var(--color-accent-700);outline:2px solid var(--color-accent);outline-offset:2px">Reject application</button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary" style="border-color:var(--color-accent);color:var(--color-accent-700)" disabled="disabled">Reject application</button></div>
+
+      <div style="padding:12px;font-size:13px;font-weight:600">Icon</div>
+      <div style="padding:12px;background:var(--color-surface);display:flex;gap:8px">
+        <button class="btn btn-secondary btn-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2.5 2.5 0 1 1 3.536 3.536L12.536 16.5 8 18l1.5-4.5z"></path></svg></button>
+        <button class="btn btn-secondary btn-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></button>
+      </div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary btn-icon" style="background:color-mix(in srgb, var(--color-text) 7%, transparent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2.5 2.5 0 1 1 3.536 3.536L12.536 16.5 8 18l1.5-4.5z"></path></svg></button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary btn-icon" style="outline:2px solid var(--color-accent);outline-offset:2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2.5 2.5 0 1 1 3.536 3.536L12.536 16.5 8 18l1.5-4.5z"></path></svg></button></div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-secondary btn-icon" disabled="disabled"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2.5 2.5 0 1 1 3.536 3.536L12.536 16.5 8 18l1.5-4.5z"></path></svg></button></div>
+
+      <div style="padding:12px;font-size:13px;font-weight:600">Loading</div>
+      <div style="padding:12px;background:var(--color-surface)"><button class="btn btn-primary" disabled="disabled"><span style="display:inline-block;animation:mh-spin 0.9s linear infinite;line-height:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg></span>Placing order…</button></div>
+      <div style="padding:12px;background:var(--color-surface);grid-column:span 3;font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);display:flex;align-items:center">Label swaps to the present participle and the button locks. Width is held so the layout does not jump.</div>
+    </div>
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:24px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — buttons</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">One primary per view, always the rightmost in an action row and always the action that advances the flow. Destructive actions never use the solid accent fill at rest — they earn it only on the confirmation dialog's confirm button. Button labels inside a full-width button are flush left, not centred (<code>.btn-block</code>).</div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">06</div>
+      <h2 style="margin:0;font-size:32px">Form controls</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px">
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="field">
+          <label>Product title</label>
+          <input class="input" value="{{ titleVal }}" onChange="{{ setTitle }}" />
+        </div>
+        <div class="field">
+          <label>SKU</label>
+          <input class="input" value="AC-KTL-1105" readOnly="{{ true }}" style="border-style:dashed;opacity:0.7" />
+          <div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Read-only after first publish</div>
+        </div>
+        <div class="field">
+          <label>Price</label>
+          <input class="input" value="129.00" style="border-color:var(--color-accent);outline:2px solid var(--color-accent);outline-offset:0" />
+          <div style="font-size:11px;margin-top:4px;color:var(--color-accent)">Focus state</div>
+        </div>
+        <div class="field">
+          <label>Compare-at price</label>
+          <input class="input" value="79" style="border-color:var(--color-accent);border-width:2px" />
+          <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+            Must be higher than the price
+          </div>
+        </div>
+        <div class="field">
+          <label>Internal note</label>
+          <input class="input" value="Not editable" disabled="disabled" />
+          <div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Disabled — 45% opacity</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="field">
+          <label>Search</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:32px" value="cordless kettle" onChange="{{ noop }}" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select class="input" style="appearance:none;background-image:none">
+            <option>Home &amp; Kitchen</option>
+            <option>Electronics</option>
+            <option>Apparel</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Ships to (multi-select)</label>
+          <div class="input" style="min-height:36px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px">
+            <span class="tag tag-neutral" style="gap:6px">Continental US <span style="opacity:0.5">×</span></span>
+            <span class="tag tag-neutral" style="gap:6px">Alaska <span style="opacity:0.5">×</span></span>
+            <span style="font-size:13px;opacity:0.45">Add region…</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Date range</label>
+          <div style="display:flex;gap:8px">
+            <input class="input" value="Aug 1, 2026" />
+            <input class="input" value="Aug 12, 2026" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Store description</label>
+          <textarea class="input" style="min-height:78px">Small-batch kitchen tools, tested in a working restaurant kitchen before we list them.</textarea>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Choice controls</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <label class="radio"><input type="radio" name="cond" checked="{{ true }}" onChange="{{ noop }}" /><span class="dot"></span>New</label>
+            <label class="radio"><input type="radio" name="cond" onChange="{{ noop }}" /><span class="dot"></span>Refurbished</label>
+            <label class="radio"><input type="radio" name="cond" disabled="disabled" /><span class="dot"></span>Used — disabled</label>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <span style="width:16px;height:16px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            Track inventory for this product
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <span style="width:16px;height:16px;flex:none;border:1.5px solid var(--color-divider)"></span>
+            Continue selling when out of stock
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;opacity:0.45">
+            <span style="width:16px;height:16px;flex:none;border:1.5px solid var(--color-divider)"></span>
+            Requires shipping — locked
+          </label>
+        </div>
+        <div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Toggle</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <button onClick="{{ toggleLive }}" style="width:44px;height:24px;padding:2px;border:1px solid var(--color-divider);background:transparent;cursor:pointer;display:flex;justify-content:flex-start;align-items:center">
+                <sc-if value="{{ live }}" hint-placeholder-val="{{ true }}"><span style="width:100%;height:100%;display:flex;justify-content:flex-end"><span style="width:18px;height:18px;background:var(--color-accent)"></span></span></sc-if>
+                <sc-if value="{{ notLive }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;background:var(--color-neutral-400)"></span></sc-if>
+              </button>
+              <span style="font-size:14px">Store is open for orders</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;opacity:0.45">
+              <span style="width:44px;height:24px;padding:2px;border:1px solid var(--color-divider);display:flex;align-items:center"><span style="width:18px;height:18px;background:var(--color-neutral-400)"></span></span>
+              <span style="font-size:14px">Vacation mode — unavailable</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Segmented</div>
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="segv" checked="{{ true }}" onChange="{{ noop }}" />Grid</label>
+            <label class="seg-opt"><input type="radio" name="segv" onChange="{{ noop }}" />List</label>
+            <label class="seg-opt"><input type="radio" name="segv" onChange="{{ noop }}" />Compact</label>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Image uploader</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <div style="position:relative;aspect-ratio:1;border:1px solid var(--color-divider)">
+              <image-slot id="ds-up-1" shape="rect" fit="cover" placeholder="Main image"></image-slot>
+              <span style="position:absolute;left:0;bottom:0;background:var(--color-accent);color:var(--color-bg);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;pointer-events:none">Main</span>
+            </div>
+            <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot id="ds-up-2" shape="rect" fit="cover" placeholder="Image 2"></image-slot></div>
+            <div style="aspect-ratio:1;border:1px dashed var(--color-divider);display:grid;place-items:center;color:color-mix(in srgb, var(--color-text) 45%, transparent)">
+              <div style="text-align:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 4px"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg><div style="font-size:10px">Add</div></div>
+            </div>
+          </div>
+          <div style="font-size:11px;margin-top:6px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">JPG or PNG · max 5 MB · first image is the main image</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Dropdown menu</div>
+          <div style="background:var(--color-surface);box-shadow:var(--shadow-md);width:190px;padding:4px 0">
+            <div style="padding:8px 12px;font-size:13px;background:color-mix(in srgb, var(--color-text) 7%, transparent)">Edit product</div>
+            <div style="padding:8px 12px;font-size:13px">Duplicate</div>
+            <div style="padding:8px 12px;font-size:13px">Deactivate</div>
+            <div style="height:1px;background:var(--color-divider);margin:4px 0"></div>
+            <div style="padding:8px 12px;font-size:13px;color:var(--color-accent-700)">Archive</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Tooltip</div>
+          <div style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:6px">
+            <div style="background:var(--color-text);color:var(--color-bg);font-size:12px;padding:6px 10px;max-width:220px">Commission is calculated from the rate saved on this order — 12.0%.</div>
+            <button class="btn btn-secondary" style="font-size:12px;padding:5px 10px">Why this amount?</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — forms</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">Validation is on blur, then on every change once a field has errored. Errors render as a 2px accent border plus a message under the field — never as a tooltip or a colour change alone. Every form has an explicit submit; nothing auto-saves silently except the product draft, which shows a "Saved 12:04" caption in the header.</div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">07</div>
+      <h2 style="margin:0;font-size:32px">Navigation &amp; structure</h2>
+    </div>
+
+    <div style="border:1px solid var(--color-divider);margin-bottom:32px">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;background:var(--color-surface);color:color-mix(in srgb, var(--color-text) 55%, transparent)">Storefront header — 64px</div>
+      <div style="display:flex;align-items:center;gap:24px;padding:14px 20px;border-bottom:2px solid var(--color-divider)">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:18px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+        <div style="flex:1;position:relative;max-width:420px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+          <div class="input" style="padding-left:32px;display:flex;align-items:center;color:color-mix(in srgb, var(--color-text) 45%, transparent)">Search 8,400 products</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;font-size:14px">
+          <span>Sell on MarketHub</span>
+          <span>Orders</span>
+          <span style="display:flex;align-items:center;gap:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span style="background:var(--color-accent);color:var(--color-bg);font-size:11px;padding:1px 6px">3</span></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:24px;padding:10px 20px;font-size:13px;color:color-mix(in srgb, var(--color-text) 75%, transparent)">
+        <span style="color:var(--color-accent);font-weight:600">All categories</span><span>Electronics</span><span>Home &amp; Kitchen</span><span>Apparel</span><span>Outdoors</span><span>Office</span><span>Sellers</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:280px minmax(0,1fr);gap:32px">
+      <div style="border:1px solid var(--color-divider)">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;background:var(--color-surface);color:color-mix(in srgb, var(--color-text) 55%, transparent)">Portal sidebar — 240px</div>
+        <div style="padding:16px 0">
+          <div style="padding:0 16px 12px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent)">Seller</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px;background:var(--color-accent);color:var(--color-bg)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>Dashboard</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path></svg>Products</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px;background:color-mix(in srgb, var(--color-text) 6%, transparent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7H4"></path><path d="M20 12H4"></path><path d="M20 17H4"></path></svg>Inventory <span style="margin-left:auto" class="tag tag-accent">4 low</span></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>Orders <span style="margin-left:auto;font-size:12px;opacity:0.6">12</span></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg>Earnings</div>
+          <div style="height:2px;background:var(--color-divider);margin:12px 16px"></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18"></path></svg>Store settings</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:32px">
+        <div>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Breadcrumbs</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
+            <span>Home</span><span>/</span><span>Home &amp; Kitchen</span><span>/</span><span>Small appliances</span><span>/</span><span style="color:var(--color-text)">Aeris cordless kettle</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Tabs</div>
+          <div style="display:flex;gap:24px;border-bottom:2px solid var(--color-divider)">
+            <button onClick="{{ tabDetails }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Details</button>
+            <button onClick="{{ tabVariants }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Variants</button>
+            <button onClick="{{ tabHistory }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">Stock history</button>
+          </div>
+          <div style="padding:14px 0;font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ tabBody }}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Pagination</div>
+          <div style="display:flex;align-items:center;gap:2px">
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px" disabled="disabled">Previous</button>
+            <button class="btn" style="font-size:13px;padding:6px 12px;background:var(--color-accent);color:var(--color-bg)">1</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">2</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">3</button>
+            <span style="padding:0 8px;font-size:13px;opacity:0.5">…</span>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">42</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Next</button>
+            <span style="margin-left:16px;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Showing 1–24 of 1,008</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Mobile navigation — 375px</div>
+          <div style="width:280px;border:1px solid var(--color-divider)">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:2px solid var(--color-divider)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+              <svg style="margin-left:auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            </div>
+            <div style="display:flex;border-top:1px solid var(--color-divider)">
+              <div style="flex:1;padding:10px 0;text-align:center;color:var(--color-accent)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 2px"><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><div style="font-size:10px">Home</div></div>
+              <div style="flex:1;padding:10px 0;text-align:center;opacity:0.65"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 2px"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg><div style="font-size:10px">Browse</div></div>
+              <div style="flex:1;padding:10px 0;text-align:center;opacity:0.65"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 2px"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><div style="font-size:10px">Cart</div></div>
+              <div style="flex:1;padding:10px 0;text-align:center;opacity:0.65"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 2px"><circle cx="12" cy="7" r="4"></circle><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path></svg><div style="font-size:10px">Account</div></div>
+            </div>
+          </div>
+          <div style="font-size:11px;margin-top:6px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Tab bar on storefront; the seller and admin sidebars become a slide-in drawer from the hamburger.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">08</div>
+      <h2 style="margin:0;font-size:32px">Cards</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px">
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Product card</div>
+        <div style="border:1px solid var(--color-divider);background:var(--color-bg)">
+          <div style="position:relative;aspect-ratio:1;border-bottom:1px solid var(--color-divider)">
+            <image-slot id="ds-prod-1" shape="rect" fit="cover" placeholder="Product"></image-slot>
+            <span style="position:absolute;top:0;left:0;background:var(--color-accent);color:var(--color-bg);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;pointer-events:none">−28%</span>
+          </div>
+          <div style="padding:12px">
+            <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:4px">Aeris Kitchen Co.</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:8px">Aeris cordless kettle, 1.2L</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums">$92.00</span>
+              <span style="font-size:13px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">$129.00</span>
+            </div>
+            <div style="font-size:12px;color:var(--color-accent-800)">Only 3 left</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Product card — out of stock</div>
+        <div style="border:1px solid var(--color-divider);background:var(--color-bg)">
+          <div style="position:relative;aspect-ratio:1;border-bottom:1px solid var(--color-divider);opacity:0.5">
+            <image-slot id="ds-prod-2" shape="rect" fit="cover" placeholder="Product"></image-slot>
+          </div>
+          <div style="padding:12px">
+            <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:4px">Northline Audio</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:8px">Northline S2 desk speakers</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums">$248.00</span>
+            </div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Out of stock</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Seller card</div>
+        <div style="border:1px solid var(--color-divider);background:var(--color-bg)">
+          <div style="height:72px;border-bottom:1px solid var(--color-divider)"><image-slot id="ds-seller-1" shape="rect" fit="cover" placeholder="Store banner"></image-slot></div>
+          <div style="padding:12px">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+              <div style="width:36px;height:36px;flex:none;border:1px solid var(--color-divider)"><image-slot id="ds-seller-logo-1" shape="rect" fit="cover" placeholder="Logo"></image-slot></div>
+              <div>
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">Aeris Kitchen Co.</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Portland, OR · 84 products</div>
+              </div>
+            </div>
+            <p style="font-size:12px;margin:0 0 10px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Small-batch kitchen tools, tested in a working restaurant kitchen.</p>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Visit store</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Stat cards</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="background:var(--color-surface);padding:14px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Revenue · 30 days</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$48,210.40</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">312 orders</div>
+          </div>
+          <div style="background:var(--color-surface);padding:14px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Available balance</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$6,842.15</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">After 12.0% commission</div>
+          </div>
+          <div style="background:var(--color-surface);padding:14px;opacity:0.6">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Pending payout</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$0.00</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">No open request</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">09</div>
+      <h2 style="margin:0;font-size:32px">Tables &amp; filters</h2>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+      <div style="position:relative;width:260px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+        <div class="input" style="padding-left:30px;display:flex;align-items:center;color:color-mix(in srgb, var(--color-text) 45%, transparent);font-size:13px">Order number, customer, SKU</div>
+      </div>
+      <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Status: All<span style="opacity:0.5">▾</span></button>
+      <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Last 30 days<span style="opacity:0.5">▾</span></button>
+      <span class="tag tag-accent" style="gap:6px">Seller: Aeris Kitchen Co. <span style="opacity:0.6">×</span></span>
+      <button class="btn btn-ghost" style="font-size:13px">Clear all</button>
+      <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">312 orders · $48,210.40</div>
+    </div>
+    <table class="table">
+      <thead>
+        <tr><th>Order</th><th>Date</th><th>Customer</th><th>Seller</th><th>Items</th><th style="text-align:right">Total</th><th style="text-align:right">Commission</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr><td style="font-weight:600">MH-24081</td><td>Aug 12, 2026</td><td>Priya Raman</td><td>Aeris Kitchen Co.</td><td>2</td><td style="text-align:right;font-variant-numeric:tabular-nums">$328.00</td><td style="text-align:right;font-variant-numeric:tabular-nums">$39.36</td><td><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Processing</span></td><td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px">Open</button></td></tr>
+        <tr><td style="font-weight:600">MH-24080</td><td>Aug 12, 2026</td><td>Daniel Okafor</td><td>Northline Audio</td><td>1</td><td style="text-align:right;font-variant-numeric:tabular-nums">$248.00</td><td style="text-align:right;font-variant-numeric:tabular-nums">$29.76</td><td><span class="tag tag-neutral">Shipped</span></td><td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px">Open</button></td></tr>
+        <tr><td style="font-weight:600">MH-24079</td><td>Aug 11, 2026</td><td>Elena Sokolova</td><td>Fieldnote Supply</td><td>4</td><td style="text-align:right;font-variant-numeric:tabular-nums">$96.50</td><td style="text-align:right;font-variant-numeric:tabular-nums">$11.58</td><td><span class="tag tag-neutral">Delivered</span></td><td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px">Open</button></td></tr>
+        <tr><td style="font-weight:600">MH-24078</td><td>Aug 11, 2026</td><td>Marcus Bell</td><td>Aeris Kitchen Co.</td><td>1</td><td style="text-align:right;font-variant-numeric:tabular-nums">$129.00</td><td style="text-align:right;font-variant-numeric:tabular-nums">—</td><td><span class="tag tag-accent">Payment failed</span></td><td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px">Open</button></td></tr>
+        <tr><td style="font-weight:600">MH-24077</td><td>Aug 10, 2026</td><td>Yuki Tanaka</td><td>Northline Audio</td><td>2</td><td style="text-align:right;font-variant-numeric:tabular-nums">$412.00</td><td style="text-align:right;font-variant-numeric:tabular-nums">$49.44</td><td><span class="tag tag-accent">Refunded</span></td><td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px">Open</button></td></tr>
+      </tbody>
+    </table>
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:24px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — tables</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">One table component across seller and admin: sticky header, 1px row rules, money right-aligned and tabular, status always the second-from-last column, row action always last. Filters are URL query params so a filtered view is shareable and back-button safe. Commission shows "—" when no commission was captured (failed payment), never $0.00.</div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">10</div>
+      <h2 style="margin:0;font-size:32px">Status taxonomy</h2>
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Every state in the Phase 1 spec, and where it appears</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Product</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:transparent;border:1px solid var(--color-divider);opacity:0.6">Draft</span><span style="opacity:0.6">Hidden from storefront</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Published</span><span style="opacity:0.6">Live in search</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Pending review</span><span style="opacity:0.6">Awaiting admin</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Rejected</span><span style="opacity:0.6">Reason recorded</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:transparent;border:1px solid var(--color-divider);opacity:0.6">Archived</span><span style="opacity:0.6">Read-only</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Out of stock</span><span style="opacity:0.6">Not purchasable</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-outline">Low stock</span><span style="opacity:0.6">≤ 5 units</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Order</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Placed</span><span style="opacity:0.6">Payment captured</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Processing</span><span style="opacity:0.6">Seller accepted</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Packed</span><span style="opacity:0.6">Ready to ship</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Shipped</span><span style="opacity:0.6">Carrier + tracking</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Delivered</span><span style="opacity:0.6">Order completes</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Cancelled</span><span style="opacity:0.6">Stock restored</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Refunded</span><span style="opacity:0.6">Earning reversed</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Payment</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Pending</span><span style="opacity:0.6">Authorising</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Paid</span><span style="opacity:0.6">Captured</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Failed</span><span style="opacity:0.6">Attempt recorded, retry allowed</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Refunded</span><span style="opacity:0.6">Full or partial</span></div>
+        </div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin:20px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Seller account</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Pending</span><span style="opacity:0.6">Application in review</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Approved</span><span style="opacity:0.6">Store live</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Rejected</span><span style="opacity:0.6">Reason recorded</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Suspended</span><span style="opacity:0.6">Listings hidden</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Payout</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Requested</span><span style="opacity:0.6">Balance held</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-neutral">Approved</span><span style="opacity:0.6">Balance reduced</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="tag tag-accent">Rejected</span><span style="opacity:0.6">Reason recorded, balance released</span></div>
+        </div>
+        <div style="margin-top:20px;padding:14px;background:var(--color-surface)">
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent);margin-bottom:8px">Commission snapshot</div>
+          <div style="font-size:12px;line-height:1.6;color:color-mix(in srgb, var(--color-text) 78%, transparent)">Every completed order stores its own order total, commission amount, seller earning and the rate that produced them. Changing the platform rate never alters a historical order — the UI always shows the rate from the order, labelled with its date.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">11</div>
+      <h2 style="margin:0;font-size:32px">Feedback &amp; overlays</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Alerts</div>
+        <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;display:flex;gap:12px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <div><div style="font-weight:600;font-size:14px;color:var(--color-accent-900)">Payment could not be completed</div><div style="font-size:13px;color:var(--color-accent-900);opacity:0.85">Your card was declined by the issuer. The order has not been placed — no charge was made. Try another card.</div></div>
+        </div>
+        <div style="background:var(--color-neutral-200);border-top:2px solid var(--color-neutral-600);padding:14px 16px;display:flex;gap:12px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg>
+          <div><div style="font-weight:600;font-size:14px">Seller approved</div><div style="font-size:13px;opacity:0.75">Aeris Kitchen Co. can now publish products. An approval email has been sent.</div></div>
+        </div>
+        <div style="background:var(--color-surface);border-top:2px dashed var(--color-divider);padding:14px 16px;display:flex;gap:12px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg>
+          <div><div style="font-weight:600;font-size:14px">4 products are low on stock</div><div style="font-size:13px;opacity:0.75">Restock before they sell out. <span style="color:var(--color-accent)">Review inventory</span></div></div>
+        </div>
+
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-top:12px">Toast</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="background:var(--color-text);color:var(--color-bg);padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-md);min-width:320px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
+            <span style="font-size:13px">Tracking number saved · customer notified</span>
+            <span style="margin-left:auto;font-size:12px;color:var(--color-accent-400)">Undo</span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Bottom-left, 4s auto-dismiss, max 3 stacked. Never used for errors that need a decision.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Overlays</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onClick="{{ openModal }}" style="font-size:13px">Open modal</button>
+          <button class="btn btn-secondary" onClick="{{ openConfirm }}" style="font-size:13px">Open confirmation</button>
+          <button class="btn btn-secondary" onClick="{{ openDrawer }}" style="font-size:13px">Open drawer</button>
+        </div>
+        <div style="background:color-mix(in srgb, var(--color-neutral-900) 40%, transparent);padding:32px;display:grid;place-items:center">
+          <div style="width:min(400px,100%);background:var(--color-surface);box-shadow:var(--shadow-lg);padding:20px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;margin-bottom:6px">Reject this payout request?</div>
+            <div style="font-size:14px;opacity:0.85;margin-bottom:14px">$6,842.15 to Aeris Kitchen Co. The balance is released back to the seller and a reason is recorded on the request.</div>
+            <div class="field" style="margin-bottom:14px"><label>Reason (sent to the seller)</label><textarea class="input" style="min-height:64px">Bank details do not match the registered business name.</textarea></div>
+            <div style="display:flex;justify-content:flex-end;gap:8px">
+              <button class="btn btn-secondary">Cancel</button>
+              <button class="btn btn-primary">Reject payout</button>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Modals are for short decisions and always name the consequence. Anything longer than two fields becomes a drawer or a page.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">12</div>
+      <h2 style="margin:0;font-size:32px">Data display</h2>
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Phase 1 shows figures and proportions — time-series charts are Phase 1.1</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Commission split bar</div>
+        <div style="display:flex;height:44px;border:1px solid var(--color-divider)">
+          <div style="flex:88;background:var(--color-neutral-300);display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600">Seller earning 88%</div>
+          <div style="flex:12;background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">12%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:10px;font-variant-numeric:tabular-nums">
+          <span>Order total <strong>$328.00</strong></span><span>Commission <strong style="color:var(--color-accent-700)">$39.36</strong></span><span>Earning <strong>$288.64</strong></span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Orders by status</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:78px">Processing</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:34%;background:var(--color-accent)"></span></span><span style="width:32px;text-align:right;font-variant-numeric:tabular-nums">18</span></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:78px">Packed</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:16%;background:var(--color-neutral-600)"></span></span><span style="width:32px;text-align:right;font-variant-numeric:tabular-nums">9</span></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:78px">Shipped</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:52%;background:var(--color-neutral-600)"></span></span><span style="width:32px;text-align:right;font-variant-numeric:tabular-nums">27</span></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:78px">Delivered</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:88%;background:var(--color-neutral-800)"></span></span><span style="width:32px;text-align:right;font-variant-numeric:tabular-nums">46</span></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:78px">Refunded</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:6%;background:var(--color-accent-700)"></span></span><span style="width:32px;text-align:right;font-variant-numeric:tabular-nums">3</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Order tracking rail</div>
+        <div style="display:flex;align-items:flex-start">
+          <div style="flex:1"><div style="height:3px;background:var(--color-accent)"></div><div style="font-size:11px;margin-top:8px;font-weight:600">Placed</div><div style="font-size:10px;opacity:0.55">Aug 6</div></div>
+          <div style="flex:1"><div style="height:3px;background:var(--color-accent)"></div><div style="font-size:11px;margin-top:8px;font-weight:600">Processing</div><div style="font-size:10px;opacity:0.55">Aug 7</div></div>
+          <div style="flex:1"><div style="height:3px;background:var(--color-accent)"></div><div style="font-size:11px;margin-top:8px;font-weight:600">Packed</div><div style="font-size:10px;opacity:0.55">Aug 8</div></div>
+          <div style="flex:1"><div style="height:3px;background:var(--color-neutral-300)"></div><div style="font-size:11px;margin-top:8px;opacity:0.5">Shipped</div><div style="font-size:10px;opacity:0.4">Expected Aug 13</div></div>
+          <div style="flex:1"><div style="height:3px;background:var(--color-neutral-300)"></div><div style="font-size:11px;margin-top:8px;opacity:0.5">Delivered</div><div style="font-size:10px;opacity:0.4">—</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:56px 40px 80px">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:28px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">13</div>
+      <h2 style="margin:0;font-size:32px">Page states</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px">
+      <div style="background:var(--color-surface);padding:24px;min-height:240px">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Loading — skeleton</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="height:96px;background:linear-gradient(90deg,var(--color-neutral-200) 0%,var(--color-neutral-300) 50%,var(--color-neutral-200) 100%);background-size:800px 100%;animation:mh-shimmer 1.4s linear infinite"></div>
+          <div style="height:12px;width:70%;background:var(--color-neutral-300)"></div>
+          <div style="height:12px;width:45%;background:var(--color-neutral-300)"></div>
+          <div style="height:12px;width:30%;background:var(--color-neutral-300)"></div>
+        </div>
+        <div style="font-size:11px;margin-top:16px;opacity:0.6">Skeletons mirror the real layout. Never a full-page spinner on a route that has a known shape.</div>
+      </div>
+      <div style="background:var(--color-surface);padding:24px;min-height:240px;display:flex;flex-direction:column">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Empty</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.4"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path></svg>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">No products yet</div>
+          <div style="font-size:13px;opacity:0.7">Add your first listing to start selling. Drafts stay hidden until you publish them.</div>
+          <button class="btn btn-primary" style="font-size:13px">Add a product</button>
+        </div>
+      </div>
+      <div style="background:var(--color-surface);padding:24px;min-height:240px;display:flex;flex-direction:column">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Error</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.4"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">Couldn't load orders</div>
+          <div style="font-size:13px;opacity:0.7">The request timed out. Nothing has been changed — try again.</div>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary" style="font-size:13px">Retry</button><button class="btn btn-ghost" style="font-size:13px">Contact support</button></div>
+        </div>
+      </div>
+      <div style="background:var(--color-surface);padding:24px;min-height:240px;display:flex;flex-direction:column">
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Success</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px">
+          <div style="width:36px;height:36px;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"></path></svg></div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">Order MH-24081 placed</div>
+          <div style="font-size:13px;opacity:0.7">$328.00 charged. A confirmation email is on its way to priya.r@example.com.</div>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary" style="font-size:13px">Track order</button><button class="btn btn-secondary" style="font-size:13px">Keep shopping</button></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:40px;padding-top:28px;border-top:2px solid var(--color-divider)">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">13b</div>
+        <h3 style="margin:0;font-size:22px">Loading states for tables and forms</h3>
+        <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Added from the Phase 6 review — finding 2</span>
+      </div>
+      <p style="font-size:13px;margin:0 0 20px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Every route with a known shape gets a skeleton that mirrors it. Two more are needed beyond the product grid: the data table and the submitting form.</p>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:32px">
+        <div>
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Table skeleton — real column widths, 8 rows</div>
+          <div style="border:1px solid var(--color-divider)">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 0.7fr 0.9fr 0.8fr;gap:16px;padding:10px 12px;border-bottom:2px solid var(--color-divider)">
+              <div style="height:9px;width:60%;background:var(--color-neutral-400)"></div>
+              <div style="height:9px;width:50%;background:var(--color-neutral-400)"></div>
+              <div style="height:9px;width:55%;background:var(--color-neutral-400)"></div>
+              <div style="height:9px;width:70%;background:var(--color-neutral-400)"></div>
+              <div style="height:9px;width:65%;background:var(--color-neutral-400)"></div>
+              <div style="height:9px;width:60%;background:var(--color-neutral-400)"></div>
+            </div>
+            <sc-for list="{{ skelRows }}" as="k" hint-placeholder-count="8">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 0.7fr 0.9fr 0.8fr;gap:16px;padding:13px 12px;border-bottom:1px solid var(--color-divider)">
+                <div style="height:11px;width:85%;background:linear-gradient(90deg,var(--color-neutral-200) 0%,var(--color-neutral-300) 50%,var(--color-neutral-200) 100%);background-size:600px 100%;animation:mh-shimmer 1.4s linear infinite"></div>
+                <div style="height:11px;width:60%;background:var(--color-neutral-200)"></div>
+                <div style="height:11px;width:75%;background:var(--color-neutral-200)"></div>
+                <div style="height:11px;width:50%;background:var(--color-neutral-200);justify-self:end"></div>
+                <div style="height:11px;width:65%;background:var(--color-neutral-200);justify-self:end"></div>
+                <div style="height:16px;width:70px;background:var(--color-neutral-200)"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:11px;margin-top:8px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Column widths and row height match the real table exactly, so nothing shifts on load. Only the first column shimmers — a full grid of moving bars reads as noise. Shown after 200ms; faster responses skip it entirely.</div>
+        </div>
+
+        <div>
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Form — submitting</div>
+          <div style="border:1px solid var(--color-divider);padding:18px">
+            <div style="display:flex;flex-direction:column;gap:14px;opacity:0.45;pointer-events:none">
+              <div class="field"><label>Requested amount</label><input class="input" value="6,842.15" disabled="disabled" /></div>
+              <div class="field"><label>Pay to</label><input class="input" value="Chase ••4417" disabled="disabled" /></div>
+            </div>
+            <button class="btn btn-primary btn-block" style="margin-top:16px" disabled="disabled"><span style="display:inline-block;animation:mh-spin 0.9s linear infinite;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg></span>Requesting payout…</button>
+          </div>
+          <div style="font-size:11px;margin-top:8px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Fields drop to 45% and lock, the primary button holds its width and swaps to the present participle. Never a full-page overlay — the person keeps their context.</div>
+
+          <div style="margin-top:24px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px">
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — one status helper</div>
+            <div style="font-size:12px;line-height:1.55;color:var(--color-accent-900)">Phase 6 finding 1: every badge in all three apps must read its tone from a single <code>statusTone(status)</code> returning one of four values — <code>neutral</code>, <code>pending</code>, <code>critical</code>, <code>inactive</code>. No per-screen lookup tables. A test should assert every status enum in the API has a mapping.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;display:flex;align-items:center;gap:16px;padding-top:24px;border-top:2px solid var(--color-divider)">
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent);max-width:60ch">Design system complete, including the two additions from the Phase 6 review. Every screen in Phases 2–5 is assembled from the components above.</div>
+    </div>
+  </section>
+
+  <sc-if value="{{ modal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent)" onClick="{{ closeAll }}">
+      <div style="width:min(480px,100%);background:var(--color-surface);box-shadow:var(--shadow-lg);padding:24px" onClick="{{ stop }}">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;margin-bottom:6px">Adjust stock — Aeris cordless kettle</div>
+        <div style="font-size:14px;opacity:0.8;margin-bottom:16px">Current on hand: 3 units. Adjustments are written to the stock movement history and cannot be edited afterwards.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="field"><label>New quantity</label><input class="input" value="24" /></div>
+          <div class="field"><label>Reason</label><select class="input"><option>Restock received</option><option>Damaged</option><option>Count correction</option></select></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-secondary" onClick="{{ closeAll }}">Cancel</button><button class="btn btn-primary" onClick="{{ closeAll }}">Save adjustment</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirm }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent)" onClick="{{ closeAll }}">
+      <div style="width:min(400px,100%);background:var(--color-surface);box-shadow:var(--shadow-lg);padding:24px" onClick="{{ stop }}">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;margin-bottom:6px">Archive this product?</div>
+        <div style="font-size:14px;opacity:0.8;margin-bottom:18px">It will be removed from your storefront and from search. Existing orders keep their record. This cannot be undone.</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-secondary" onClick="{{ closeAll }}">Keep product</button><button class="btn btn-primary" onClick="{{ closeAll }}">Archive</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ drawer }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:100;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;justify-content:flex-end" onClick="{{ closeAll }}">
+      <div style="width:min(420px,100%);height:100%;background:var(--color-bg);box-shadow:var(--shadow-lg);display:flex;flex-direction:column" onClick="{{ stop }}">
+        <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:2px solid var(--color-divider)">
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">Filters</div>
+          <button class="btn btn-secondary btn-icon" style="margin-left:auto" onClick="{{ closeAll }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+        </div>
+        <div style="flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:20px">
+          <div class="field"><label>Status</label><div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <label class="radio"><input type="radio" name="dst" checked="{{ true }}" onChange="{{ noop }}" /><span class="dot"></span>All orders</label>
+            <label class="radio"><input type="radio" name="dst" onChange="{{ noop }}" /><span class="dot"></span>Processing</label>
+            <label class="radio"><input type="radio" name="dst" onChange="{{ noop }}" /><span class="dot"></span>Shipped</label>
+            <label class="radio"><input type="radio" name="dst" onChange="{{ noop }}" /><span class="dot"></span>Delivered</label>
+          </div></div>
+          <div class="field"><label>Date range</label><div style="display:flex;gap:8px"><input class="input" value="Aug 1, 2026" /><input class="input" value="Aug 12, 2026" /></div></div>
+          <div class="field"><label>Minimum total</label><input class="input" value="$0.00" /></div>
+        </div>
+        <div style="padding:16px 20px;border-top:2px solid var(--color-divider);display:flex;gap:8px">
+          <button class="btn btn-secondary" onClick="{{ closeAll }}">Reset</button>
+          <button class="btn btn-primary" style="flex:1;justify-content:flex-start" onClick="{{ closeAll }}">Apply filters</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  state = { notes: true, live: true, tab: 'details', modal: false, confirm: false, drawer: false, title: 'Aeris cordless kettle, 1.2L' };
+
+  renderVals() {
+    const tabs = {
+      details: 'Title, description, category, brand, SKU and condition. Saved together; the draft autosaves.',
+      variants: 'Size and colour combinations, each with its own price and stock quantity.',
+      history: 'Every stock movement with reason, actor and timestamp. Append-only — nothing is edited or deleted.'
+    };
+    return {
+      notes: this.state.notes,
+      notesLabel: this.state.notes ? 'Hide' : 'Show',
+      toggleNotes: () => this.setState(s => ({ notes: !s.notes })),
+      live: this.state.live,
+      notLive: !this.state.live,
+      toggleLive: () => this.setState(s => ({ live: !s.live })),
+      tabBody: tabs[this.state.tab],
+      tabDetails: () => this.setState({ tab: 'details' }),
+      tabVariants: () => this.setState({ tab: 'variants' }),
+      tabHistory: () => this.setState({ tab: 'history' }),
+      titleVal: this.state.title,
+      setTitle: (e) => this.setState({ title: e.target.value }),
+      modal: this.state.modal,
+      confirm: this.state.confirm,
+      drawer: this.state.drawer,
+      openModal: () => this.setState({ modal: true }),
+      openConfirm: () => this.setState({ confirm: true }),
+      openDrawer: () => this.setState({ drawer: true }),
+      closeAll: () => this.setState({ modal: false, confirm: false, drawer: false }),
+      stop: (e) => e.stopPropagation(),
+      skelRows: [1, 2, 3, 4, 5, 6, 7, 8],
+      noop: () => {},
+      true: true
+    };
+  }
+}
+</script>
+</body>
+</html>

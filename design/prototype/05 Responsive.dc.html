@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>body{margin:0;background:var(--color-bg)}</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 32px;background:var(--color-text);color:var(--color-bg);position:sticky;top:0;z-index:60">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-400)">Phase 5 · Responsive</div>
+    <div style="font-size:12px;opacity:0.75">Mobile 375 · Tablet 834 · Desktop 1280+</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;opacity:0.6">Dev annotations</span>
+      <button onClick="{{ toggleNotes }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">{{ notesLabel }}</button>
+    </div>
+  </div>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:56px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Phase 5 of 6</div>
+        <h1 style="margin:0 0 18px;font-size:52px;max-width:18ch;line-height:1.05">Three widths, one system.</h1>
+        <p style="font-size:16px;max-width:58ch;margin:0 0 24px;color:color-mix(in srgb, var(--color-text) 74%, transparent)">Nothing here is a shrunken desktop screen. Each layout is re-composed for what the person is doing at that width: customers browse and buy one-handed, sellers triage orders between packing, admins review queues at a desk.</p>
+        <div class="hr"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px">
+          <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:6px">Mobile · &lt; 600</div><p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 68%, transparent)">One column, tab bar, sticky action bar, tables become cards, filters become a sheet.</p></div>
+          <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:6px">Tablet · 600–1199</div><p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Two columns, icon-only sidebar, tables keep their three most decision-relevant columns.</p></div>
+          <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:6px">Desktop · ≥ 1200</div><p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Full layouts as designed in Phases 2–4. 240px sidebar, full tables, side panels.</p></div>
+        </div>
+      </div>
+      <div style="border-left:2px solid var(--color-divider);padding-left:32px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Rules that hold at every width</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:color-mix(in srgb, var(--color-text) 76%, transparent)">
+          <li>Touch targets never below 44px.</li>
+          <li>Body text never below 14px; table text never below 13px.</li>
+          <li>The primary action stays visible without scrolling — sticky bar on mobile.</li>
+          <li>No horizontal scrolling except inside a table that explicitly opts in.</li>
+          <li>Nothing is removed on mobile that the person needs to complete the task; it moves.</li>
+          <li>2px section rules and 0px radius hold everywhere.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</div>
+      <h2 style="margin:0;font-size:30px">Customer — discovery and product</h2>
+    </div>
+    <p style="font-size:14px;margin:0 0 28px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">The product grid goes 4-up → 2-up → 2-up: two columns survive on mobile because comparing is the point. Filters leave the page for a bottom sheet; the header collapses to logo, search and cart.</p>
+
+    <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start">
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Home</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:16px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+            <span style="margin-left:auto;display:flex;align-items:center;gap:5px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span style="background:var(--color-accent);color:var(--color-bg);font-size:10px;padding:1px 5px">3</span></span>
+          </div>
+          <div style="padding:10px 14px;border-bottom:1px solid var(--color-divider)">
+            <div class="input" style="display:flex;align-items:center;gap:8px;min-height:44px;color:color-mix(in srgb, var(--color-text) 45%, transparent);font-size:14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search 8,400 products</div>
+          </div>
+          <div style="flex:1;overflow:hidden">
+            <div style="height:170px;border-bottom:2px solid var(--color-divider);position:relative">
+              <image-slot class="grayscale" id="rs-m-hero" shape="rect" fit="cover" placeholder="Hero"></image-slot>
+            </div>
+            <div style="padding:16px 14px 12px">
+              <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:8px">412 sellers · one checkout</div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;line-height:1.05;margin-bottom:12px">Everything, from people who make it.</div>
+              <button class="btn btn-primary btn-block" style="margin-top:0;min-height:44px">Browse everything</button>
+            </div>
+            <div style="display:flex;gap:8px;padding:6px 14px 14px;overflow:hidden">
+              <span class="tag tag-neutral" style="white-space:nowrap;padding:7px 12px">Electronics</span>
+              <span class="tag tag-neutral" style="white-space:nowrap;padding:7px 12px">Home</span>
+              <span class="tag tag-neutral" style="white-space:nowrap;padding:7px 12px">Apparel</span>
+              <span class="tag tag-neutral" style="white-space:nowrap;padding:7px 12px">Out…</span>
+            </div>
+            <div style="padding:0 14px">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:18px;margin-bottom:10px">Featured</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="border:1px solid var(--color-divider)">
+                  <div style="aspect-ratio:1;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-m-p1" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  <div style="padding:10px"><div style="font-size:10px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aeris Kitchen</div><div style="font-family:var(--font-heading);font-weight:800;font-size:13px;line-height:1.25;margin:3px 0 6px">Aeris cordless kettle</div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums">$92.00</div></div>
+                </div>
+                <div style="border:1px solid var(--color-divider)">
+                  <div style="aspect-ratio:1;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-m-p2" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  <div style="padding:10px"><div style="font-size:10px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Northline Audio</div><div style="font-family:var(--font-heading);font-weight:800;font-size:13px;line-height:1.25;margin:3px 0 6px">Northline S2 speakers</div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums">$248.00</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;border-top:2px solid var(--color-divider)">
+            <div style="flex:1;padding:8px 0 10px;text-align:center;color:var(--color-accent)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="margin:0 auto 2px"><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><div style="font-size:10px">Home</div></div>
+            <div style="flex:1;padding:8px 0 10px;text-align:center;opacity:0.6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="margin:0 auto 2px"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg><div style="font-size:10px">Browse</div></div>
+            <div style="flex:1;padding:8px 0 10px;text-align:center;opacity:0.6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="margin:0 auto 2px"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><div style="font-size:10px">Cart</div></div>
+            <div style="flex:1;padding:8px 0 10px;text-align:center;opacity:0.6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="margin:0 auto 2px"><circle cx="12" cy="7" r="4"></circle><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path></svg><div style="font-size:10px">Account</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Listing + filter sheet</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column;position:relative">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--color-divider)">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">Home &amp; Kitchen</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">1,884 products · 104 sellers</div>
+          </div>
+          <div style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--color-divider)">
+            <button class="btn btn-secondary" style="flex:1;min-height:44px;justify-content:flex-start;font-size:13px">Filters · 2</button>
+            <button class="btn btn-secondary" style="flex:1;min-height:44px;justify-content:flex-start;font-size:13px">Sort: Relevance</button>
+          </div>
+          <div style="flex:1;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start">
+            <div style="border:1px solid var(--color-divider)"><div style="aspect-ratio:1;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-m-l1" shape="rect" fit="cover" placeholder=""></image-slot></div><div style="padding:10px"><div style="font-family:var(--font-heading);font-weight:800;font-size:13px;line-height:1.25;margin-bottom:6px">Rivet cast iron skillet</div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums">$76.00</div></div></div>
+            <div style="border:1px solid var(--color-divider)"><div style="aspect-ratio:1;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-m-l2" shape="rect" fit="cover" placeholder=""></image-slot></div><div style="padding:10px"><div style="font-family:var(--font-heading);font-weight:800;font-size:13px;line-height:1.25;margin-bottom:6px">Meridian wall clock</div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums">$89.00</div></div></div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:var(--color-bg);border-top:2px solid var(--color-text);box-shadow:var(--shadow-lg);padding:16px 14px 18px">
+            <div style="display:flex;align-items:center;margin-bottom:14px"><div style="font-family:var(--font-heading);font-weight:800;font-size:18px">Filters</div><span style="margin-left:auto;font-size:13px;color:var(--color-accent)">Clear all</span></div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px">Category</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+              <span class="tag" style="padding:8px 12px;background:var(--color-accent);color:var(--color-bg)">Cookware</span>
+              <span class="tag tag-neutral" style="padding:8px 12px">Small appliances</span>
+              <span class="tag tag-neutral" style="padding:8px 12px">Lighting</span>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px">Price</div>
+            <div style="display:flex;gap:8px;margin-bottom:16px"><input class="input" style="min-height:44px" value="$0" /><input class="input" style="min-height:44px" value="$200" /></div>
+            <button class="btn btn-primary btn-block" style="margin-top:0;min-height:48px">Show 214 products</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Product detail</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column;position:relative">
+          <div style="flex:1;overflow:hidden">
+            <div style="height:300px;border-bottom:1px solid var(--color-divider);position:relative">
+              <image-slot class="grayscale" id="rs-m-pd" shape="rect" fit="cover" placeholder="Product"></image-slot>
+              <span style="position:absolute;top:0;left:0;background:var(--color-accent);color:var(--color-bg);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px">−29%</span>
+              <div style="position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:5px"><span style="width:6px;height:6px;background:var(--color-text)"></span><span style="width:6px;height:6px;background:color-mix(in srgb, var(--color-text) 30%, transparent)"></span><span style="width:6px;height:6px;background:color-mix(in srgb, var(--color-text) 30%, transparent)"></span><span style="width:6px;height:6px;background:color-mix(in srgb, var(--color-text) 30%, transparent)"></span></div>
+            </div>
+            <div style="padding:16px 14px">
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:6px">Aeris Kitchen Co. · <span style="color:var(--color-accent)">Visit store</span></div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:24px;line-height:1.1;margin-bottom:12px">Aeris cordless kettle, 1.2L</div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px"><span style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$92.00</span><span style="font-size:14px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">$129.00</span></div>
+              <div style="font-size:13px;color:var(--color-accent-800);font-weight:600;margin-bottom:16px">Only 3 left in stock</div>
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:8px">Colour — Brushed steel</div>
+              <div style="display:flex;gap:8px;margin-bottom:16px">
+                <span style="padding:11px 14px;background:var(--color-accent);color:var(--color-bg);font-size:13px">Brushed steel</span>
+                <span style="padding:11px 14px;border:1px solid var(--color-divider);font-size:13px">Matte black</span>
+              </div>
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:8px">Capacity — 1.2 L</div>
+              <div style="display:flex;gap:8px">
+                <span style="padding:11px 14px;border:1px solid var(--color-divider);font-size:13px">1.0 L</span>
+                <span style="padding:11px 14px;background:var(--color-accent);color:var(--color-bg);font-size:13px">1.2 L</span>
+                <span style="padding:11px 14px;border:1px solid var(--color-divider);font-size:13px;opacity:0.4">1.7 L</span>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:2px solid var(--color-text);padding:12px 14px;display:flex;gap:10px;align-items:center;background:var(--color-bg)">
+            <div style="display:flex;border:1px solid var(--color-divider);flex:none"><span style="width:38px;height:44px;display:grid;place-items:center;font-size:17px">−</span><span style="width:34px;height:44px;display:grid;place-items:center;font-size:15px;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider)">1</span><span style="width:38px;height:44px;display:grid;place-items:center;font-size:17px">+</span></div>
+            <button class="btn btn-primary" style="flex:1;min-height:48px;justify-content:flex-start">Add to cart — $92.00</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — customer mobile</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">The product page's buy bar is <code>position:sticky;bottom:0</code> and always shows the live total — it is the one element that must never require scrolling. The gallery becomes a swipe carousel with dots, not a thumbnail rail. Variant chips grow to 44px tall; sold-out combinations stay visible at 40% opacity so the range is still legible.</div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</div>
+      <h2 style="margin:0;font-size:30px">Customer — checkout and tracking</h2>
+    </div>
+    <p style="font-size:14px;margin:0 0 28px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Checkout's two columns become one flow with the summary collapsed to a single expandable line — the total stays pinned to the pay button. The tracking rail rotates from horizontal to vertical, which is the only honest way to fit five steps with timestamps at 375px.</p>
+
+    <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Checkout</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 18-6-6 6-6"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:18px">Checkout</div>
+            <span style="margin-left:auto;font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Step 2 of 3</span>
+          </div>
+          <div style="padding:12px 14px;border-bottom:1px solid var(--color-divider);display:flex;align-items:center;gap:10px;background:var(--color-surface)">
+            <div style="font-size:13px;font-weight:600">Order summary</div>
+            <div style="margin-left:auto;font-size:15px;font-family:var(--font-heading);font-weight:800;font-variant-numeric:tabular-nums">$328.00</div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div style="flex:1;padding:16px 14px;overflow:hidden">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)"><span style="font-family:var(--font-heading);font-weight:800;font-size:12px;color:var(--color-accent)">02</span><div style="font-family:var(--font-heading);font-weight:800;font-size:17px">Shipping address</div></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="field"><label>Street address</label><input class="input" style="min-height:44px" value="1841 NE Wasco St" /></div>
+              <div class="field"><label>Apt / suite</label><input class="input" style="min-height:44px" value="Apt 4" /></div>
+              <div style="display:flex;gap:10px">
+                <div class="field" style="flex:2"><label>City</label><input class="input" style="min-height:44px" value="Portland" /></div>
+                <div class="field" style="flex:1"><label>State</label><input class="input" style="min-height:44px" value="OR" /></div>
+              </div>
+              <div class="field"><label>ZIP code</label><input class="input" style="min-height:44px;border-color:var(--color-accent);border-width:2px" value="972" />
+                <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>Enter a 5-digit US ZIP code</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:2px solid var(--color-text);padding:12px 14px;background:var(--color-bg)">
+            <button class="btn btn-primary btn-block" style="margin-top:0;min-height:50px" disabled="disabled">Place order — $328.00</button>
+            <div style="font-size:11px;margin-top:8px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Fix the ZIP code to continue</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Order tracking</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 18-6-6 6-6"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:18px">MH-24081</div>
+            <span class="tag tag-neutral" style="margin-left:auto">Shipped</span>
+          </div>
+          <div style="flex:1;padding:16px 14px;overflow:hidden">
+            <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:18px">On its way with USPS Ground Advantage. Expected Sunday 17 August.</div>
+            <div style="display:flex;flex-direction:column">
+              <div style="display:grid;grid-template-columns:20px 1fr;gap:14px"><div style="display:flex;flex-direction:column;align-items:center"><span style="width:12px;height:12px;background:var(--color-accent)"></span><span style="width:2px;flex:1;background:var(--color-accent);min-height:34px"></span></div><div style="padding-bottom:16px"><div style="font-size:14px;font-weight:600">Placed</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aug 12, 09:14 · payment captured</div></div></div>
+              <div style="display:grid;grid-template-columns:20px 1fr;gap:14px"><div style="display:flex;flex-direction:column;align-items:center"><span style="width:12px;height:12px;background:var(--color-accent)"></span><span style="width:2px;flex:1;background:var(--color-accent);min-height:34px"></span></div><div style="padding-bottom:16px"><div style="font-size:14px;font-weight:600">Processing</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aug 12, 09:41 · seller accepted</div></div></div>
+              <div style="display:grid;grid-template-columns:20px 1fr;gap:14px"><div style="display:flex;flex-direction:column;align-items:center"><span style="width:12px;height:12px;background:var(--color-accent)"></span><span style="width:2px;flex:1;background:var(--color-accent);min-height:34px"></span></div><div style="padding-bottom:16px"><div style="font-size:14px;font-weight:600">Packed</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aug 13, 08:20</div></div></div>
+              <div style="display:grid;grid-template-columns:20px 1fr;gap:14px"><div style="display:flex;flex-direction:column;align-items:center"><span style="width:12px;height:12px;background:var(--color-accent)"></span><span style="width:2px;flex:1;background:var(--color-neutral-300);min-height:34px"></span></div><div style="padding-bottom:16px"><div style="font-size:14px;font-weight:600">Shipped</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aug 13, 16:05 · 9400 1000 0000 2841</div><button class="btn btn-secondary" style="font-size:12px;padding:8px 12px;margin-top:8px;min-height:40px">Track with carrier</button></div></div>
+              <div style="display:grid;grid-template-columns:20px 1fr;gap:14px"><div style="display:flex;flex-direction:column;align-items:center"><span style="width:12px;height:12px;border:2px solid var(--color-neutral-300)"></span></div><div><div style="font-size:14px;font-weight:600;color:color-mix(in srgb, var(--color-text) 45%, transparent)">Delivered</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 45%, transparent)">Expected Aug 17</div></div></div>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--color-divider);padding:12px 14px;display:flex;gap:10px">
+            <button class="btn btn-secondary" style="flex:1;min-height:44px;justify-content:flex-start;font-size:13px">Contact seller</button>
+            <button class="btn btn-primary" style="flex:1;min-height:44px;justify-content:flex-start;font-size:13px">Buy it again</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Tablet 834 · Listing</div>
+        <div style="width:500px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden">
+          <div style="transform:scale(0.6);transform-origin:top left;width:834px;height:1200px">
+            <div style="display:flex;align-items:center;gap:16px;padding:16px 24px;border-bottom:2px solid var(--color-divider)">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:20px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+              <div class="input" style="flex:1;max-width:340px;display:flex;align-items:center;color:color-mix(in srgb, var(--color-text) 45%, transparent);min-height:40px">Search 8,400 products</div>
+              <span style="margin-left:auto;font-size:15px">Orders</span><span style="font-size:15px">Account</span>
+              <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span style="background:var(--color-accent);color:var(--color-bg);font-size:12px;padding:1px 7px">3</span></span>
+            </div>
+            <div style="padding:24px">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:34px;margin-bottom:4px">Home &amp; Kitchen</div>
+              <div style="font-size:14px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:20px">1,884 products from 104 sellers</div>
+              <div style="display:flex;gap:10px;margin-bottom:24px">
+                <button class="btn btn-secondary" style="min-height:44px">Filters · 2</button>
+                <button class="btn btn-secondary" style="min-height:44px">Sort: Relevance</button>
+                <div style="margin-left:auto;font-size:14px;align-self:center;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Showing 1–24</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+                <div style="border:1px solid var(--color-divider)"><div style="aspect-ratio:4/3;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-t-1" shape="rect" fit="cover" placeholder=""></image-slot></div><div style="padding:14px"><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aeris Kitchen Co.</div><div style="font-family:var(--font-heading);font-weight:800;font-size:16px;margin:4px 0 8px">Aeris cordless kettle, 1.2L</div><div style="font-family:var(--font-heading);font-weight:800;font-size:19px;font-variant-numeric:tabular-nums">$92.00</div></div></div>
+                <div style="border:1px solid var(--color-divider)"><div style="aspect-ratio:4/3;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-t-2" shape="rect" fit="cover" placeholder=""></image-slot></div><div style="padding:14px"><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aeris Kitchen Co.</div><div style="font-family:var(--font-heading);font-weight:800;font-size:16px;margin:4px 0 8px">Rivet cast iron skillet</div><div style="font-family:var(--font-heading);font-weight:800;font-size:19px;font-variant-numeric:tabular-nums">$76.00</div></div></div>
+                <div style="border:1px solid var(--color-divider)"><div style="aspect-ratio:4/3;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="rs-t-3" shape="rect" fit="cover" placeholder=""></image-slot></div><div style="padding:14px"><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Studio Corvid</div><div style="font-family:var(--font-heading);font-weight:800;font-size:16px;margin:4px 0 8px">Meridian wall clock</div><div style="font-family:var(--font-heading);font-weight:800;font-size:19px;font-variant-numeric:tabular-nums">$89.00</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:11px;margin-top:8px;width:500px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Shown at 60% — the tablet keeps the desktop header but drops the filter sidebar into the same sheet pattern as mobile, freeing a third grid column.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</div>
+      <h2 style="margin:0;font-size:30px">Seller — tables become cards</h2>
+    </div>
+    <p style="font-size:14px;margin:0 0 28px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">A seller on mobile is standing at a packing bench. The order table becomes one card per order carrying only what decides the next action — number, customer, total, status — with the status advance button on the card itself. The sidebar becomes a drawer behind the hamburger.</p>
+
+    <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Seller dashboard</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+            <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">Aeris Kitchen Co.</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Seller portal</div></div>
+            <span style="margin-left:auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg></span>
+          </div>
+          <div style="flex:1;padding:14px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:14px">
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Revenue 30d</div><div style="font-family:var(--font-heading);font-weight:800;font-size:21px;font-variant-numeric:tabular-nums">$12,486</div></div>
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Balance</div><div style="font-family:var(--font-heading);font-weight:800;font-size:21px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$6,842</div></div>
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Orders 30d</div><div style="font-family:var(--font-heading);font-weight:800;font-size:21px;font-variant-numeric:tabular-nums">104</div></div>
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">To action</div><div style="font-family:var(--font-heading);font-weight:800;font-size:21px;font-variant-numeric:tabular-nums;color:var(--color-accent)">18</div></div>
+            </div>
+            <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:12px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" style="flex:none;margin-top:1px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+              <div style="font-size:12px;color:var(--color-accent-900)"><strong>4 products low or out of stock.</strong><div style="margin-top:6px"><span style="font-weight:600">Review inventory →</span></div></div>
+            </div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;margin-bottom:10px">Needs packing</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="border:1px solid var(--color-divider);padding:12px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:14px;font-weight:600">MH-24081</div><span class="tag" style="margin-left:auto;background:var(--color-surface);border:1px dashed var(--color-divider)">Processing</span></div>
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:10px">Priya Raman · 3 items · $328.00 · earn $288.64</div>
+                <button class="btn btn-primary btn-block" style="margin-top:0;min-height:44px">Mark as packed</button>
+              </div>
+              <div style="border:1px solid var(--color-divider);padding:12px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:14px;font-weight:600">MH-24076</div><span class="tag" style="margin-left:auto;background:var(--color-surface);border:1px dashed var(--color-divider)">Packed</span></div>
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:10px">Daniel Okafor · 1 item · $92.00 · earn $80.96</div>
+                <button class="btn btn-primary btn-block" style="margin-top:0;min-height:44px">Add tracking &amp; ship</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Orders + nav drawer</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;position:relative">
+          <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:18px">Orders</div>
+            <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">18 to action</span>
+          </div>
+          <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--color-divider);overflow:hidden">
+            <span class="tag" style="padding:8px 12px;background:var(--color-accent);color:var(--color-bg);white-space:nowrap">All</span>
+            <span class="tag tag-neutral" style="padding:8px 12px;white-space:nowrap">Processing</span>
+            <span class="tag tag-neutral" style="padding:8px 12px;white-space:nowrap">Packed</span>
+            <span class="tag tag-neutral" style="padding:8px 12px;white-space:nowrap">Ship…</span>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="border:1px solid var(--color-divider);padding:12px"><div style="display:flex;gap:8px;align-items:center"><div style="font-size:14px;font-weight:600">MH-24071</div><span class="tag tag-neutral" style="margin-left:auto">Shipped</span></div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-top:5px">Elena Sokolova · Aug 11 · $214.00</div></div>
+            <div style="border:1px solid var(--color-divider);padding:12px"><div style="display:flex;gap:8px;align-items:center"><div style="font-size:14px;font-weight:600">MH-24068</div><span class="tag tag-neutral" style="margin-left:auto">Delivered</span></div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-top:5px">Marcus Bell · Aug 10 · $76.00</div></div>
+          </div>
+          <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 45%, transparent);display:flex">
+            <div style="width:264px;background:var(--color-bg);border-right:2px solid var(--color-divider);display:flex;flex-direction:column">
+              <div style="padding:14px;border-bottom:2px solid var(--color-divider)"><div style="font-family:var(--font-heading);font-weight:800;font-size:16px">MARKET<span style="color:var(--color-accent)">HUB</span></div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Seller portal</div></div>
+              <div style="padding:8px 0">
+                <div style="padding:13px 16px;font-size:15px">Dashboard</div>
+                <div style="padding:13px 16px;font-size:15px">Products</div>
+                <div style="padding:13px 16px;font-size:15px;display:flex;align-items:center">Inventory <span class="tag tag-accent" style="margin-left:auto">4 low</span></div>
+                <div style="padding:13px 16px;font-size:15px;background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center">Orders <span style="margin-left:auto;font-size:12px">18</span></div>
+                <div style="padding:13px 16px;font-size:15px">Earnings</div>
+                <div style="height:2px;background:var(--color-divider);margin:8px 16px"></div>
+                <div style="padding:13px 16px;font-size:15px">Store settings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Add product</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">New product</div>
+            <span class="tag" style="margin-left:auto;background:transparent;border:1px solid var(--color-divider);opacity:0.7">Draft</span>
+          </div>
+          <div style="display:flex;gap:0;border-bottom:2px solid var(--color-divider);font-size:13px">
+            <div style="flex:1;padding:11px 0;text-align:center;border-bottom:3px solid var(--color-accent);margin-bottom:-2px;font-weight:600">Details</div>
+            <div style="flex:1;padding:11px 0;text-align:center;opacity:0.6">Images</div>
+            <div style="flex:1;padding:11px 0;text-align:center;opacity:0.6">Price</div>
+            <div style="flex:1;padding:11px 0;text-align:center;opacity:0.6">Variants</div>
+          </div>
+          <div style="flex:1;padding:16px 14px;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+            <div class="field"><label>Title</label><input class="input" style="min-height:44px" value="Aeris cordless kettle, 1.2L" /></div>
+            <div class="field"><label>Description</label><textarea class="input" style="min-height:96px">A 1.2 litre cordless kettle with a 360° base and variable temperature.</textarea></div>
+            <div class="field"><label>Category</label><select class="input" style="min-height:44px"><option>Home &amp; Kitchen / Small appliances</option></select></div>
+            <div class="field"><label>SKU</label><input class="input" style="min-height:44px" value="AC-KTL-1105" /></div>
+          </div>
+          <div style="border-top:2px solid var(--color-text);padding:12px 14px;display:flex;gap:10px;background:var(--color-bg)">
+            <button class="btn btn-secondary" style="flex:1;min-height:46px;justify-content:flex-start;font-size:13px">Save draft</button>
+            <button class="btn btn-primary" style="flex:1;min-height:46px;justify-content:flex-start;font-size:13px">Next: Images</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — seller mobile</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">The order card is the same data as the desktop row, filtered to four fields plus one action — it is a different component, not a responsive table hack. The long Add Product form splits into four steps with a persistent draft, so a seller can start a listing on a phone and finish it on a desktop. Status filters scroll horizontally; that is the one place horizontal scroll is allowed.</div>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding:48px 40px 72px">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">04</div>
+      <h2 style="margin:0;font-size:30px">Admin — queues on a phone, dense tables on a desk</h2>
+    </div>
+    <p style="font-size:14px;margin:0 0 28px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Admin is a desk product, so mobile is scoped to what genuinely happens away from one: checking the numbers and clearing a decision queue. Wide analytical tables are not rebuilt for 375px — they tell you to open a larger screen, which is more honest than a table nobody can read.</p>
+
+    <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Admin dashboard</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:2px solid var(--color-divider)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+            <div><div style="font-family:var(--font-heading);font-weight:800;font-size:15px">MARKET<span style="color:var(--color-accent)">HUB</span></div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Admin</div></div>
+          </div>
+          <div style="flex:1;padding:14px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:16px">
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Sales 30d</div><div style="font-family:var(--font-heading);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums">$412,880</div></div>
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Revenue</div><div style="font-family:var(--font-heading);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$49,545</div></div>
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Orders</div><div style="font-family:var(--font-heading);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums">2,418</div></div>
+              <div style="background:var(--color-surface);padding:14px"><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">Sellers</div><div style="font-family:var(--font-heading);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums">412</div></div>
+            </div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;margin-bottom:10px">Needs attention</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="border:1px solid var(--color-divider);padding:14px;display:flex;align-items:center;gap:12px"><div style="font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-accent);font-variant-numeric:tabular-nums">7</div><div style="font-size:13px;font-weight:600">Seller applications<div style="font-size:11px;font-weight:400;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Oldest waiting 2 days</div></div><svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"></path></svg></div>
+              <div style="border:1px solid var(--color-divider);padding:14px;display:flex;align-items:center;gap:12px"><div style="font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-accent);font-variant-numeric:tabular-nums">9</div><div style="font-size:13px;font-weight:600">Payout requests<div style="font-size:11px;font-weight:400;color:color-mix(in srgb, var(--color-text) 55%, transparent)">$38,420.15 total</div></div><svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"></path></svg></div>
+              <div style="border:1px solid var(--color-divider);padding:14px;display:flex;align-items:center;gap:12px"><div style="font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-accent);font-variant-numeric:tabular-nums">14</div><div style="font-size:13px;font-weight:600">Products to review<div style="font-size:11px;font-weight:400;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Across 9 sellers</div></div><svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"></path></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Payout queue + decision sheet</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;position:relative">
+          <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 18-6-6 6-6"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">Payout requests</div>
+            <span style="margin-left:auto;font-size:12px;color:var(--color-accent)">9 pending</span>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="border:1px solid var(--color-divider);padding:14px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:14px;font-weight:600">PO-2044</div><span class="tag" style="margin-left:auto;background:var(--color-surface);border:1px dashed var(--color-divider)">Requested</span></div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums;margin-bottom:4px">$6,842.15</div>
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:12px">Aeris Kitchen Co. · Chase ••4417 · balance after $0.00</div>
+              <div style="display:flex;gap:8px"><button class="btn btn-secondary" style="flex:1;min-height:44px;justify-content:flex-start;font-size:13px;border-color:var(--color-accent);color:var(--color-accent-700)">Reject</button><button class="btn btn-primary" style="flex:1;min-height:44px;justify-content:flex-start;font-size:13px">Approve</button></div>
+            </div>
+            <div style="border:1px solid var(--color-divider);padding:14px;opacity:0.5">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:14px;font-weight:600">PO-2043</div><span class="tag" style="margin-left:auto;background:var(--color-surface);border:1px dashed var(--color-divider)">Requested</span></div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums">$12,400.00</div>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:var(--color-bg);border-top:2px solid var(--color-text);box-shadow:var(--shadow-lg);padding:18px 14px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:6px">Reject PO-2044?</div>
+            <div style="font-size:13px;opacity:0.85;margin-bottom:14px">The held $6,842.15 returns to the seller's available balance and the reason below is shown to them.</div>
+            <div class="field" style="margin-bottom:14px"><label>Reason — required</label><textarea class="input" style="min-height:76px">Bank details do not match the registered business name.</textarea></div>
+            <div style="display:flex;gap:8px"><button class="btn btn-secondary" style="flex:1;min-height:48px;justify-content:flex-start">Cancel</button><button class="btn btn-primary" style="flex:1;min-height:48px;justify-content:flex-start">Reject payout</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Mobile 375 · Wide table fallback</div>
+        <div style="width:375px;border:2px solid var(--color-text);background:var(--color-bg);height:720px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 18-6-6 6-6"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">Seller earnings</div>
+          </div>
+          <div style="flex:1;padding:32px 20px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="opacity:0.4"><rect x="2" y="4" width="20" height="16"></rect><path d="M2 10h20M8 4v16"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;line-height:1.2">This table needs a wider screen</div>
+            <p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Seller earnings compares eight money columns at once. Squeezing it onto a phone would hide the comparison that makes it useful — open it on a tablet or desktop.</p>
+            <div style="width:100%;background:var(--color-surface);padding:14px;margin-top:8px">
+              <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Available here</div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.75">Balances owed</span><span style="font-variant-numeric:tabular-nums;font-weight:600">$79,224.84</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.75">Commission collected</span><span style="font-variant-numeric:tabular-nums;font-weight:600">$175,180.90</span></div>
+            </div>
+            <button class="btn btn-secondary btn-block" style="min-height:44px">Email me the CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:28px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 20px;max-width:900px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — admin mobile</div>
+        <div style="font-size:13px;color:var(--color-accent-900)">Two admin surfaces are mobile-complete: the dashboard and the decision queues (applications, product review, payouts), because those are time-sensitive. Everything else degrades to the same explicit fallback — headline figures, a CSV escape hatch, and a clear sentence about why. Required-reason dialogs become bottom sheets so the keyboard doesn't push the buttons off-screen.</div>
+      </div>
+    </sc-if>
+
+    <div style="margin-top:44px;padding-top:32px;border-top:2px solid var(--color-divider)">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">05</div>
+        <h2 style="margin:0;font-size:30px">Six patterns, thirty-nine screens</h2>
+      </div>
+      <p style="font-size:14px;margin:0 0 24px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Closing the third Phase 6 finding: every screen in the product is tagged with the mobile patterns it uses, so no screen is left to a developer's judgement. The nine drawn above are the reference implementations of these six.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-bottom:28px">
+        <sc-for list="{{ patterns }}" as="p" hint-placeholder-count="6">
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:12px;color:var(--color-bg);background:var(--color-accent);padding:2px 8px">{{ p.key }}</span>
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ p.name }}</span>
+            </div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ p.what }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div class="seg">
+          <sc-for list="{{ appTabs }}" as="t" hint-placeholder-count="4">
+            <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+          </sc-for>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ mapCount }}</div>
+      </div>
+
+      <table class="table">
+        <thead><tr><th>App</th><th>Screen</th><th>Patterns</th><th>What changes at 375</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ screenMap }}" as="r" hint-placeholder-count="14">
+            <tr>
+              <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ r.app }}</td>
+              <td style="font-weight:600">{{ r.screen }}</td>
+              <td>
+                <span style="display:flex;gap:5px;flex-wrap:wrap">
+                  <sc-for list="{{ r.keys }}" as="k" hint-placeholder-count="2">
+                    <span class="tag tag-neutral" style="gap:5px"><strong>{{ k.key }}</strong> {{ k.name }}</span>
+                  </sc-for>
+                </span>
+              </td>
+              <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">{{ r.note }}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:36px;padding-top:24px;border-top:2px solid var(--color-divider);display:flex;align-items:center;gap:16px">
+      <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent);max-width:70ch">Phase 5 complete, including the screen-to-pattern map added after the Phase 6 review. See <strong>06 Consistency Review</strong> for the full audit.</div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+const PATTERNS = {
+  A: { name: 'Stacked flow', what: 'One column, full-width fields and cards, 44px targets, no sticky bar.' },
+  B: { name: 'Sticky action bar', what: 'Content scrolls, the primary action pins to the bottom edge carrying its live value.' },
+  C: { name: 'Sheet', what: 'Filters, sorts and required-reason dialogs rise from the bottom over a scrim; keyboard-safe.' },
+  D: { name: 'Rows as cards', what: 'Each table row becomes a card with four fields and one action. A different component, not a squeezed table.' },
+  E: { name: 'Nav drawer + tab bar', what: 'Storefront gets a four-item tab bar; portals get a drawer behind the hamburger.' },
+  F: { name: 'Wide-table fallback', what: 'Headline figures, a CSV escape hatch, and a sentence explaining why this needs a wider screen.' }
+};
+
+const SCREEN_MAP = [
+  { app: 'Customer', screen: 'Home', p: ['E', 'A'], note: 'Hero 170px, 2-up featured grid, horizontal category chips' },
+  { app: 'Customer', screen: 'Category listing', p: ['C', 'E'], note: 'Filters and sort both open as sheets; 2-up grid holds' },
+  { app: 'Customer', screen: 'Search results', p: ['C', 'E'], note: 'Same as listing; query stays in the header field' },
+  { app: 'Customer', screen: 'Empty search', p: ['A'], note: 'Popular queries wrap as chips instead of a row' },
+  { app: 'Customer', screen: 'Product detail', p: ['B'], note: 'Swipe gallery with dots; buy bar pinned with live total' },
+  { app: 'Customer', screen: 'Seller store', p: ['C', 'A'], note: 'Banner 140px, logo overlaps, policies collapse to accordions' },
+  { app: 'Customer', screen: 'Cart', p: ['B', 'A'], note: 'Summary collapses to one expandable line above the checkout button' },
+  { app: 'Customer', screen: 'Checkout', p: ['B', 'A'], note: 'Three numbered sections in one flow; total pinned to the pay button' },
+  { app: 'Customer', screen: 'Order confirmation', p: ['A'], note: 'Success mark, number, then per-seller parcels stacked' },
+  { app: 'Customer', screen: 'Sign in / register / reset', p: ['A'], note: 'Photograph drops entirely; segmented tabs stay full width' },
+  { app: 'Customer', screen: 'Profile', p: ['A'], note: 'Account sub-nav becomes a horizontal scrolling row' },
+  { app: 'Customer', screen: 'Addresses', p: ['A'], note: 'Cards go 1-up; actions wrap to a second line' },
+  { app: 'Customer', screen: 'Order history', p: ['D'], note: 'Order cards already card-shaped; header fields stack to two rows' },
+  { app: 'Customer', screen: 'Order tracking', p: ['A'], note: 'Rail rotates vertical with timestamps; payment panel moves below items' },
+  { app: 'Seller', screen: 'Application', p: ['A'], note: 'Sidebar "what happens next" moves below the form' },
+  { app: 'Seller', screen: 'Dashboard', p: ['E', 'D'], note: 'Stats 2-up, then a "needs packing" queue with the action on each card' },
+  { app: 'Seller', screen: 'Store setup', p: ['A', 'E'], note: 'Store preview moves to the top as a collapsed strip' },
+  { app: 'Seller', screen: 'Product list', p: ['D', 'C'], note: 'Status tabs scroll horizontally; rows carry image, title, stock, status' },
+  { app: 'Seller', screen: 'Add / edit product', p: ['B', 'A'], note: 'Four steps — Details, Images, Price, Variants — with a persistent draft' },
+  { app: 'Seller', screen: 'Inventory', p: ['D', 'C'], note: 'One card per variant showing available; adjust opens as a sheet' },
+  { app: 'Seller', screen: 'Order list', p: ['D', 'E'], note: 'Card per order; status filter row scrolls horizontally' },
+  { app: 'Seller', screen: 'Order detail', p: ['B', 'A'], note: 'Advance-status button pinned; tracking fields above status history' },
+  { app: 'Seller', screen: 'Earnings statement', p: ['D', 'F'], note: 'Ledger becomes cards; the 7-column view offers the CSV fallback' },
+  { app: 'Seller', screen: 'Payouts', p: ['B', 'A'], note: 'Request form first, history as cards below' },
+  { app: 'Admin', screen: 'Login', p: ['A'], note: 'Photograph drops; 2FA field stays in the same flow' },
+  { app: 'Admin', screen: 'Dashboard', p: ['E', 'D'], note: 'Stats 2-up, then queues as tappable rows' },
+  { app: 'Admin', screen: 'Seller management', p: ['D', 'C'], note: 'Card per seller; suspend opens the reason sheet' },
+  { app: 'Admin', screen: 'Seller detail', p: ['A', 'F'], note: 'Stats and business record stack; recent orders offers the fallback' },
+  { app: 'Admin', screen: 'Application review', p: ['D', 'C'], note: 'Queue list is the screen; tapping opens the record full-screen' },
+  { app: 'Admin', screen: 'Product review', p: ['D', 'C'], note: 'Same as applications; images become a swipe strip' },
+  { app: 'Admin', screen: 'Categories & brands', p: ['D', 'C'], note: 'Side form becomes a sheet triggered by Add or Edit' },
+  { app: 'Admin', screen: 'All orders', p: ['F'], note: '10 columns — fallback with figures and CSV' },
+  { app: 'Admin', screen: 'Order detail', p: ['A'], note: 'Money panel first, then items, then status history' },
+  { app: 'Admin', screen: 'Payments', p: ['F'], note: 'Fallback; failed attempts alone are available as a filtered card list' },
+  { app: 'Admin', screen: 'Refunds', p: ['D'], note: 'Card per refund with amount and commission reversed' },
+  { app: 'Admin', screen: 'Commission settings', p: ['A', 'C'], note: 'Split bar and preview stack; scheduling confirmation is a sheet' },
+  { app: 'Admin', screen: 'Seller earnings', p: ['F'], note: '8 money columns — the canonical fallback case' },
+  { app: 'Admin', screen: 'Payout requests', p: ['D', 'C'], note: 'Card per request with Approve/Reject; reject reason as a sheet' },
+  { app: 'Admin', screen: 'Platform settings', p: ['A', 'E'], note: 'Sub-nav becomes a horizontal scrolling row above the section' }
+];
+
+class Component extends DCLogic {
+  state = { notes: true, appFilter: 'All' };
+  renderVals() {
+    const f = this.state.appFilter;
+    const rows = SCREEN_MAP.filter(r => f === 'All' || r.app === f);
+    return {
+      patterns: Object.keys(PATTERNS).map(k => ({ key: k, name: PATTERNS[k].name, what: PATTERNS[k].what })),
+      appTabs: ['All', 'Customer', 'Seller', 'Admin'].map(label => ({
+        label,
+        bg: f === label ? 'var(--color-accent)' : 'transparent',
+        fg: f === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ appFilter: label })
+      })),
+      mapCount: rows.length + ' of ' + SCREEN_MAP.length + ' screens',
+      screenMap: rows.map(r => ({
+        app: r.app, screen: r.screen, note: r.note,
+        keys: r.p.map(k => ({ key: k, name: PATTERNS[k].name }))
+      })),
+      notes: this.state.notes,
+      notesLabel: this.state.notes ? 'Hide' : 'Show',
+      toggleNotes: () => this.setState(s => ({ notes: !s.notes }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--color-bg)}a{color:inherit;text-decoration:none}</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <section style="padding:64px 40px 48px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:56px">
+      <div>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:32px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Multi-vendor marketplace · Phase 1 · UI/UX system</div>
+        <h1 style="margin:0 0 20px;font-size:60px;line-height:1.02;max-width:16ch">A marketplace in six phases.</h1>
+        <p style="font-size:17px;max-width:58ch;margin:0 0 28px;color:color-mix(in srgb, var(--color-text) 74%, transparent)">One design system across a customer storefront, a seller operating portal and an admin control centre — built to the Phase 1 specification, with no functionality invented beyond it.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn btn-primary" href="01 Design System.dc.html" style="flex:none;white-space:nowrap">Start with the design system</a>
+          <a class="btn btn-secondary" href="06 Consistency Review.dc.html" style="flex:none;white-space:nowrap">Read the consistency review</a>
+        </div>
+      </div>
+      <div style="border-left:2px solid var(--color-divider);padding-left:32px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:16px">At a glance</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Screens</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">39</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Components</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">44</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Mobile patterns</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">6</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Open decisions</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--color-accent)">4</div></div>
+        </div>
+        <div style="font-size:12px;margin-top:14px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Every prototype carries real state — cart, forms, statuses and decisions persist as you click through.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</div>
+      <h2 style="margin:0;font-size:30px">The six files</h2>
+      <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Each opens as a working prototype</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ files }}" as="f" hint-placeholder-count="6">
+        <a href="{{ f.href }}" style="background:var(--color-surface);padding:20px 24px;display:grid;grid-template-columns:64px minmax(0,1.1fr) minmax(0,1.4fr) auto;gap:28px;align-items:center">
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:26px;color:var(--color-accent);font-variant-numeric:tabular-nums">{{ f.n }}</div>
+          <div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;line-height:1.2">{{ f.title }}</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-top:3px">{{ f.count }}</div>
+          </div>
+          <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 74%, transparent)">{{ f.what }}</div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="tag tag-neutral">{{ f.state }}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"></path></svg>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</div>
+      <h2 style="margin:0;font-size:30px">The three journeys, end to end</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
+      <sc-for list="{{ journeys }}" as="j" hint-placeholder-count="3">
+        <div>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">{{ j.who }}</div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ j.steps }}" as="st" hint-placeholder-count="7">
+              <div style="display:grid;grid-template-columns:18px 1fr;gap:12px">
+                <div style="display:flex;flex-direction:column;align-items:center"><span style="width:9px;height:9px;background:var(--color-accent);margin-top:5px"></span><span style="width:2px;flex:1;background:var(--color-divider);min-height:16px"></span></div>
+                <div style="padding-bottom:12px"><div style="font-size:13.5px;font-weight:600">{{ st.label }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ st.where }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:28px;background:var(--color-surface);padding:18px 20px;max-width:900px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:8px">The rule that ties them together</div>
+      <div style="font-size:13.5px;line-height:1.6;color:color-mix(in srgb, var(--color-text) 80%, transparent)">When an order completes it stores its own total, platform commission, seller earning and the commission rate that produced them. Nothing recalculates. Change the platform rate tomorrow and every historical order, statement and revenue figure stays exactly as it was — visible on seller order detail, admin order detail, the earnings ledger and commission settings.</div>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px 72px">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</div>
+      <h2 style="margin:0;font-size:30px">Four decisions before build</h2>
+    </div>
+    <p style="font-size:14px;margin:0 0 28px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">Not design gaps — product calls that need an owner. Each carries a recommendation and what it would cost to change later.</p>
+
+    <table class="table">
+      <thead><tr><th style="width:34px">#</th><th>Decision</th><th>Recommendation</th><th>If deferred</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ decisions }}" as="d" hint-placeholder-count="4">
+          <tr>
+            <td style="font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ d.n }}</td>
+            <td><div style="font-weight:600">{{ d.title }}</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-top:3px">{{ d.owner }}</div></td>
+            <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 80%, transparent);max-width:44ch">{{ d.rec }}</td>
+            <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 68%, transparent);max-width:36ch">{{ d.cost }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+
+    <div style="background:var(--color-accent);color:var(--color-bg);padding:40px;margin-top:40px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;margin-bottom:14px">Ready for handoff</div>
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:42px;line-height:1.06;max-width:22ch;margin-bottom:18px">Tokens, components, states, rules — and the reasons behind them.</div>
+      <p style="font-size:15px;max-width:62ch;margin:0;opacity:0.92">Every screen carries dev annotations explaining the behaviour a static mockup can't show: what validates when, what demands a reason, what is append-only, and what must never be recalculated.</p>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+const FILES = [
+  { n: '01', title: 'Design System', href: '01 Design System.dc.html', count: '44 components · 13 sections', what: 'Colour roles and ramps, type scale, spacing, layout metrics, elevation, Lucide set, every component and state, and the full Phase 1 status taxonomy.', state: 'Complete' },
+  { n: '02', title: 'Customer Storefront', href: '02 Customer Storefront.dc.html', count: '14 screens · 4 groups', what: 'Home, listing, search, product, seller store, cart, checkout, confirmation, auth, profile, addresses, order history and tracking. Live cart and test payment.', state: 'Complete' },
+  { n: '03', title: 'Seller Portal', href: '03 Seller Portal.dc.html', count: '10 screens · 5 groups', what: 'Application with all four states, dashboard, store setup with live preview, products, add/edit, inventory with movements, orders, earnings ledger and payouts.', state: 'Complete' },
+  { n: '04', title: 'Admin Portal', href: '04 Admin Portal.dc.html', count: '15 screens · 6 groups', what: 'Login, dashboard, seller management, application and product review queues, catalogue, orders, payments, refunds, commission, earnings, payouts and settings.', state: 'Complete' },
+  { n: '05', title: 'Responsive', href: '05 Responsive.dc.html', count: '9 mobile · 1 tablet · 39 mapped', what: 'Six named mobile patterns with reference implementations, plus every screen tagged with the patterns it uses and what changes at 375.', state: 'Complete' },
+  { n: '06', title: 'Consistency Review', href: '06 Consistency Review.dc.html', count: '14 checks · 5 findings', what: 'The brief\'s fourteen checks audited with evidence, the same component shown across all three apps, the reuse map and the handoff summary.', state: 'Complete' }
+];
+
+const JOURNEYS = [
+  { who: 'Customer', steps: [
+    { label: 'Register or check out as a guest', where: '02 · Auth' },
+    { label: 'Search and filter the catalogue', where: '02 · Listing, Search' },
+    { label: 'Pick variants and add to cart', where: '02 · Product detail' },
+    { label: 'Check out and pay in test mode', where: '02 · Checkout' },
+    { label: 'Receive confirmation and order number', where: '02 · Confirmation' },
+    { label: 'Track Placed → Delivered', where: '02 · Order tracking' }
+  ] },
+  { who: 'Seller', steps: [
+    { label: 'Apply and get approved', where: '03 · Application' },
+    { label: 'Set up store, logo, policies', where: '03 · Store setup' },
+    { label: 'List products with variants and stock', where: '03 · Add product' },
+    { label: 'Receive the order in the queue', where: '03 · Orders' },
+    { label: 'Pack, add tracking, ship', where: '03 · Order detail' },
+    { label: 'See commission and earning', where: '03 · Earnings' },
+    { label: 'Request a payout', where: '03 · Payouts' }
+  ] },
+  { who: 'Admin', steps: [
+    { label: 'Review the seller application', where: '04 · Applications' },
+    { label: 'Approve seller and their products', where: '04 · Sellers, Product review' },
+    { label: 'Set the commission rate', where: '04 · Commission' },
+    { label: 'Monitor orders and payments', where: '04 · Orders, Payments' },
+    { label: 'Handle refunds', where: '04 · Refunds' },
+    { label: 'Approve or reject the payout', where: '04 · Payout requests' }
+  ] }
+];
+
+const DECISIONS = [
+  { n: 1, title: 'Multi-seller order numbering', owner: 'Product + engineering', rec: 'One customer-facing number (MH-24081) with per-seller sub-orders suffixed A, B, C. It matches every screen already drawn — the customer sees one order shipping in two parcels, the seller sees MH-24081-A in their queue.', cost: 'Cheap now, expensive after launch — the number appears in every email, support conversation and carrier record.' },
+  { n: 2, title: 'Status→tone helper', owner: 'Engineering', rec: 'One shared statusTone(status) returning neutral / pending / critical / inactive, with a test asserting every API enum has a mapping. Today the mapping is correct but duplicated per app.', cost: 'Low cost to fix at any time, but drift starts with the first status added after launch.' },
+  { n: 3, title: 'Tax calculation source', owner: 'Finance', rec: 'A flat rate per shipping state for the pilot, stored on the order like every other figure. A provider integration slots in behind the same field once volume justifies it.', cost: 'Moderate — the checkout UI is unchanged either way; only the number\'s origin moves.' },
+  { n: 4, title: 'Guest checkout account claim', owner: 'Product', rec: 'Send a claim link in the confirmation email that turns the guest order into an account order in one click. Checkout and confirmation screens already support guests; only the email and a claim route are new.', cost: 'Low — can ship after launch without touching any screen designed here.' }
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    return { files: FILES, journeys: JOURNEYS, decisions: DECISIONS };
+  }
+}
+</script>
+</body>
+</html>

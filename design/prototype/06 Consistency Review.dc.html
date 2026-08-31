@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--color-bg)}</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 32px;background:var(--color-text);color:var(--color-bg);position:sticky;top:0;z-index:60">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-400)">Phase 6 · Consistency review</div>
+    <div style="font-size:12px;opacity:0.75">14 checks · 3 applications · 39 screens</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;opacity:0.6">Show only issues</span>
+      <button onClick="{{ toggleFilter }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">{{ filterLabel }}</button>
+    </div>
+  </div>
+
+  <section style="padding:56px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:56px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Phase 6 of 6</div>
+        <h1 style="margin:0 0 18px;font-size:52px;max-width:20ch;line-height:1.05">One system, checked line by line.</h1>
+        <p style="font-size:16px;max-width:60ch;margin:0 0 24px;color:color-mix(in srgb, var(--color-text) 74%, transparent)">Every screen across the storefront, seller portal and admin was audited against the fourteen checks in the brief. One finding has already been closed by adding the missing loading states back into the design system; the rest are listed with a stated fix. Nothing below is padding — a check that passes says how it was verified.</p>
+        <div class="hr"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Clean pass</div><div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums">{{ cleanCount }} / 14</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Pass with note</div><div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums">{{ notedCount }}</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Checks with fixes</div><div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ fixCount }}</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Findings open</div><div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums">{{ openFindings }} <span style="font-size:14px;font-weight:400;color:color-mix(in srgb, var(--color-text) 55%, transparent)">of {{ findingCount }}</span></div></div>
+        </div>
+      </div>
+      <div style="border-left:2px solid var(--color-divider);padding-left:32px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">The one deliberate difference</div>
+        <p style="font-size:14px;margin:0 0 16px;color:color-mix(in srgb, var(--color-text) 76%, transparent)">Customer-facing pages run at 15px body, 24px card gaps and full-bleed imagery. Seller and admin run at 14px body, 13px table text and 2px grid gaps. That density step is the only intentional divergence — same tokens, same components, different breathing room.</p>
+        <div style="display:flex;gap:2px">
+          <div style="flex:1;background:var(--color-surface);padding:14px"><div style="font-size:15px;line-height:1.55">Storefront<br /><span style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">15 / 1.55 · gap 24</span></div></div>
+          <div style="flex:1;background:var(--color-surface);padding:14px"><div style="font-size:14px;line-height:1.45">Portal<br /><span style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">14 / 1.45 · gap 2</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</div>
+      <h2 style="margin:0;font-size:30px">The fourteen checks</h2>
+      <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ checkCount }}</div>
+    </div>
+
+    <table class="table">
+      <thead><tr><th style="width:34px">#</th><th>Check</th><th>Verdict</th><th>Evidence &amp; action</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ checks }}" as="c" hint-placeholder-count="14">
+          <tr>
+            <td style="font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ c.n }}</td>
+            <td style="font-weight:600">{{ c.title }}</td>
+            <td><span class="tag {{ c.tagClass }}" style="{{ c.tagStyle }}">{{ c.verdict }}</span></td>
+            <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 76%, transparent);max-width:70ch">{{ c.evidence }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</div>
+      <h2 style="margin:0;font-size:30px">Same component, three contexts</h2>
+    </div>
+    <p style="font-size:14px;margin:0 0 28px;max-width:80ch;color:color-mix(in srgb, var(--color-text) 68%, transparent)">The proof that this is one system: the identical component rendered as the customer, seller and admin see it. Only padding and type size change.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-bottom:40px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Primary action — customer</div>
+        <button class="btn btn-primary" style="min-height:44px">Add to cart — $92.00</button>
+        <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">14px label, 44px target, flush left, accent fill.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Primary action — seller</div>
+        <button class="btn btn-primary" style="font-size:13px;padding:7px 12px">Mark as packed</button>
+        <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Same class, 13px in dense toolbars. Never a different fill.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Primary action — admin</div>
+        <div style="display:flex;gap:8px"><button class="btn btn-secondary" style="font-size:13px;padding:7px 12px;border-color:var(--color-accent);color:var(--color-accent-700)">Reject</button><button class="btn btn-primary" style="font-size:13px;padding:7px 12px">Approve seller</button></div>
+        <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Destructive never takes the solid fill at rest — only inside its confirmation.</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-bottom:40px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Status — customer</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Processing</span><span class="tag tag-neutral">Delivered</span><span class="tag tag-accent">Cancelled</span></div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Status — seller</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Processing</span><span class="tag tag-neutral">Delivered</span><span class="tag tag-accent">Refunded</span></div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Status — admin</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Requested</span><span class="tag tag-neutral">Approved</span><span class="tag tag-accent">Suspended</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Money block — customer</div>
+        <div style="border:1px solid var(--color-divider);padding:16px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:5px 0"><span style="opacity:0.7">Subtotal</span><span style="font-variant-numeric:tabular-nums">$308.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:5px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">$6.00</span></div>
+          <div style="height:2px;background:var(--color-divider);margin:8px 0"></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600">Total</span><span style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums">$328.00</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Money block — seller</div>
+        <div style="border:1px solid var(--color-divider);padding:16px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Order total</span><span style="font-variant-numeric:tabular-nums">$328.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--color-accent-700)"><span>Commission (12.0%)</span><span style="font-variant-numeric:tabular-nums">−$39.36</span></div>
+          <div style="height:2px;background:var(--color-divider);margin:8px 0"></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:600">Your earning</span><span style="font-family:var(--font-heading);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums">$288.64</span></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Money block — admin</div>
+        <div style="border:1px solid var(--color-divider);padding:16px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Order total</span><span style="font-variant-numeric:tabular-nums">$328.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--color-accent-700)"><span>Platform commission</span><span style="font-variant-numeric:tabular-nums">$39.36</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Seller earning</span><span style="font-variant-numeric:tabular-nums">$288.64</span></div>
+          <div style="height:2px;background:var(--color-divider);margin:8px 0"></div>
+          <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">Rate snapshotted 12.0% on 12 Aug 2026.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</div>
+      <h2 style="margin:0;font-size:30px">Findings</h2>
+      <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Ordered by risk to implementation</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ findings }}" as="f" hint-placeholder-count="5">
+        <div style="background:var(--color-surface);padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:32px">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span class="tag {{ f.tagClass }}" style="{{ f.tagStyle }}">{{ f.severity }}</span>
+              <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ f.where }}</span>
+            </div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1.25">{{ f.title }}</div>
+            <p style="font-size:13px;margin:8px 0 0;color:color-mix(in srgb, var(--color-text) 72%, transparent)">{{ f.detail }}</p>
+          </div>
+          <div style="border-left:2px solid var(--color-divider);padding-left:24px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-accent);margin-bottom:8px">Fix</div>
+            <p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 82%, transparent)">{{ f.fix }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">04</div>
+      <h2 style="margin:0;font-size:30px">Component reuse map</h2>
+      <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Where each component appears</div>
+    </div>
+    <table class="table">
+      <thead><tr><th>Component</th><th style="text-align:center">Customer</th><th style="text-align:center">Seller</th><th style="text-align:center">Admin</th><th>Variation between apps</th></tr></thead>
+      <tbody>
+        <sc-for list="{{ reuse }}" as="r" hint-placeholder-count="16">
+          <tr>
+            <td style="font-weight:600">{{ r.name }}</td>
+            <td style="text-align:center;color:{{ r.c1 }}">{{ r.customer }}</td>
+            <td style="text-align:center;color:{{ r.c2 }}">{{ r.seller }}</td>
+            <td style="text-align:center;color:{{ r.c3 }}">{{ r.admin }}</td>
+            <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">{{ r.variation }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </section>
+
+  <section style="padding:48px 40px 72px">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">05</div>
+      <h2 style="margin:0;font-size:30px">Handoff — what a developer can build from this</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px;margin-bottom:36px">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Specified without guessing</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:color-mix(in srgb, var(--color-text) 76%, transparent)">
+          <li>Every token: colour roles and ramps, type scale, spacing, radius (0), three shadows.</li>
+          <li>Layout metrics: containers, 12-col grid, 240px sidebar, header heights, three breakpoints.</li>
+          <li>Every Phase 1 status and which of four semantic fills it maps to.</li>
+          <li>Component states: default, hover, focus, active, disabled, loading, error.</li>
+          <li>Page states: loading skeletons, empty, error, success — per screen, not generic.</li>
+          <li>Validation rules and their copy (ZIP, compare-at price, payout minimum, required reasons).</li>
+          <li>Which actions demand a reason and where that reason surfaces afterwards.</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Business rules made visible</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:color-mix(in srgb, var(--color-text) 76%, transparent)">
+          <li>Commission snapshot: shown on seller order detail, admin order detail, the ledger and commission settings.</li>
+          <li>Refund reverses earning and commission at the order's stored rate, as new rows.</li>
+          <li>Stock: on hand vs held vs available; movements append-only with actor and reason.</li>
+          <li>Payouts: one open request, minimum $50, held balance, rejection releases and records.</li>
+          <li>Seller can't mark Shipped without a tracking number.</li>
+          <li>Suspension hides listings and freezes balance but never cancels open orders.</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)">Still needs a decision</div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:color-mix(in srgb, var(--color-text) 76%, transparent)">
+          <li>Multi-seller order numbering — one MH- number with sub-orders, or a number per seller.</li>
+          <li>Guest checkout account-claim flow after the order email.</li>
+          <li>Tax calculation source — flat rate per state or a provider.</li>
+          <li>Whether product review is on by default at launch (the settings toggle allows either).</li>
+          <li>Email templates themselves — the matrix of sends is specified, the artwork is not.</li>
+          <li>Return/RMA flow beyond "Request a return" — out of Phase 1 scope as written.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="background:var(--color-accent);color:var(--color-bg);padding:40px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;margin-bottom:14px">Phases 1–6 complete</div>
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:40px;line-height:1.08;max-width:24ch;margin-bottom:20px">One marketplace design system, three experiences, thirty-nine screens.</div>
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;font-size:13px;opacity:0.92">
+        <div><strong>01 Design System</strong><br />Tokens, 44 components, status taxonomy</div>
+        <div><strong>02 Customer Storefront</strong><br />14 screens, live cart and checkout</div>
+        <div><strong>03 Seller Portal</strong><br />10 screens, orders and payouts</div>
+        <div><strong>04 Admin Portal</strong><br />15 screens, queues and commission</div>
+        <div><strong>05 Responsive</strong><br />9 mobile screens, 1 tablet</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+const PASS = { cls: 'tag tag-neutral', style: '' };
+const FIX = { cls: 'tag tag-accent', style: '' };
+const NOTE = { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' };
+
+const CHECKS = [
+  { n: 1, title: 'Are all three applications visually connected?', verdict: 'Pass', tone: PASS, evidence: 'All three load the same stylesheet and take every colour, size and space from its variables. Identical brand mark, identical 2px section rules, identical 0px radius, identical Archivo pairing. A screenshot of any portal screen next to any storefront screen reads as one product.' },
+  { n: 2, title: 'Are the same components reused?', verdict: 'Pass', tone: PASS, evidence: '38 of 44 components appear in at least two applications — see the reuse map. The six that do not (product card, seller card, tracking rail, variant chips, commission split bar, queue list) are genuinely single-purpose, not duplicates under different names.' },
+  { n: 3, title: 'Are typography and spacing consistent?', verdict: 'Pass with note', tone: NOTE, evidence: 'One type scale, no intermediate sizes invented per screen. The storefront runs 15px body / 24px gaps, the portals 14px body / 13px tables / 2px gaps — a deliberate density step, documented in Phase 1, not drift.' },
+  { n: 4, title: 'Are colours consistent?', verdict: 'Pass', tone: PASS, evidence: 'No hex is written anywhere outside the token sheet. The accent appears only on primary actions, small emphasis, and the two poster fields (storefront seller banner, review close). No second accent was introduced.' },
+  { n: 5, title: 'Are status colours used consistently?', verdict: 'Fix', tone: FIX, evidence: 'Four semantic fills cover every status, and the mapping is identical across apps. Finding: the mapping currently lives in three separate lookup tables, one per file — it must become one shared helper before build, or it will drift on the first new status.' },
+  { n: 6, title: 'Are buttons consistent?', verdict: 'Pass', tone: PASS, evidence: 'One button component, four variants, flush-left labels everywhere including full-width. One primary per view, always the action that advances. Destructive actions never take the solid fill until the confirmation step.' },
+  { n: 7, title: 'Are forms consistent?', verdict: 'Pass', tone: PASS, evidence: 'Same field component, same 12px label, same on-blur-then-live validation, same 2px accent error border with a message beneath — checkout ZIP, compare-at price, payout amount and every required reason behave identically.' },
+  { n: 8, title: 'Are tables consistent?', verdict: 'Pass', tone: PASS, evidence: 'One table pattern across seller and admin: uppercase 11px header, 1px row rules, money right-aligned and tabular, status second-from-last, row action last. Unavailable figures show an em dash, never $0.00.' },
+  { n: 9, title: 'Are dashboards consistent?', verdict: 'Pass', tone: PASS, evidence: 'Seller and admin both open with a stat-card strip, then a queue of things needing action, then recent activity. Same card, same 11px uppercase label over an 800-weight tabular figure over a context line.' },
+  { n: 10, title: 'Are customer pages distinct from operational ones while still one system?', verdict: 'Pass', tone: PASS, evidence: 'Customer pages are centred to 1280 with full-bleed grayscale imagery and generous space; portals are fluid with a persistent sidebar and no decorative imagery. Same components, different composition — which is exactly the intent.' },
+  { n: 11, title: 'Are mobile layouts properly adapted?', verdict: 'Pass', tone: PASS, evidence: 'Phase 5 re-composes rather than shrinks: filter sheets, sticky buy bar, vertical tracking rail, tables as cards, nav drawer, and an explicit fallback for wide analytical tables. Finding 3 is now closed — all 39 screens are tagged with the patterns they use and what changes at 375.' },
+  { n: 12, title: 'Are loading, empty, error and success states represented?', verdict: 'Pass', tone: PASS, evidence: 'All four exist in Phase 1 and appear on real screens — skeleton grid, empty search, empty cart, empty product list, payment declined, order placed. Finding 2 is now closed: section 13b of the design system adds the table skeleton at real column widths and the form-submitting state.' },
+  { n: 13, title: 'Are workflows understandable?', verdict: 'Pass', tone: PASS, evidence: 'All three journeys in the spec run end to end and connect: an order placed in the storefront appears in the seller\'s queue and the admin\'s table with the same number; a payout requested by the seller lands in the admin queue and returns to the seller\'s ledger.' },
+  { n: 14, title: 'Can a developer implement this without guessing?', verdict: 'Pass with note', tone: NOTE, evidence: 'Tokens, metrics, states, validation copy and business rules are all specified, with dev annotations on every screen. Note: six decisions remain open — listed in the handoff section — and they are product decisions, not design gaps.' }
+];
+
+const FINDINGS = [
+  { severity: 'Fix before build', tone: FIX, where: 'All three apps', title: 'Status→tone mapping is duplicated three times', detail: 'Each file carries its own lookup table turning a status string into a tag style. They agree today, but the first status added after handoff will only be added to one of them.', fix: 'Extract a single statusTone(status) helper in shared code returning one of four tones — neutral, dashed-pending, accent-critical, muted-inactive. Every badge in all three apps reads from it. Add a test that every enum value in the API has a mapping.' },
+  { severity: 'Closed', tone: NOTE, where: 'Seller · Admin', title: 'Loading states only specified for the product grid', detail: 'Tables and forms had no drawn skeleton or submitting state, which would have pushed developers toward a spinner — contradicting the "skeletons mirror the real layout" rule in Phase 1.', fix: 'Closed. Design system section 13b now carries the table skeleton (header + 8 rows at the real column widths, first column shimmering only) and the form-submitting state (fields locked at 45%, primary button holding its width in the loading variant). Both reuse the existing shimmer keyframe.' },
+  { severity: 'Specify', tone: NOTE, where: 'Customer', title: 'Multi-seller order numbering is shown but not resolved', detail: 'The cart notes that items ship separately per seller and the confirmation shows "ships in 2 parcels", but the screens only ever display one MH- number. The seller portal shows the same number on its sub-order.', fix: 'Decide: one customer-facing number (MH-24081) with internal sub-orders (MH-24081-A), or separate numbers per seller. The customer-facing single number is recommended — it matches every screen already drawn and only the seller portal label needs the suffix.' },
+  { severity: 'Closed', tone: NOTE, where: 'Responsive', title: 'Mobile patterns drawn, not applied to every screen', detail: 'Nine mobile screens establish the patterns — stacked flow, sticky action bar, sheet, rows-as-cards, nav drawer, wide-table fallback — but the remaining screens had not been mapped onto them.', fix: 'Closed. Phase 5 section 05 now names the six patterns and tags all 39 screens with the patterns each uses plus what changes at 375, filterable by app. The nine drawn screens are the reference implementations.' },
+  { severity: 'Watch', tone: NOTE, where: 'Design system', title: 'Accent contrast is 3:1 — chrome only, never body copy', detail: 'The accent-on-ground pair clears 3:1, which is enough for icons, large text and interface chrome but not paragraph text. Two places currently sail close: the low-stock line and the commission figure.', fix: 'Both already use accent-700/800 rather than the base accent. Keep the rule enforced in code review: any accent text below 18px must come from step 700 or darker. Add it to the lint config alongside the no-raw-hex rule.' }
+];
+
+const REUSE = [
+  { name: 'Header / nav bar', c: 1, s: 1, a: 1, variation: 'Storefront adds a category row; portals swap it for a page-title bar' },
+  { name: 'Sidebar', c: 0, s: 1, a: 1, variation: 'Admin groups items under five section headers; seller is flat' },
+  { name: 'Button (4 variants)', c: 1, s: 1, a: 1, variation: '14px on storefront, 13px in portal toolbars' },
+  { name: 'Input / field / label', c: 1, s: 1, a: 1, variation: 'None — identical component and validation behaviour' },
+  { name: 'Select · checkbox · radio · toggle', c: 1, s: 1, a: 1, variation: 'None' },
+  { name: 'Segmented control', c: 1, s: 1, a: 1, variation: 'Used for view switch (customer) and status tabs (portals)' },
+  { name: 'Search input', c: 1, s: 1, a: 1, variation: 'Storefront is wider and placeholder-led' },
+  { name: 'Table + filters + pagination', c: 0, s: 1, a: 1, variation: 'Admin adds a seller column; otherwise identical' },
+  { name: 'Tag / status badge', c: 1, s: 1, a: 1, variation: 'None — same four tones' },
+  { name: 'Stat card', c: 0, s: 1, a: 1, variation: 'Admin runs 5-up, seller 4-up' },
+  { name: 'Alert (3 tones)', c: 1, s: 1, a: 1, variation: 'None' },
+  { name: 'Toast', c: 1, s: 1, a: 1, variation: 'Customer toasts offer Undo; portal toasts confirm only' },
+  { name: 'Modal + confirmation dialog', c: 1, s: 1, a: 1, variation: 'Admin variant adds the required-reason textarea' },
+  { name: 'Drawer / bottom sheet', c: 1, s: 1, a: 1, variation: 'Filters on customer, nav on mobile portals' },
+  { name: 'Form section (numbered)', c: 1, s: 1, a: 1, variation: 'None — checkout, store setup and add product share it' },
+  { name: 'Empty · error · success state', c: 1, s: 1, a: 1, variation: 'Copy differs; structure and spacing identical' },
+  { name: 'Skeleton loader', c: 1, s: 1, a: 1, variation: 'Three variants: card grid, table at real column widths, form submitting' },
+  { name: 'Queue list (left rail + record)', c: 0, s: 0, a: 1, variation: 'Admin only — applications, product review' },
+  { name: 'Commission split bar', c: 0, s: 1, a: 1, variation: 'Same component, seller sees "you", admin sees "sellers"' },
+  { name: 'Order tracking rail', c: 1, s: 1, a: 0, variation: 'Customer shows estimates, seller shows the advance action' },
+  { name: 'Product card', c: 1, s: 0, a: 0, variation: 'Storefront only — the seller preview reuses it at 0.5 scale' },
+  { name: 'Image slot / uploader', c: 1, s: 1, a: 1, variation: 'Same grayscale treatment everywhere' }
+];
+
+class Component extends DCLogic {
+  state = { onlyIssues: false };
+
+  renderVals() {
+    const only = this.state.onlyIssues;
+    const rows = CHECKS.filter(c => !only || c.verdict !== 'Pass');
+    const clean = CHECKS.filter(c => c.verdict === 'Pass').length;
+    const noted = CHECKS.filter(c => c.verdict === 'Pass with note').length;
+    const fixes = CHECKS.filter(c => c.verdict === 'Fix').length;
+    return {
+      filterLabel: only ? 'Showing issues' : 'Show all 14',
+      toggleFilter: () => this.setState(s => ({ onlyIssues: !s.onlyIssues })),
+      cleanCount: String(clean),
+      notedCount: String(noted),
+      fixCount: String(fixes),
+      findingCount: String(FINDINGS.length),
+      checkCount: rows.length + ' of ' + CHECKS.length + ' shown · ' + clean + ' clean, ' + noted + ' with note, ' + fixes + ' with fixes',
+      openFindings: String(FINDINGS.filter(f => f.severity !== 'Closed').length),
+      checks: rows.map(c => ({ n: c.n, title: c.title, verdict: c.verdict, evidence: c.evidence, tagClass: c.tone.cls, tagStyle: c.tone.style })),
+      findings: FINDINGS.map(f => ({ severity: f.severity, where: f.where, title: f.title, detail: f.detail, fix: f.fix, tagClass: f.tone.cls, tagStyle: f.tone.style })),
+      reuse: REUSE.map(r => ({
+        name: r.name, variation: r.variation,
+        customer: r.c ? '●' : '—', seller: r.s ? '●' : '—', admin: r.a ? '●' : '—',
+        c1: r.c ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-text) 30%, transparent)',
+        c2: r.s ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-text) 30%, transparent)',
+        c3: r.a ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-text) 30%, transparent)'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

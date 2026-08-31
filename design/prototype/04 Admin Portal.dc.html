@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:var(--color-bg)}
+@keyframes mh-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 24px;background:var(--color-text);color:var(--color-bg);position:sticky;top:0;z-index:60">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-400)">Phase 4 · Admin portal</div>
+    <div style="font-size:12px;opacity:0.75">{{ groupLabel }}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px;margin-left:16px">
+      <button onClick="{{ goLogin }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Login</button>
+      <button onClick="{{ goDash }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Dashboard</button>
+      <button onClick="{{ goSellers }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Sellers</button>
+      <button onClick="{{ goApplications }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Applications</button>
+      <button onClick="{{ goReview }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Product review</button>
+      <button onClick="{{ tabCats }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Categories</button>
+      <button onClick="{{ tabBrands }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Brands</button>
+      <button onClick="{{ goOrders }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Orders</button>
+      <button onClick="{{ goPayments }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Payments</button>
+      <button onClick="{{ goRefunds }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Refunds</button>
+      <button onClick="{{ goCommission }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Commission</button>
+      <button onClick="{{ goEarnings }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Seller earnings</button>
+      <button onClick="{{ goPayouts }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Payouts</button>
+      <button onClick="{{ goSettings }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Settings</button>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;opacity:0.6">Dev annotations</span>
+      <button onClick="{{ toggleNotes }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">{{ notesLabel }}</button>
+    </div>
+  </div>
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);min-height:calc(100vh - 40px)">
+    <div style="padding:64px 56px;display:flex;flex-direction:column;justify-content:center;max-width:560px">
+      <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:40px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:16px">Marketplace control centre</div>
+      <h1 style="margin:0 0 12px;font-size:44px;line-height:1.05">Sign in to admin</h1>
+      <p style="font-size:14px;margin:0 0 32px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Staff access only. Sessions expire after 30 minutes of inactivity and every action is attributed to your account.</p>
+
+      <sc-if value="{{ loginError }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;display:flex;gap:12px;margin-bottom:20px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <div><div style="font-weight:600;font-size:14px;color:var(--color-accent-900)">Incorrect email or password</div><div style="font-size:13px;color:var(--color-accent-900);opacity:0.85">Two attempts remaining before this account is locked for 15 minutes.</div></div>
+        </div>
+      </sc-if>
+
+      <div style="display:flex;flex-direction:column;gap:16px;max-width:420px">
+        <div class="field"><label>Work email</label><input class="input" value="ops@markethub.com" /></div>
+        <div class="field"><label>Password</label><input class="input" type="password" value="••••••••••••" /></div>
+        <div class="field"><label>Two-factor code</label><input class="input" value="418 902" /></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary" onClick="{{ signIn }}">Sign in</button>
+          <button class="btn btn-secondary" onClick="{{ failLogin }}">Show error state</button>
+        </div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Roles: Owner · Operations · Finance · Support. Permissions are enforced server-side; the sidebar only shows what your role can reach.</div>
+      </div>
+    </div>
+    <div style="border-left:2px solid var(--color-divider);position:relative"><image-slot class="grayscale" id="ad-login" shape="rect" fit="cover" placeholder="Photograph — grayscale"></image-slot></div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ inPortal }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid;grid-template-columns:236px minmax(0,1fr);min-height:calc(100vh - 40px)">
+    <aside style="border-right:2px solid var(--color-divider);display:flex;flex-direction:column;position:sticky;top:40px;height:calc(100vh - 40px)">
+      <div style="padding:16px;border-bottom:2px solid var(--color-divider)">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;margin-bottom:2px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Admin</div>
+      </div>
+      <div style="padding:10px 0;flex:1;overflow:auto">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="10">
+          <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:10px;padding:8px 16px;font-size:13.5px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }}">
+            <sc-if value="{{ n.isHeader }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5">{{ n.label }}</span></sc-if>
+            <sc-if value="{{ n.isItem }}" hint-placeholder-val="{{ true }}">
+              <span style="line-height:0;opacity:0.9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg></span>
+              <span>{{ n.label }}</span>
+              <sc-if value="{{ n.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-size:11px;padding:1px 7px;background:var(--color-accent);color:var(--color-bg)">{{ n.badge }}</span></sc-if>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border-top:2px solid var(--color-divider);padding:14px 16px">
+        <div style="font-size:13px;font-weight:600">Ops team</div>
+        <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">ops@markethub.com · Operations</div>
+      </div>
+    </aside>
+
+    <main style="min-width:0">
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 28px;border-bottom:2px solid var(--color-divider);position:sticky;top:40px;background:var(--color-bg);z-index:40">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px">{{ pageTitle }}</div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Aug 12, 2026 · 14:08 PT</span>
+          <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Export</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;margin-bottom:2px">
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Total sales · 30 days</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$412,880.50</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Gross merchandise value</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Platform revenue</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$49,545.66</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Commission collected</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Seller earnings</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$363,334.84</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Owed and paid combined</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Orders</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">2,418</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Avg. $170.75</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Refund activity</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$6,204.00</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">38 refunds · 1.5% of sales</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;margin-bottom:28px">
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Customers</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">18,942</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">+486 this month</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Active sellers</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">412</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">6 suspended</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Payouts approved</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$284,110.00</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">52 this month</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Payouts pending</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$38,420.15</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">9 awaiting review</div>
+          </div>
+          <div style="background:var(--color-surface);padding:16px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Commission rate</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">12.0%</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Unchanged since 1 Mar 2026</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:36px">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Needs attention</h2>
+              <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Queues with items waiting on the platform team</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:32px">
+              <div style="border:1px solid var(--color-divider);padding:14px;cursor:pointer">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:26px;color:var(--color-accent);font-variant-numeric:tabular-nums">7</div>
+                <div style="font-size:13px;font-weight:600;margin-top:2px">Seller applications</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Oldest waiting 2 days</div>
+              </div>
+              <div style="border:1px solid var(--color-divider);padding:14px;cursor:pointer">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:26px;color:var(--color-accent);font-variant-numeric:tabular-nums">14</div>
+                <div style="font-size:13px;font-weight:600;margin-top:2px">Products to review</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Across 9 sellers</div>
+              </div>
+              <div style="border:1px solid var(--color-divider);padding:14px;cursor:pointer">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:26px;color:var(--color-accent);font-variant-numeric:tabular-nums">9</div>
+                <div style="font-size:13px;font-weight:600;margin-top:2px">Payout requests</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">$38,420.15 total</div>
+              </div>
+              <div style="border:1px solid var(--color-divider);padding:14px;cursor:pointer">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">3</div>
+                <div style="font-size:13px;font-weight:600;margin-top:2px">Failed payments</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Last 24 hours</div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Recent orders</h2>
+              <button class="btn btn-ghost" style="margin-left:auto;font-size:13px">All orders →</button>
+            </div>
+            <table class="table">
+              <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Seller</th><th style="text-align:right">Total</th><th style="text-align:right">Commission</th><th>Status</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ orders }}" as="o" hint-placeholder-count="7">
+                  <tr>
+                    <td style="font-weight:600">{{ o.no }}</td><td style="white-space:nowrap">{{ o.date }}</td><td>{{ o.customer }}</td><td>{{ o.seller }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.total }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ o.commission }}</td>
+                    <td><span class="tag {{ o.tagClass }}" style="{{ o.tagStyle }}">{{ o.status }}</span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Where the money sits</h2>
+            </div>
+            <div style="display:flex;height:40px;border:1px solid var(--color-divider);margin-bottom:12px">
+              <div style="flex:88;background:var(--color-neutral-300);display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600">Sellers 88%</div>
+              <div style="flex:12;background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">12%</div>
+            </div>
+            <table class="table" style="font-size:13px;margin-bottom:32px">
+              <tbody>
+                <tr><td style="padding-left:0">Gross sales</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">$412,880.50</td></tr>
+                <tr><td style="padding-left:0">Platform commission</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">$49,545.66</td></tr>
+                <tr><td style="padding-left:0">Seller balances owed</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">$79,224.84</td></tr>
+                <tr><td style="padding-left:0">Refunded</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">−$6,204.00</td></tr>
+              </tbody>
+            </table>
+
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Activity</h2>
+            </div>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ activity }}" as="a" hint-placeholder-count="7">
+                <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+                  <div style="width:52px;flex:none;font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ a.time }}</div>
+                  <div style="font-size:13px;line-height:1.45">{{ a.text }}<div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ a.by }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isSellers }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="position:relative;width:280px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Store name, contact or email" value="{{ sQuery }}" onChange="{{ setSQuery }}" />
+          </div>
+          <div class="seg">
+            <sc-for list="{{ sellerTabs }}" as="t" hint-placeholder-count="5">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Category: All <span style="opacity:0.5">▾</span></button>
+          <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ sSummary }}</div>
+        </div>
+
+        <sc-if value="{{ sHas }}" hint-placeholder-val="{{ true }}">
+          <table class="table">
+            <thead><tr><th style="width:40px"></th><th>Store</th><th>Contact</th><th>Joined</th><th style="text-align:right">Products</th><th style="text-align:right">Sales · 30d</th><th style="text-align:right">Balance</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ sellerRows }}" as="r" hint-placeholder-count="7">
+                <tr>
+                  <td><div style="width:32px;height:32px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="{{ r.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div></td>
+                  <td><div style="font-weight:600;cursor:pointer" onClick="{{ r.open }}">{{ r.name }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ r.slug }}</div></td>
+                  <td><div style="font-size:13px">{{ r.contact }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ r.email }}</div></td>
+                  <td style="font-size:13px;white-space:nowrap">{{ r.joined }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.products }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.sales }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.balance }}</td>
+                  <td><span class="tag {{ r.tagClass }}" style="{{ r.tagStyle }}">{{ r.status }}</span></td>
+                  <td style="text-align:right;white-space:nowrap">
+                    <button class="btn btn-ghost" style="font-size:13px" onClick="{{ r.open }}">Open</button>
+                    <button class="btn btn-ghost" style="font-size:13px;color:{{ r.actionColor }}" onClick="{{ r.act }}">{{ r.actionLabel }}</button>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </sc-if>
+        <sc-if value="{{ sEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">No sellers match this view</div>
+            <p style="font-size:14px;margin:0;max-width:52ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Nothing matches the current status filter and search.</p>
+            <button class="btn btn-primary" onClick="{{ clearS }}">Clear filters</button>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isSellerDetail }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:20px">
+          <span onClick="{{ goSellers }}" style="cursor:pointer">Sellers</span><span>/</span><span style="color:var(--color-text)">{{ sdName }}</span>
+        </div>
+
+        <div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:20px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+          <div style="width:72px;height:72px;flex:none;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-sd-logo" shape="rect" fit="cover" placeholder=""></image-slot></div>
+          <div>
+            <h1 style="margin:0 0 6px;font-size:34px">{{ sdName }}</h1>
+            <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">markethub.com/store/{{ sdSlug }} · joined {{ sdJoined }} · {{ sdContact }}</div>
+          </div>
+          <span class="tag {{ sdTagClass }}" style="{{ sdTagStyle }}">{{ sdStatus }}</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-secondary" style="font-size:13px">View public store</button>
+            <sc-if value="{{ sdActive }}" hint-placeholder-val="{{ true }}">
+              <button class="btn btn-secondary" style="font-size:13px;border-color:var(--color-accent);color:var(--color-accent-700)" onClick="{{ openSuspend }}">Suspend seller</button>
+            </sc-if>
+            <sc-if value="{{ sdSuspended }}" hint-placeholder-val="{{ false }}">
+              <button class="btn btn-primary" style="font-size:13px" onClick="{{ reactivate }}">Reactivate seller</button>
+            </sc-if>
+          </div>
+        </div>
+
+        <sc-if value="{{ sdSuspended }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 18px;display:flex;gap:12px;margin-bottom:24px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+            <div style="font-size:14px;color:var(--color-accent-900)"><strong>Suspended {{ sdSuspendedOn }}.</strong> {{ sdSuspendReason }} — listings are hidden from the storefront, open orders must still be fulfilled, and the balance is frozen against payout.</div>
+          </div>
+        </sc-if>
+
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:32px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Sales · lifetime</div><div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums">$84,310.00</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Commission earned</div><div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$10,117.20</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Balance owed</div><div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums">$6,842.15</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Refund rate</div><div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums">1.2%</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:36px">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Recent orders</h2>
+            </div>
+            <table class="table">
+              <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th style="text-align:right">Total</th><th style="text-align:right">Commission</th><th>Status</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ orders }}" as="o" hint-placeholder-count="5">
+                  <tr><td style="font-weight:600">{{ o.no }}</td><td style="white-space:nowrap">{{ o.date }}</td><td>{{ o.customer }}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.total }}</td><td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ o.commission }}</td><td><span class="tag {{ o.tagClass }}" style="{{ o.tagStyle }}">{{ o.status }}</span></td></tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <div style="margin-top:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <h2 style="margin:0;font-size:20px">Account history</h2>
+                <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Append-only</span>
+              </div>
+              <table class="table">
+                <thead><tr><th>When</th><th>Event</th><th>By</th><th>Note</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ sdHistory }}" as="h" hint-placeholder-count="4">
+                    <tr><td style="white-space:nowrap;font-size:13px">{{ h.when }}</td><td><span class="tag {{ h.tagClass }}" style="{{ h.tagStyle }}">{{ h.event }}</span></td><td style="font-size:13px">{{ h.by }}</td><td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ h.note }}</td></tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Business</div>
+              <table class="table" style="font-size:13px">
+                <tbody>
+                  <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Legal name</td><td style="padding-right:0;text-align:right">Aeris Kitchen Company LLC</td></tr>
+                  <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Type</td><td style="padding-right:0;text-align:right">LLC</td></tr>
+                  <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Tax ID</td><td style="padding-right:0;text-align:right">87-2214905</td></tr>
+                  <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Ships from</td><td style="padding-right:0;text-align:right">Portland, OR</td></tr>
+                  <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Category</td><td style="padding-right:0;text-align:right">Home &amp; Kitchen</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Catalogue</div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.7">Published</span><span style="font-variant-numeric:tabular-nums">81</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.7">Draft</span><span style="font-variant-numeric:tabular-nums">2</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.7">Pending review</span><span style="font-variant-numeric:tabular-nums;color:var(--color-accent)">1</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.7">Out of stock</span><span style="font-variant-numeric:tabular-nums">1</span></div>
+              <button class="btn btn-secondary btn-block" style="margin-top:10px" onClick="{{ goReview }}">Review products</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isApps }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:380px minmax(0,1fr);gap:0;border:1px solid var(--color-divider)">
+          <div style="border-right:2px solid var(--color-divider)">
+            <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Queue</div>
+              <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ appQueueCount }}</span>
+            </div>
+            <sc-for list="{{ applications }}" as="a" hint-placeholder-count="6">
+              <div onClick="{{ a.select }}" style="padding:14px;border-bottom:1px solid var(--color-divider);cursor:pointer;background:{{ a.bg }}">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:14px">{{ a.store }}</div>
+                  <span style="margin-left:auto;font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ a.waiting }}</span>
+                </div>
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:6px">{{ a.contact }} · {{ a.category }}</div>
+                <span class="tag {{ a.tagClass }}" style="{{ a.tagStyle }}">{{ a.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="padding:24px">
+            <div style="display:flex;align-items:flex-start;gap:16px;padding-bottom:18px;border-bottom:2px solid var(--color-divider);margin-bottom:20px">
+              <div>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">{{ curRef }} · submitted {{ curSubmitted }}</div>
+                <h1 style="margin:0;font-size:30px">{{ curStore }}</h1>
+              </div>
+              <span class="tag {{ curTagClass }}" style="{{ curTagStyle }}">{{ curStatus }}</span>
+              <sc-if value="{{ curPending }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-left:auto;display:flex;gap:8px">
+                  <button class="btn btn-secondary" style="border-color:var(--color-accent);color:var(--color-accent-700)" onClick="{{ openReject }}">Reject</button>
+                  <button class="btn btn-primary" onClick="{{ approveApp }}">Approve seller</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ curDecided }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);text-align:right">Decided {{ curDecidedOn }}<br />by ops@markethub.com</div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ curRejected }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;margin-bottom:20px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Rejection reason — sent to the applicant</div>
+                <div style="font-size:14px;color:var(--color-accent-900)">{{ curReason }}</div>
+              </div>
+            </sc-if>
+
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px">
+              <div>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Business</div>
+                <table class="table" style="font-size:13px;margin-bottom:24px">
+                  <tbody>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Legal name</td><td style="padding-right:0;text-align:right">{{ curLegal }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Business type</td><td style="padding-right:0;text-align:right">{{ curType }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Tax ID</td><td style="padding-right:0;text-align:right">{{ curTax }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Address</td><td style="padding-right:0;text-align:right">{{ curAddress }}</td></tr>
+                  </tbody>
+                </table>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Contact</div>
+                <table class="table" style="font-size:13px">
+                  <tbody>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Name</td><td style="padding-right:0;text-align:right">{{ curContact }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Email</td><td style="padding-right:0;text-align:right">{{ curEmail }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Phone</td><td style="padding-right:0;text-align:right">{{ curPhone }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Store</div>
+                <table class="table" style="font-size:13px;margin-bottom:24px">
+                  <tbody>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Trading name</td><td style="padding-right:0;text-align:right">{{ curStore }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Category</td><td style="padding-right:0;text-align:right">{{ curCategory }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Planned listings</td><td style="padding-right:0;text-align:right">{{ curListings }}</td></tr>
+                    <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Existing shop</td><td style="padding-right:0;text-align:right">{{ curSite }}</td></tr>
+                  </tbody>
+                </table>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">What they sell</div>
+                <p style="font-size:13px;margin:0 0 20px;color:color-mix(in srgb, var(--color-text) 78%, transparent)">{{ curBlurb }}</p>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Checks</div>
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                  <div style="display:flex;gap:8px;align-items:center"><span style="width:15px;height:15px;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span>Tax ID format valid</div>
+                  <div style="display:flex;gap:8px;align-items:center"><span style="width:15px;height:15px;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span>Email verified</div>
+                  <div style="display:flex;gap:8px;align-items:center;color:var(--color-accent-800)"><span style="width:15px;height:15px;border:1.5px solid var(--color-accent)"></span>{{ curCheck }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:360px minmax(0,1fr);border:1px solid var(--color-divider)">
+          <div style="border-right:2px solid var(--color-divider)">
+            <div style="padding:12px 14px;border-bottom:2px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Review queue</div>
+              <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ revQueueCount }}</span>
+            </div>
+            <sc-for list="{{ reviewList }}" as="p" hint-placeholder-count="5">
+              <div onClick="{{ p.select }}" style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--color-divider);cursor:pointer;background:{{ p.bg }}">
+                <div style="width:44px;height:44px;flex:none;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="{{ p.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:13px;font-weight:600;line-height:1.3">{{ p.name }}</div>
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">{{ p.seller }} · {{ p.waiting }}</div>
+                  <span class="tag {{ p.tagClass }}" style="{{ p.tagStyle }}">{{ p.status }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="padding:24px">
+            <div style="display:flex;align-items:flex-start;gap:16px;padding-bottom:18px;border-bottom:2px solid var(--color-divider);margin-bottom:20px">
+              <div>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">{{ rvSku }} · submitted {{ rvSubmitted }}</div>
+                <h1 style="margin:0 0 4px;font-size:28px">{{ rvName }}</h1>
+                <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">by <span style="color:var(--color-accent);cursor:pointer" onClick="{{ goSellers }}">{{ rvSeller }}</span> · {{ rvCategory }}</div>
+              </div>
+              <span class="tag {{ rvTagClass }}" style="{{ rvTagStyle }}">{{ rvStatus }}</span>
+              <sc-if value="{{ rvPending }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-left:auto;display:flex;gap:8px">
+                  <button class="btn btn-secondary" style="border-color:var(--color-accent);color:var(--color-accent-700)" onClick="{{ openRejectProduct }}">Reject</button>
+                  <button class="btn btn-primary" onClick="{{ approveProduct }}">Approve &amp; publish</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ rvDecided }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);text-align:right">Decided today<br />by ops@markethub.com</div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ rvRejected }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;margin-bottom:20px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Rejection reason — sent to the seller</div>
+                <div style="font-size:14px;color:var(--color-accent-900)">{{ rvReason }}</div>
+              </div>
+            </sc-if>
+
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:32px">
+              <div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">
+                  <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-rv-1" shape="rect" fit="cover" placeholder="Main"></image-slot></div>
+                  <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-rv-2" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-rv-3" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-rv-4" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                </div>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Description</div>
+                <p style="font-size:14px;margin:0 0 20px;color:color-mix(in srgb, var(--color-text) 78%, transparent)">{{ rvDescription }}</p>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Variants</div>
+                <table class="table" style="font-size:13px">
+                  <thead><tr><th>Variant</th><th>SKU</th><th style="text-align:right">Price</th><th style="text-align:right">Stock</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ rvVariants }}" as="v" hint-placeholder-count="3">
+                      <tr><td>{{ v.name }}</td><td style="color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ v.sku }}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{{ v.price }}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{{ v.stock }}</td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div style="border:1px solid var(--color-divider);padding:14px;margin-bottom:16px">
+                  <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Listing</div>
+                  <table class="table" style="font-size:13px">
+                    <tbody>
+                      <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Price</td><td style="padding-right:0;text-align:right;font-variant-numeric:tabular-nums">{{ rvPrice }}</td></tr>
+                      <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Compare-at</td><td style="padding-right:0;text-align:right;font-variant-numeric:tabular-nums">{{ rvCompare }}</td></tr>
+                      <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Brand</td><td style="padding-right:0;text-align:right">{{ rvBrand }}</td></tr>
+                      <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Condition</td><td style="padding-right:0;text-align:right">{{ rvCondition }}</td></tr>
+                      <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Images</td><td style="padding-right:0;text-align:right">{{ rvImages }}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style="border:1px solid var(--color-divider);padding:14px">
+                  <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Checks</div>
+                  <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                    <div style="display:flex;gap:8px;align-items:center"><span style="width:15px;height:15px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span>Category permitted</div>
+                    <div style="display:flex;gap:8px;align-items:center"><span style="width:15px;height:15px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span>Images meet 800×800</div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;color:var(--color-accent-800)"><span style="width:15px;height:15px;flex:none;border:1.5px solid var(--color-accent);margin-top:2px"></span>{{ rvFlag }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isTaxonomy }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:flex;gap:24px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+          <button onClick="{{ tabCats }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:15px;font-family:var(--font-heading);font-weight:800;cursor:pointer;border-bottom:3px solid {{ catsBar }};margin-bottom:-2px;color:{{ catsFg }}">Categories</button>
+          <button onClick="{{ tabBrands }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:15px;font-family:var(--font-heading);font-weight:800;cursor:pointer;border-bottom:3px solid {{ brandsBar }};margin-bottom:-2px;color:{{ brandsFg }}">Brands</button>
+        </div>
+
+        <sc-if value="{{ onCats }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:36px">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ catCount }} · drag to reorder · a category with products cannot be deleted</div>
+              </div>
+              <table class="table">
+                <thead><tr><th>Category</th><th>Slug</th><th style="text-align:right">Products</th><th style="text-align:right">Sellers</th><th>Visibility</th><th style="text-align:right">Actions</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ categoryRows }}" as="c" hint-placeholder-count="9">
+                    <tr>
+                      <td><span style="padding-left:{{ c.indent }}">{{ c.name }}</span></td>
+                      <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ c.slug }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums">{{ c.products }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums">{{ c.sellers }}</td>
+                      <td><span class="tag {{ c.tagClass }}" style="{{ c.tagStyle }}">{{ c.visibility }}</span></td>
+                      <td style="text-align:right;white-space:nowrap">
+                        <button class="btn btn-ghost" style="font-size:13px" onClick="{{ c.edit }}">Edit</button>
+                        <button class="btn btn-ghost" style="font-size:13px;color:{{ c.delColor }}" onClick="{{ c.del }}">Delete</button>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <div style="border:1px solid var(--color-divider);padding:18px;position:sticky;top:110px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">{{ catFormTitle }}</div>
+                <div class="field" style="margin-bottom:14px"><label>Name</label><input class="input" value="{{ catName }}" onChange="{{ setCatName }}" /></div>
+                <div class="field" style="margin-bottom:14px"><label>Slug</label><input class="input" value="{{ catSlug }}" /><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Used in the storefront URL — changing it keeps a redirect</div></div>
+                <div class="field" style="margin-bottom:14px"><label>Parent category</label><select class="input"><option>None — top level</option><option>Electronics</option><option>Home &amp; Kitchen</option><option>Apparel</option><option>Outdoors</option><option>Office</option></select></div>
+                <div class="field" style="margin-bottom:16px"><label>Description (optional)</label><textarea class="input" style="min-height:64px"></textarea></div>
+                <label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;margin-bottom:16px" onClick="{{ toggleCatVisible }}">
+                  <sc-if value="{{ catVisible }}" hint-placeholder-val="{{ true }}"><span style="width:15px;height:15px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+                  <sc-if value="{{ catHidden }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;flex:none;border:1.5px solid var(--color-divider)"></span></sc-if>
+                  Visible in storefront navigation
+                </label>
+                <div style="display:flex;gap:8px"><button class="btn btn-primary" onClick="{{ saveCat }}">{{ catSaveLabel }}</button><button class="btn btn-secondary" onClick="{{ resetCat }}">Clear</button></div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ onBrands }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:36px">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="position:relative;width:260px">
+                  <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+                  <input class="input" style="padding-left:30px" placeholder="Search brands" value="{{ brandQuery }}" onChange="{{ setBrandQuery }}" />
+                </div>
+                <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ brandCount }}</div>
+              </div>
+              <table class="table">
+                <thead><tr><th>Brand</th><th>Slug</th><th style="text-align:right">Products</th><th>Owned by</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ brandRows }}" as="b" hint-placeholder-count="6">
+                    <tr>
+                      <td style="font-weight:600">{{ b.name }}</td>
+                      <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ b.slug }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums">{{ b.products }}</td>
+                      <td style="font-size:13px">{{ b.owner }}</td>
+                      <td><span class="tag {{ b.tagClass }}" style="{{ b.tagStyle }}">{{ b.status }}</span></td>
+                      <td style="text-align:right;white-space:nowrap"><button class="btn btn-ghost" style="font-size:13px">Edit</button><button class="btn btn-ghost" style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)" onClick="{{ b.merge }}">Merge</button></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <div style="border:1px solid var(--color-divider);padding:18px;position:sticky;top:110px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Add a brand</div>
+                <div class="field" style="margin-bottom:14px"><label>Brand name</label><input class="input" value="{{ brandName }}" onChange="{{ setBrandName }}" /></div>
+                <div class="field" style="margin-bottom:14px"><label>Slug</label><input class="input" value="{{ brandSlug }}" /></div>
+                <div class="field" style="margin-bottom:16px"><label>Owned by</label><select class="input"><option>Platform — any seller may use</option><option>Aeris Kitchen Co.</option><option>Northline Audio</option></select><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Seller-owned brands are only selectable by that seller</div></div>
+                <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ saveBrand }}">Add brand</button>
+                <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Merging moves every product to the target brand and keeps a permanent alias, so old links keep working.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isOrders }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="position:relative;width:300px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Order number, customer or seller" value="{{ oQuery }}" onChange="{{ setOQuery }}" />
+          </div>
+          <div class="seg">
+            <sc-for list="{{ orderTabs }}" as="t" hint-placeholder-count="6">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Aug 1 – Aug 12 <span style="opacity:0.5">▾</span></button>
+          <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Seller: All <span style="opacity:0.5">▾</span></button>
+          <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ oSummary }}</div>
+        </div>
+
+        <sc-if value="{{ oHas }}" hint-placeholder-val="{{ true }}">
+          <table class="table">
+            <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Seller</th><th style="text-align:right">Total</th><th style="text-align:right">Commission</th><th style="text-align:right">Seller earning</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <sc-for list="{{ orderRows }}" as="o" hint-placeholder-count="8">
+                <tr>
+                  <td style="font-weight:600">{{ o.no }}</td><td style="white-space:nowrap">{{ o.date }}</td><td>{{ o.customer }}</td><td>{{ o.seller }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.total }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ o.commission }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.earning }}</td>
+                  <td><span class="tag {{ o.payClass }}" style="{{ o.payStyle }}">{{ o.payment }}</span></td>
+                  <td><span class="tag {{ o.tagClass }}" style="{{ o.tagStyle }}">{{ o.status }}</span></td>
+                  <td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px" onClick="{{ o.open }}">Open</button></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <div style="display:flex;align-items:center;gap:2px;margin-top:24px;padding-top:16px;border-top:2px solid var(--color-divider)">
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px" disabled="disabled">Previous</button>
+            <button class="btn" style="font-size:13px;padding:6px 12px;background:var(--color-accent);color:var(--color-bg)">1</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">2</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">3</button>
+            <span style="padding:0 8px;font-size:13px;opacity:0.5">…</span>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Next</button>
+            <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">2,418 orders in range</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ oEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">No orders match this view</div>
+            <p style="font-size:14px;margin:0;max-width:52ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Nothing in the current status filter, date range and search.</p>
+            <button class="btn btn-primary" onClick="{{ clearO }}">Clear filters</button>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isOrderDetail }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:20px">
+          <span onClick="{{ goOrders }}" style="cursor:pointer">Orders</span><span>/</span><span style="color:var(--color-text)">{{ odNo }}</span>
+        </div>
+
+        <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:20px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+          <div>
+            <h1 style="margin:0 0 6px;font-size:34px">{{ odNo }}</h1>
+            <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Placed {{ odDate }} · {{ odCustomer }} · fulfilled by {{ odSeller }}</div>
+          </div>
+          <span class="tag {{ odTagClass }}" style="{{ odTagStyle }}">{{ odStatus }}</span>
+          <span class="tag {{ odPayClass }}" style="{{ odPayStyle }}">{{ odPayment }}</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-secondary" style="font-size:13px">Contact seller</button>
+            <sc-if value="{{ odRefundable }}" hint-placeholder-val="{{ true }}">
+              <button class="btn btn-secondary" style="font-size:13px;border-color:var(--color-accent);color:var(--color-accent-700)" onClick="{{ openRefund }}">Issue refund</button>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:36px">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)"><h2 style="margin:0;font-size:20px">Items</h2></div>
+            <table class="table">
+              <thead><tr><th>Product</th><th>Seller</th><th>SKU</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit</th><th style="text-align:right">Total</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ odLines }}" as="l" hint-placeholder-count="3">
+                  <tr><td style="font-weight:600">{{ l.name }}</td><td style="font-size:13px">{{ l.seller }}</td><td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ l.sku }}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{{ l.qty }}</td><td style="text-align:right;font-variant-numeric:tabular-nums">{{ l.unit }}</td><td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ l.total }}</td></tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <div style="margin-top:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <h2 style="margin:0;font-size:20px">Status history</h2>
+                <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Append-only · every transition is its own record</span>
+              </div>
+              <table class="table">
+                <thead><tr><th>When</th><th>Event</th><th>By</th><th>Detail</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ odHistory }}" as="h" hint-placeholder-count="6">
+                    <tr><td style="white-space:nowrap;font-size:13px">{{ h.when }}</td><td><span class="tag {{ h.tagClass }}" style="{{ h.tagStyle }}">{{ h.event }}</span></td><td style="font-size:13px">{{ h.by }}</td><td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ h.detail }}</td></tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Money — snapshot on this order</div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Items</span><span style="font-variant-numeric:tabular-nums">{{ odItemsTotal }}</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">$6.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Tax</span><span style="font-variant-numeric:tabular-nums">$14.00</span></div>
+              <div style="height:1px;background:var(--color-divider);margin:8px 0"></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;padding:5px 0;font-weight:600"><span>Order total</span><span style="font-variant-numeric:tabular-nums">{{ odTotal }}</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--color-accent-700)"><span>Platform commission (12.0%)</span><span style="font-variant-numeric:tabular-nums">{{ odCommission }}</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Seller earning</span><span style="font-variant-numeric:tabular-nums">{{ odEarning }}</span></div>
+              <div style="height:2px;background:var(--color-divider);margin:10px 0"></div>
+              <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 65%, transparent);line-height:1.55">All four figures — total, commission, earning and the 12.0% rate — were written onto this order on {{ odDate }} and are never recalculated. Changing the platform rate today does not alter this record.</div>
+            </div>
+
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Customer &amp; delivery</div>
+              <div style="font-size:14px;font-weight:600">{{ odCustomer }}</div>
+              <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:12px">priya.r@example.com</div>
+              <div style="font-size:13px;line-height:1.6">1841 NE Wasco St, Apt 4<br />Portland, OR 97232</div>
+              <div style="height:1px;background:var(--color-divider);margin:12px 0"></div>
+              <div style="font-size:13px;line-height:1.6">USPS Ground Advantage<br /><span style="color:color-mix(in srgb, var(--color-text) 60%, transparent)">Tracking 9400 1000 0000 2841 7712</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isPayments }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:24px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Captured · 30 days</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">$412,880.50</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Failed attempts</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--color-accent)">47</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Failure rate</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">1.9%</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Pending authorisation</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">2</div></div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="position:relative;width:280px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Payment ref, order or customer" value="{{ payQuery }}" onChange="{{ setPayQuery }}" />
+          </div>
+          <div class="seg">
+            <sc-for list="{{ payTabs }}" as="t" hint-placeholder-count="4">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ payCount }}</div>
+        </div>
+
+        <table class="table">
+          <thead><tr><th>Reference</th><th>When</th><th>Order</th><th>Customer</th><th>Method</th><th style="text-align:right">Amount</th><th>Status</th><th>Detail</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ payRows }}" as="p" hint-placeholder-count="8">
+              <tr>
+                <td style="font-weight:600">{{ p.ref }}</td>
+                <td style="white-space:nowrap;font-size:13px">{{ p.when }}</td>
+                <td style="font-size:13px">{{ p.order }}</td>
+                <td style="font-size:13px">{{ p.customer }}</td>
+                <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ p.method }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ p.amount }}</td>
+                <td><span class="tag {{ p.tagClass }}" style="{{ p.tagStyle }}">{{ p.status }}</span></td>
+                <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ p.detail }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Every attempt is recorded, including failures — a customer retrying three times produces three rows against one order. Nothing here is editable; refunds are issued from the order.</div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isRefunds }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:24px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Refunded · 30 days</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">$6,204.00</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Refunds</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">38</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Commission reversed</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--color-accent)">−$744.48</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">As % of sales</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">1.5%</div></div>
+        </div>
+
+        <table class="table">
+          <thead><tr><th>Refund</th><th>When</th><th>Order</th><th>Seller</th><th>Reason</th><th style="text-align:right">Amount</th><th style="text-align:right">Commission reversed</th><th>Status</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ refundRows }}" as="r" hint-placeholder-count="6">
+              <tr>
+                <td style="font-weight:600">{{ r.ref }}</td>
+                <td style="white-space:nowrap;font-size:13px">{{ r.when }}</td>
+                <td style="font-size:13px">{{ r.order }}</td>
+                <td style="font-size:13px">{{ r.seller }}</td>
+                <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ r.reason }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.amount }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ r.reversed }}</td>
+                <td><span class="tag {{ r.tagClass }}" style="{{ r.tagStyle }}">{{ r.status }}</span></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <div style="background:var(--color-surface);margin-top:20px;padding:16px;max-width:760px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:8px">What a refund does</div>
+          <div style="font-size:13px;line-height:1.6;color:color-mix(in srgb, var(--color-text) 78%, transparent)">Stock is restored, the seller's earning is reversed as a negative ledger entry, and the platform's commission on that order is reversed at the rate stored on the order — not today's rate. The original earning and commission records are left intact; the reversal is its own row.</div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isCommission }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:44px">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:16px;padding-bottom:14px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+              <div>
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Current platform commission</div>
+                <div style="display:flex;align-items:baseline;gap:14px">
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:64px;line-height:1;font-variant-numeric:tabular-nums">{{ rateDisplay }}</div>
+                  <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">in effect since {{ rateSince }}<br />applied to {{ rateOrders }} orders</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;height:56px;border:1px solid var(--color-divider);margin-bottom:12px">
+              <div style="flex:{{ sellerShare }};background:var(--color-neutral-300);display:flex;align-items:center;padding-left:14px;font-size:14px;font-weight:600">Seller earning {{ sellerPct }}</div>
+              <div style="flex:{{ platformShare }};background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">{{ platformPct }}</div>
+            </div>
+            <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:32px">On a $100.00 order the platform keeps <strong>{{ exampleCommission }}</strong> and the seller receives <strong>{{ exampleEarning }}</strong>.</div>
+
+            <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:18px 20px;margin-bottom:32px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:8px">What changing this rate does — and does not do</div>
+              <div style="font-size:14px;line-height:1.6;color:var(--color-accent-900)">A new rate applies only to orders completed <strong>after</strong> the change. Every existing order keeps the total, commission, earning and rate that were written onto it when it completed — historical revenue, seller balances and past statements never move. Sellers are emailed 7 days before a rate change takes effect.</div>
+            </div>
+
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Rate history</h2>
+              <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Append-only</span>
+            </div>
+            <table class="table">
+              <thead><tr><th>Effective from</th><th style="text-align:right">Rate</th><th style="text-align:right">Orders under it</th><th style="text-align:right">Commission collected</th><th>Set by</th><th>Note</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ rateHistory }}" as="h" hint-placeholder-count="4">
+                  <tr>
+                    <td style="white-space:nowrap;font-weight:600">{{ h.from }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ h.rate }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ h.orders }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ h.collected }}</td>
+                    <td style="font-size:13px">{{ h.by }}</td>
+                    <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ h.note }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <div style="border:1px solid var(--color-divider);padding:20px;position:sticky;top:110px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">Update commission</div>
+              <div class="field" style="margin-bottom:14px">
+                <label>New rate (%)</label>
+                <input class="input" value="{{ draftRate }}" onChange="{{ setDraftRate }}" />
+                <sc-if value="{{ rateError }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>Enter a rate between 0 and 30%</div>
+                </sc-if>
+              </div>
+              <div class="field" style="margin-bottom:14px"><label>Effective from</label><input class="input" value="Aug 19, 2026" /><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Minimum 7 days' notice to sellers</div></div>
+              <div class="field" style="margin-bottom:16px"><label>Note for the record</label><textarea class="input" style="min-height:60px" placeholder="Why this change is being made"></textarea></div>
+
+              <div style="background:var(--color-surface);padding:14px;margin-bottom:16px">
+                <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Preview on a $100.00 order</div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span style="opacity:0.7">Platform keeps</span><span style="font-variant-numeric:tabular-nums;font-weight:600">{{ previewCommission }}</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span style="opacity:0.7">Seller receives</span><span style="font-variant-numeric:tabular-nums;font-weight:600">{{ previewEarning }}</span></div>
+                <div style="font-size:11px;margin-top:8px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ previewDelta }}</div>
+              </div>
+
+              <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ openRateChange }}" disabled="{{ rateUnchanged }}">Schedule rate change</button>
+              <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Requires the Owner or Finance role. The change is logged with your name and cannot be back-dated.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isEarnings }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:24px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Seller earnings · lifetime</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">$1,284,660.00</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Balances owed now</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$79,224.84</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Paid out · lifetime</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">$1,205,435.16</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Commission collected</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">$175,180.90</div></div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="position:relative;width:280px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Search seller" value="{{ eQuery }}" onChange="{{ setEQuery }}" />
+          </div>
+          <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Aug 2026 <span style="opacity:0.5">▾</span></button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ eCount }}</span>
+            <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Download CSV</button>
+          </div>
+        </div>
+
+        <table class="table">
+          <thead><tr><th>Seller</th><th style="text-align:right">Gross sales</th><th style="text-align:right">Commission</th><th style="text-align:right">Earnings</th><th style="text-align:right">Paid out</th><th style="text-align:right">Balance owed</th><th>Open request</th><th style="text-align:right"></th></tr></thead>
+          <tbody>
+            <sc-for list="{{ earningRows }}" as="r" hint-placeholder-count="6">
+              <tr>
+                <td><div style="font-weight:600;cursor:pointer" onClick="{{ r.open }}">{{ r.name }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ r.orders }} completed orders</div></td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.gross }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ r.commission }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.earnings }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ r.paid }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ r.balance }}</td>
+                <td><sc-if value="{{ r.hasRequest }}" hint-placeholder-val="{{ false }}"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">{{ r.requestAmount }}</span></sc-if></td>
+                <td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px" onClick="{{ r.open }}">Ledger</button></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Commission shown per seller is the sum of the snapshots on their orders — it is not gross × today's rate, and will not match if the rate has ever changed.</div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isPayouts }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:24px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Awaiting review</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ pendingCount }}</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Value pending</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">{{ pendingValue }}</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Approved this month</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">$284,110.00</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Median decision time</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">14h</div></div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div class="seg">
+            <sc-for list="{{ poTabs }}" as="t" hint-placeholder-count="4">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ poCount }}</div>
+        </div>
+
+        <table class="table">
+          <thead><tr><th>Request</th><th>Requested</th><th>Seller</th><th style="text-align:right">Amount</th><th style="text-align:right">Balance after</th><th>Bank</th><th>Status</th><th style="text-align:right">Decision</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ poRows }}" as="p" hint-placeholder-count="7">
+              <tr>
+                <td style="font-weight:600">{{ p.ref }}</td>
+                <td style="white-space:nowrap;font-size:13px">{{ p.requested }}</td>
+                <td><div style="font-size:13px">{{ p.seller }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ p.note }}</div></td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ p.amount }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ p.after }}</td>
+                <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ p.bank }}</td>
+                <td><span class="tag {{ p.tagClass }}" style="{{ p.tagStyle }}">{{ p.status }}</span></td>
+                <td style="text-align:right;white-space:nowrap">
+                  <sc-if value="{{ p.pending }}" hint-placeholder-val="{{ true }}">
+                    <button class="btn btn-ghost" style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)" onClick="{{ p.reject }}">Reject</button>
+                    <button class="btn btn-ghost" style="font-size:13px" onClick="{{ p.approve }}">Approve</button>
+                  </sc-if>
+                  <sc-if value="{{ p.decided }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ p.decidedLabel }}</span>
+                  </sc-if>
+                </td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <div style="background:var(--color-surface);margin-top:20px;padding:16px;max-width:760px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:8px">Approve and reject behaviour</div>
+          <div style="font-size:13px;line-height:1.6;color:color-mix(in srgb, var(--color-text) 78%, transparent)">Approving posts a negative ledger entry against the seller's balance and marks the request approved — Phase 1 records the decision; bank settlement happens outside the platform. Rejecting requires a reason, releases the held amount back to the seller's available balance, and is shown to them verbatim.</div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 28px 64px">
+        <div style="display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px">
+          <nav style="position:sticky;top:110px;align-self:start">
+            <sc-for list="{{ settingsNav }}" as="n" hint-placeholder-count="4">
+              <div onClick="{{ n.go }}" style="padding:8px 0;font-size:13.5px;cursor:pointer;border-bottom:1px solid var(--color-divider);color:{{ n.fg }};font-weight:{{ n.weight }}">{{ n.label }}</div>
+            </sc-for>
+            <div style="font-size:11px;margin-top:16px;color:color-mix(in srgb, var(--color-text) 55%, transparent);line-height:1.5">Owner role required for company and payment settings.</div>
+          </nav>
+
+          <div style="max-width:760px">
+            <sc-if value="{{ setCompany }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-bottom:32px">
+                <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                  <h2 style="margin:0;font-size:22px">Company information</h2>
+                  <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Appears on invoices, emails and the storefront footer</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                  <div class="field"><label>Marketplace name</label><input class="input" value="{{ coName }}" onChange="{{ setCoName }}" /></div>
+                  <div class="field"><label>Legal entity</label><input class="input" value="MarketHub Commerce Inc." /></div>
+                  <div class="field"><label>Support email</label><input class="input" value="support@markethub.com" /></div>
+                  <div class="field"><label>Support phone</label><input class="input" value="(415) 555-0180" /></div>
+                  <div class="field" style="grid-column:span 2"><label>Registered address</label><input class="input" value="450 Bryant St, Suite 200, San Francisco, CA 94107" /></div>
+                  <div class="field"><label>Tax ID (EIN)</label><input class="input" value="88-3021447" /></div>
+                  <div class="field"><label>Storefront domain</label><input class="input" value="markethub.com" /></div>
+                </div>
+                <div style="display:grid;grid-template-columns:180px minmax(0,1fr);gap:20px;margin-top:20px">
+                  <div>
+                    <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:8px">Logo</div>
+                    <div style="width:140px;height:80px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-set-logo" shape="rect" fit="contain" placeholder="Drop logo"></image-slot></div>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:8px">Email header image</div>
+                    <div style="height:80px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="ad-set-email" shape="rect" fit="cover" placeholder="Drop image"></image-slot></div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ setOps }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-bottom:32px">
+                <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                  <h2 style="margin:0;font-size:22px">Operational settings</h2>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:24px">
+                  <div class="field"><label>Currency</label><select class="input"><option>USD — US Dollar</option></select><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Single currency in Phase 1</div></div>
+                  <div class="field"><label>Ships to</label><select class="input"><option>United States only</option><option>United States and Canada</option></select></div>
+                  <div class="field"><label>Low-stock threshold</label><input class="input" value="{{ lowStock }}" onChange="{{ setLowStock }}" /><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Products at or below this show Low stock to sellers and customers</div></div>
+                  <div class="field"><label>Minimum payout</label><input class="input" value="$50.00" /></div>
+                  <div class="field"><label>Free shipping threshold</label><input class="input" value="$75.00" /><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Platform default — sellers may set their own</div></div>
+                  <div class="field"><label>Return window</label><input class="input" value="30 days" /></div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:16px;background:var(--color-surface);padding:14px 16px">
+                      <div style="flex:1">
+                        <div style="font-size:14px;font-weight:600">{{ t.label }}</div>
+                        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ t.help }}</div>
+                      </div>
+                      <button onClick="{{ t.toggle }}" style="width:44px;height:24px;padding:2px;border:1px solid var(--color-divider);background:transparent;cursor:pointer;display:flex;align-items:center;flex:none">
+                        <sc-if value="{{ t.on }}" hint-placeholder-val="{{ true }}"><span style="width:100%;height:100%;display:flex;justify-content:flex-end"><span style="width:18px;height:18px;background:var(--color-accent)"></span></span></sc-if>
+                        <sc-if value="{{ t.off }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;background:var(--color-neutral-400)"></span></sc-if>
+                      </button>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ setEmails }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-bottom:32px">
+                <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                  <h2 style="margin:0;font-size:22px">Email notifications</h2>
+                  <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Transactional email is always on; these control the optional sends</span>
+                </div>
+                <table class="table">
+                  <thead><tr><th>Event</th><th>Recipient</th><th>Template</th><th style="text-align:right">Sent · 30d</th><th>State</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ emails }}" as="e" hint-placeholder-count="8">
+                      <tr>
+                        <td style="font-weight:600">{{ e.event }}</td>
+                        <td style="font-size:13px">{{ e.who }}</td>
+                        <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ e.template }}</td>
+                        <td style="text-align:right;font-variant-numeric:tabular-nums">{{ e.sent }}</td>
+                        <td><span class="tag {{ e.tagClass }}" style="{{ e.tagStyle }}">{{ e.state }}</span></td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ setTeam }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-bottom:32px">
+                <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                  <h2 style="margin:0;font-size:22px">Team &amp; roles</h2>
+                  <button class="btn btn-secondary" style="margin-left:auto;font-size:13px;padding:6px 12px">Invite staff</button>
+                </div>
+                <table class="table">
+                  <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Can do</th><th>Last active</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ team }}" as="m" hint-placeholder-count="4">
+                      <tr><td style="font-weight:600">{{ m.name }}</td><td style="font-size:13px">{{ m.email }}</td><td><span class="tag tag-neutral">{{ m.role }}</span></td><td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 68%, transparent)">{{ m.can }}</td><td style="font-size:13px">{{ m.active }}</td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Permissions are enforced server-side on every request, not just hidden in the sidebar. An admin activity log is a Phase 1.1 addition.</div>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;gap:8px;align-items:center;padding-top:20px;border-top:2px solid var(--color-divider)">
+              <button class="btn btn-primary" onClick="{{ saveSettings }}">Save settings</button>
+              <button class="btn btn-secondary">Discard changes</button>
+              <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ settingsSaved }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isSoon }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:64px 28px;max-width:620px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:12px">Not designed yet</div>
+        <h2 style="margin:0 0 10px;font-size:28px">{{ pageTitle }} comes in the next group</h2>
+        <p style="font-size:14px;margin:0 0 20px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ soonBody }}</p>
+        <button class="btn btn-primary" onClick="{{ goDash }}">Back to dashboard</button>
+      </div>
+      </sc-if>
+    </main>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ reasonOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent)" onClick="{{ closeReason }}">
+      <div style="width:min(480px,100%);background:var(--color-surface);box-shadow:var(--shadow-lg);padding:24px" onClick="{{ stop }}">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;margin-bottom:6px">{{ reasonTitle }}</div>
+        <div style="font-size:14px;opacity:0.85;margin-bottom:16px">{{ reasonBody }}</div>
+        <div class="field" style="margin-bottom:18px">
+          <label>Reason — recorded permanently and sent to the seller</label>
+          <textarea class="input" style="min-height:80px" value="{{ reasonText }}" onChange="{{ setReasonText }}"></textarea>
+          <sc-if value="{{ reasonMissing }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>A reason is required</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-secondary" onClick="{{ closeReason }}">Cancel</button><button class="btn btn-primary" onClick="{{ confirmReason }}" disabled="{{ reasonMissing }}">{{ reasonConfirm }}</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;right:20px;bottom:20px;z-index:70;width:300px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;box-shadow:var(--shadow-md)">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — {{ noteTitle }}</div>
+      <div style="font-size:12px;line-height:1.55;color:var(--color-accent-900)">{{ noteBody }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:20px;bottom:20px;z-index:80;background:var(--color-text);color:var(--color-bg);padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-md);min-width:300px;animation:mh-rise 0.18s ease-out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span style="font-size:13px">{{ toastText }}</span>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+const money = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+const TONE = {
+  Processing: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Packed: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Shipped: { cls: 'tag tag-neutral', style: '' },
+  Delivered: { cls: 'tag tag-neutral', style: '' },
+  Refunded: { cls: 'tag tag-accent', style: '' },
+  'Payment failed': { cls: 'tag tag-accent', style: '' },
+  Cancelled: { cls: 'tag tag-accent', style: '' },
+  Paid: { cls: 'tag tag-neutral', style: '' },
+  Failed: { cls: 'tag tag-accent', style: '' },
+  Pending: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Placed: { cls: 'tag tag-neutral', style: '' }
+};
+const tone = (k) => TONE[k] || { cls: 'tag tag-neutral', style: '' };
+
+const ORDERS = [
+  { no: 'MH-24081', date: 'Aug 12, 2026', customer: 'Priya Raman', seller: 'Aeris Kitchen Co.', total: 328.00, status: 'Processing' },
+  { no: 'MH-24080', date: 'Aug 12, 2026', customer: 'Daniel Okafor', seller: 'Northline Audio', total: 248.00, status: 'Shipped' },
+  { no: 'MH-24079', date: 'Aug 11, 2026', customer: 'Elena Sokolova', seller: 'Fieldnote Supply', total: 96.50, status: 'Delivered' },
+  { no: 'MH-24078', date: 'Aug 11, 2026', customer: 'Marcus Bell', seller: 'Aeris Kitchen Co.', total: 129.00, status: 'Payment failed' },
+  { no: 'MH-24077', date: 'Aug 10, 2026', customer: 'Yuki Tanaka', seller: 'Northline Audio', total: 412.00, status: 'Refunded' },
+  { no: 'MH-24076', date: 'Aug 10, 2026', customer: 'Sofia Marchetti', seller: 'Studio Corvid', total: 164.00, status: 'Packed' },
+  { no: 'MH-24075', date: 'Aug 9, 2026', customer: 'Owen Whitfield', seller: 'Halden Apparel', total: 150.00, status: 'Delivered' }
+];
+
+const ACTIVITY = [
+  { time: '13:52', text: 'Payout PO-2044 requested — $6,842.15', by: 'Aeris Kitchen Co.' },
+  { time: '13:20', text: 'Seller application submitted — Cedar & Co.', by: 'Applicant' },
+  { time: '12:44', text: 'Product approved — Northline N1 headphones', by: 'ops@markethub.com' },
+  { time: '11:58', text: 'Refund issued on MH-24077 — $412.00', by: 'finance@markethub.com' },
+  { time: '11:12', text: 'Seller suspended — Brightside Goods', by: 'ops@markethub.com' },
+  { time: '10:36', text: 'Payment attempt failed on MH-24078', by: 'System' },
+  { time: '09:05', text: 'Payout PO-2038 approved — $4,200.00', by: 'finance@markethub.com' }
+];
+
+const SELLERS = [
+  { name: 'Aeris Kitchen Co.', slug: 'aeris-kitchen', contact: 'Nadia Fischer', email: 'nadia@aeriskitchen.com', joined: 'Mar 2, 2024', products: 84, sales: 12486.20, balance: 6842.15, status: 'Approved' },
+  { name: 'Northline Audio', slug: 'northline-audio', contact: 'Theo Marsh', email: 'theo@northlineaudio.com', joined: 'Jun 14, 2024', products: 46, sales: 28140.00, balance: 11204.80, status: 'Approved' },
+  { name: 'Fieldnote Supply', slug: 'fieldnote-supply', contact: 'Ruth Alvarez', email: 'ruth@fieldnotesupply.com', joined: 'Sep 8, 2024', products: 129, sales: 9310.50, balance: 3180.40, status: 'Approved' },
+  { name: 'Studio Corvid', slug: 'studio-corvid', contact: 'Jonah Pike', email: 'jonah@studiocorvid.com', joined: 'Jan 19, 2025', products: 38, sales: 6420.00, balance: 2044.10, status: 'Approved' },
+  { name: 'Halden Apparel', slug: 'halden-apparel', contact: 'Ingrid Halden', email: 'ingrid@haldenapparel.com', joined: 'Apr 3, 2025', products: 92, sales: 18730.00, balance: 7910.25, status: 'Approved' },
+  { name: 'Brightside Goods', slug: 'brightside-goods', contact: 'Cal Redmond', email: 'cal@brightsidegoods.com', joined: 'Nov 22, 2025', products: 27, sales: 1840.00, balance: 612.00, status: 'Suspended' },
+  { name: 'Cedar & Co.', slug: 'cedar-and-co', contact: 'Mira Osei', email: 'mira@cedarandco.com', joined: '—', products: 0, sales: 0, balance: 0, status: 'Pending' },
+  { name: 'Vellum Paperworks', slug: 'vellum-paperworks', contact: 'Anton Reyes', email: 'anton@vellumpaper.com', joined: '—', products: 0, sales: 0, balance: 0, status: 'Rejected' }
+];
+
+const APPLICATIONS = [
+  { ref: 'APP-1184', store: 'Cedar & Co.', legal: 'Cedar and Company LLC', type: 'LLC', tax: '92-4410882', address: '514 W Pine St, Missoula, MT 59802', contact: 'Mira Osei', email: 'mira@cedarandco.com', phone: '(406) 555-0117', category: 'Home & Kitchen', listings: '40–60', site: 'cedarandco.com', blurb: 'Solid-wood serving boards, spoons and small furniture, made in our Missoula workshop from local hardwood offcuts.', submitted: 'Aug 12, 2026', waiting: '2h ago', status: 'Pending', check: 'Business address unverified' },
+  { ref: 'APP-1183', store: 'Ninth Street Coffee', legal: '9th St Coffee Roasters Inc.', type: 'Corporation', tax: '45-9920144', address: '921 9th St, Durham, NC 27705', contact: 'Bea Whitlock', email: 'bea@ninthstreet.coffee', phone: '(919) 555-0164', category: 'Home & Kitchen', listings: '15–25', site: 'ninthstreet.coffee', blurb: 'Single-origin coffee roasted weekly, plus brewing equipment we use in the shop.', submitted: 'Aug 11, 2026', waiting: '1d ago', status: 'Pending', check: 'Food handling documentation pending' },
+  { ref: 'APP-1182', store: 'Harbor Tools', legal: 'Harbor Tools LLC', type: 'LLC', tax: '81-7734501', address: '38 Dock Rd, Portland, ME 04101', contact: 'Sam Ilves', email: 'sam@harbortools.com', phone: '(207) 555-0192', category: 'Outdoors', listings: '80–120', site: '—', blurb: 'Marine-grade hand tools and hardware for boat maintenance.', submitted: 'Aug 10, 2026', waiting: '2d ago', status: 'Pending', check: 'Category overlaps a restricted list — manual check' },
+  { ref: 'APP-1180', store: 'Vellum Paperworks', legal: 'Vellum Paper Co.', type: 'Sole proprietor', tax: '77-1102394', address: '12 Ash Ln, Athens, GA 30601', contact: 'Anton Reyes', email: 'anton@vellumpaper.com', phone: '(706) 555-0143', category: 'Office', listings: '30–40', site: 'vellumpaper.com', blurb: 'Letterpress stationery and bound notebooks.', submitted: 'Aug 8, 2026', waiting: '4d ago', status: 'Rejected', decided: 'Aug 9, 2026', reason: 'The tax ID provided does not match the registered business name. Please re-apply with documentation that matches, or correct the business name on the application.', check: 'Tax ID mismatch' },
+  { ref: 'APP-1179', store: 'Meadow & Vine', legal: 'Meadow and Vine LLC', type: 'LLC', tax: '33-8811902', address: '77 Orchard Way, Sonoma, CA 95476', contact: 'Elise Duarte', email: 'elise@meadowvine.com', phone: '(707) 555-0138', category: 'Home & Kitchen', listings: '20–30', site: 'meadowvine.com', blurb: 'Dried floral arrangements and ceramic vessels.', submitted: 'Aug 7, 2026', waiting: '5d ago', status: 'Approved', decided: 'Aug 8, 2026', check: 'All checks cleared' }
+];
+
+const REVIEW = [
+  { sku: 'NL-HDP-0001', name: 'Northline N1 over-ear headphones', seller: 'Northline Audio', category: 'Electronics / Audio', waiting: '3h ago', submitted: 'Aug 12, 2026', price: 329, compare: 389, brand: 'Northline', condition: 'New', images: 6, status: 'Pending', flag: 'Compare-at price is 18% above the 90-day median — verify it is genuine', description: 'Closed-back over-ear headphones with a 40mm biocellulose driver, 38-hour battery and a replaceable cable. Assembled and tuned in Chicago.', variants: [{ name: 'Black', sku: 'NL-HDP-0001-BK', price: '$329.00', stock: '18' }, { name: 'Sand', sku: 'NL-HDP-0001-SD', price: '$329.00', stock: '6' }] },
+  { sku: 'CV-LMP-0220', name: 'Corvid arc floor lamp', seller: 'Studio Corvid', category: 'Home & Kitchen / Lighting', waiting: '6h ago', submitted: 'Aug 12, 2026', price: 428, compare: 0, brand: 'Studio Corvid', condition: 'New', images: 4, status: 'Pending', flag: 'Electrical product — confirm UL listing in the description', description: 'A 78-inch arc floor lamp in powder-coated steel with a marble base and dimmable LED head.', variants: [{ name: 'Matte black', sku: 'CV-LMP-0220-MB', price: '$428.00', stock: '4' }] },
+  { sku: 'HA-JKT-1180', name: 'Halden waxed field jacket', seller: 'Halden Apparel', category: 'Apparel / Outerwear', waiting: '1d ago', submitted: 'Aug 11, 2026', price: 268, compare: 0, brand: 'Halden', condition: 'New', images: 8, status: 'Pending', flag: 'Sizing chart missing from the description', description: 'Waxed cotton field jacket with a corduroy collar, four bellows pockets and a cotton-flannel lining.', variants: [{ name: 'S · Olive', sku: 'HA-JKT-1180-S', price: '$268.00', stock: '9' }, { name: 'M · Olive', sku: 'HA-JKT-1180-M', price: '$268.00', stock: '14' }, { name: 'L · Olive', sku: 'HA-JKT-1180-L', price: '$268.00', stock: '11' }] },
+  { sku: 'FN-BAG-0400', name: 'Bramble packable duffel, 40L', seller: 'Fieldnote Supply', category: 'Outdoors / Bags', waiting: '2d ago', submitted: 'Aug 10, 2026', price: 138, compare: 172, brand: 'Bramble', condition: 'New', images: 5, status: 'Pending', flag: 'Brand "Bramble" is not yet registered — create it or reassign', description: 'A 40 litre ripstop duffel that packs into its own end pocket. Water-resistant coating, taped seams.', variants: [{ name: 'Slate', sku: 'FN-BAG-0400-SL', price: '$138.00', stock: '22' }] },
+  { sku: 'AK-KNF-0080', name: 'Aeris chef knife, 8 inch', seller: 'Aeris Kitchen Co.', category: 'Home & Kitchen / Cookware', waiting: '2d ago', submitted: 'Aug 10, 2026', price: 96, compare: 0, brand: 'Aeris', condition: 'New', images: 5, status: 'Pending', flag: 'Bladed item — confirm shipping restrictions are stated', description: 'An 8-inch chef knife in high-carbon stainless with a full tang and a stabilised maple handle.', variants: [{ name: 'Maple', sku: 'AK-KNF-0080-MP', price: '$96.00', stock: '31' }] }
+];
+
+const CATEGORIES = [
+  { name: 'Electronics', slug: 'electronics', depth: 0, products: 2140, sellers: 86, visible: true },
+  { name: 'Audio', slug: 'electronics/audio', depth: 1, products: 612, sellers: 24, visible: true },
+  { name: 'Charging & power', slug: 'electronics/power', depth: 1, products: 388, sellers: 31, visible: true },
+  { name: 'Home & Kitchen', slug: 'home-kitchen', depth: 0, products: 1884, sellers: 104, visible: true },
+  { name: 'Small appliances', slug: 'home-kitchen/small-appliances', depth: 1, products: 402, sellers: 38, visible: true },
+  { name: 'Cookware', slug: 'home-kitchen/cookware', depth: 1, products: 556, sellers: 47, visible: true },
+  { name: 'Lighting', slug: 'home-kitchen/lighting', depth: 1, products: 214, sellers: 19, visible: false },
+  { name: 'Apparel', slug: 'apparel', depth: 0, products: 1502, sellers: 72, visible: true },
+  { name: 'Outdoors', slug: 'outdoors', depth: 0, products: 1213, sellers: 58, visible: true },
+  { name: 'Office', slug: 'office', depth: 0, products: 986, sellers: 44, visible: true }
+];
+
+const BRANDS = [
+  { name: 'Aeris', slug: 'aeris', products: 84, owner: 'Aeris Kitchen Co.', status: 'Active' },
+  { name: 'Northline', slug: 'northline', products: 46, owner: 'Northline Audio', status: 'Active' },
+  { name: 'Halden', slug: 'halden', products: 92, owner: 'Halden Apparel', status: 'Active' },
+  { name: 'Rivet', slug: 'rivet', products: 23, owner: 'Platform', status: 'Active' },
+  { name: 'Bramble', slug: 'bramble', products: 0, owner: 'Fieldnote Supply', status: 'Pending' },
+  { name: 'Studio Corvid', slug: 'studio-corvid', products: 38, owner: 'Studio Corvid', status: 'Active' },
+  { name: 'Fieldnote', slug: 'fieldnote', products: 129, owner: 'Fieldnote Supply', status: 'Active' }
+];
+
+const ALL_ORDERS = [
+  { no: 'MH-24081', date: 'Aug 12, 2026', customer: 'Priya Raman', seller: 'Aeris Kitchen Co.', total: 328.00, status: 'Processing', payment: 'Paid' },
+  { no: 'MH-24080', date: 'Aug 12, 2026', customer: 'Daniel Okafor', seller: 'Northline Audio', total: 248.00, status: 'Shipped', payment: 'Paid' },
+  { no: 'MH-24079', date: 'Aug 11, 2026', customer: 'Elena Sokolova', seller: 'Fieldnote Supply', total: 96.50, status: 'Delivered', payment: 'Paid' },
+  { no: 'MH-24078', date: 'Aug 11, 2026', customer: 'Marcus Bell', seller: 'Aeris Kitchen Co.', total: 129.00, status: 'Cancelled', payment: 'Failed' },
+  { no: 'MH-24077', date: 'Aug 10, 2026', customer: 'Yuki Tanaka', seller: 'Northline Audio', total: 412.00, status: 'Refunded', payment: 'Refunded' },
+  { no: 'MH-24076', date: 'Aug 10, 2026', customer: 'Sofia Marchetti', seller: 'Studio Corvid', total: 164.00, status: 'Packed', payment: 'Paid' },
+  { no: 'MH-24075', date: 'Aug 9, 2026', customer: 'Owen Whitfield', seller: 'Halden Apparel', total: 150.00, status: 'Delivered', payment: 'Paid' },
+  { no: 'MH-24074', date: 'Aug 9, 2026', customer: 'Amara Nwosu', seller: 'Fieldnote Supply', total: 274.00, status: 'Delivered', payment: 'Paid' },
+  { no: 'MH-24073', date: 'Aug 8, 2026', customer: 'Ben Halloway', seller: 'Halden Apparel', total: 118.00, status: 'Refunded', payment: 'Refunded' }
+];
+
+const PAYMENTS = [
+  { ref: 'PAY-88204', when: 'Aug 12, 09:14', order: 'MH-24081', customer: 'Priya Raman', method: 'Visa ••4242', amount: 328.00, status: 'Paid', detail: 'Captured' },
+  { ref: 'PAY-88203', when: 'Aug 12, 08:52', order: 'MH-24080', customer: 'Daniel Okafor', method: 'Mastercard ••1881', amount: 248.00, status: 'Paid', detail: 'Captured' },
+  { ref: 'PAY-88201', when: 'Aug 11, 19:40', order: 'MH-24078', customer: 'Marcus Bell', method: 'Visa ••0002', amount: 129.00, status: 'Failed', detail: 'card_declined · issuer declined' },
+  { ref: 'PAY-88200', when: 'Aug 11, 19:38', order: 'MH-24078', customer: 'Marcus Bell', method: 'Visa ••0002', amount: 129.00, status: 'Failed', detail: 'card_declined · first attempt' },
+  { ref: 'PAY-88198', when: 'Aug 11, 14:02', order: 'MH-24079', customer: 'Elena Sokolova', method: 'Amex ••3007', amount: 96.50, status: 'Paid', detail: 'Captured' },
+  { ref: 'PAY-88195', when: 'Aug 10, 16:22', order: 'MH-24077', customer: 'Yuki Tanaka', method: 'Visa ••7781', amount: 412.00, status: 'Refunded', detail: 'Refunded in full Aug 11' },
+  { ref: 'PAY-88193', when: 'Aug 10, 11:07', order: 'MH-24076', customer: 'Sofia Marchetti', method: 'Visa ••5511', amount: 164.00, status: 'Paid', detail: 'Captured' },
+  { ref: 'PAY-88190', when: 'Aug 9, 22:15', order: 'MH-24075', customer: 'Owen Whitfield', method: 'Apple Pay', amount: 150.00, status: 'Pending', detail: 'Awaiting authorisation' }
+];
+
+const REFUNDS = [
+  { ref: 'REF-4021', when: 'Aug 11, 2026', order: 'MH-24077', seller: 'Northline Audio', reason: 'Arrived damaged', amount: 412.00, reversed: 49.44, status: 'Refunded' },
+  { ref: 'REF-4018', when: 'Aug 9, 2026', order: 'MH-24073', seller: 'Halden Apparel', reason: 'Wrong size sent', amount: 118.00, reversed: 14.16, status: 'Refunded' },
+  { ref: 'REF-4015', when: 'Aug 7, 2026', order: 'MH-24061', seller: 'Fieldnote Supply', reason: 'Never delivered', amount: 86.00, reversed: 10.32, status: 'Refunded' },
+  { ref: 'REF-4012', when: 'Aug 6, 2026', order: 'MH-24044', seller: 'Aeris Kitchen Co.', reason: 'Changed mind — within 30 days', amount: 58.00, reversed: 6.96, status: 'Refunded' },
+  { ref: 'REF-4009', when: 'Aug 5, 2026', order: 'MH-24030', seller: 'Studio Corvid', reason: 'Item not as described', amount: 164.00, reversed: 19.68, status: 'Pending' },
+  { ref: 'REF-4004', when: 'Aug 3, 2026', order: 'MH-23998', seller: 'Northline Audio', reason: 'Duplicate order', amount: 248.00, reversed: 29.76, status: 'Refunded' }
+];
+
+const RATE_HISTORY = [
+  { from: 'Mar 1, 2026', rate: '12.0%', orders: '8,142', collected: '$1,014,880.00', by: 'finance@markethub.com', note: 'Standard rate after pilot' },
+  { from: 'Nov 1, 2025', rate: '10.0%', orders: '4,610', collected: '$402,110.00', by: 'finance@markethub.com', note: 'Post-launch increase' },
+  { from: 'Jun 15, 2025', rate: '8.0%', orders: '1,884', collected: '$122,400.00', by: 'owner@markethub.com', note: 'Launch rate' }
+];
+
+const SELLER_EARNINGS = [
+  { name: 'Halden Apparel', orders: 1042, gross: 318400.00, paid: 268100.00, request: 0 },
+  { name: 'Northline Audio', orders: 864, gross: 296140.00, paid: 249300.00, request: 12400.00 },
+  { name: 'Fieldnote Supply', orders: 1310, gross: 241080.00, paid: 205600.00, request: 0 },
+  { name: 'Aeris Kitchen Co.', orders: 612, gross: 184310.00, paid: 155200.00, request: 6842.15 },
+  { name: 'Studio Corvid', orders: 388, gross: 96420.00, paid: 78400.00, request: 4180.00 },
+  { name: 'Brightside Goods', orders: 96, gross: 21840.00, paid: 15600.00, request: 0 }
+];
+
+const PAYOUT_REQUESTS = [
+  { ref: 'PO-2044', requested: 'Aug 12, 2026', seller: 'Aeris Kitchen Co.', note: '4th request · no rejections', amount: 6842.15, balance: 6842.15, bank: 'Chase ••4417', status: 'Requested' },
+  { ref: 'PO-2043', requested: 'Aug 12, 2026', seller: 'Northline Audio', note: '11th request', amount: 12400.00, balance: 14180.60, bank: 'First Republic ••9021', status: 'Requested' },
+  { ref: 'PO-2041', requested: 'Aug 11, 2026', seller: 'Studio Corvid', note: 'Bank details changed 2 days ago', amount: 4180.00, balance: 4180.00, bank: 'Ally ••7734', status: 'Requested' },
+  { ref: 'PO-2038', requested: 'Aug 8, 2026', seller: 'Halden Apparel', note: '', amount: 4200.00, balance: 9880.00, bank: 'Chase ••2210', status: 'Approved', decided: 'Aug 9' },
+  { ref: 'PO-2034', requested: 'Aug 6, 2026', seller: 'Fieldnote Supply', note: '', amount: 8900.00, balance: 3180.40, bank: 'BofA ••5512', status: 'Approved', decided: 'Aug 7' },
+  { ref: 'PO-2029', requested: 'Aug 4, 2026', seller: 'Brightside Goods', note: 'Account under review', amount: 2800.00, balance: 612.00, bank: 'Wells ••3390', status: 'Rejected', decided: 'Aug 5' },
+  { ref: 'PO-2025', requested: 'Aug 2, 2026', seller: 'Northline Audio', note: '', amount: 15600.00, balance: 1780.60, bank: 'First Republic ••9021', status: 'Approved', decided: 'Aug 3' }
+];
+
+const STONE = {
+  Requested: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Paid: { cls: 'tag tag-neutral', style: '' },
+  Failed: { cls: 'tag tag-accent', style: '' },
+  Cancelled: { cls: 'tag tag-accent', style: '' },
+  Active: { cls: 'tag tag-neutral', style: '' },
+  Visible: { cls: 'tag tag-neutral', style: '' },
+  Hidden: { cls: 'tag', style: 'background:transparent;border:1px solid var(--color-divider);opacity:0.6' },
+  Approved: { cls: 'tag tag-neutral', style: '' },
+  Pending: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Suspended: { cls: 'tag tag-accent', style: '' },
+  Rejected: { cls: 'tag tag-accent', style: '' }
+};
+
+const I = {
+  dash: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  sellers: 'M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  apps: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7zM14 2v6h6M9 15h6',
+  products: 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z',
+  taxonomy: 'M4 6h16M7 12h13M10 18h10',
+  orders: 'M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14',
+  payments: 'M2 5h20v14H2zM2 10h20',
+  refunds: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  commission: 'M19 5 5 19M6.5 8a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
+  earnings: 'M16 7h6v6M22 7l-8.5 8.5-5-5L2 17',
+  payouts: 'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  settings: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'
+};
+
+const NAV = [
+  { header: 'Overview' },
+  { key: 'dash', label: 'Dashboard', icon: I.dash },
+  { header: 'Marketplace' },
+  { key: 'sellers', label: 'Sellers', icon: I.sellers, badge: '6' },
+  { key: 'applications', label: 'Applications', icon: I.apps, badge: '7' },
+  { key: 'review', label: 'Product review', icon: I.products, badge: '14' },
+  { key: 'taxonomy', label: 'Categories & brands', icon: I.taxonomy },
+  { header: 'Commerce' },
+  { key: 'orders', label: 'Orders', icon: I.orders },
+  { key: 'payments', label: 'Payments', icon: I.payments },
+  { key: 'refunds', label: 'Refunds', icon: I.refunds },
+  { header: 'Money' },
+  { key: 'commission', label: 'Commission', icon: I.commission },
+  { key: 'earnings', label: 'Seller earnings', icon: I.earnings },
+  { key: 'payouts', label: 'Payout requests', icon: I.payouts, badge: '9' },
+  { header: 'Platform' },
+  { key: 'settings', label: 'Settings', icon: I.settings }
+];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'dash', notes: true, toast: null, loginError: false,
+    sQuery: '', sTab: 'All', statuses: {}, sdSlug: 'aeris-kitchen',
+    appIdx: 0, appDecisions: {},
+    reasonOpen: false, reasonMode: null, reasonText: '',
+    revIdx: 0, revDecisions: {},
+    taxTab: 'categories', catName: '', catSlug: '', catVisible: true, catEditing: null,
+    brandQuery: '', brandName: '', brandSlug: '',
+    oQuery: '', oTab: 'All', odNo: 'MH-24081', payQuery: '', payTab: 'All',
+    rate: 12, draftRate: '12.0', eQuery: '', poTab: 'Awaiting review', poDecisions: {},
+    setTab: 'company', coName: 'MarketHub', lowStock: '5', settingsSaved: 'Last saved 11 Aug, 16:20',
+    flags: { autoApproveProducts: false, sellerSelfPublish: true, guestCheckout: true, maintenance: false, newApplications: true }
+  };
+
+  sellerStatus(sl) { return this.state.statuses[sl.slug] || sl.status; }
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: null }), 3000);
+  }
+
+  appStatus(a) { return (this.state.appDecisions[a.ref] && this.state.appDecisions[a.ref].status) || a.status; }
+
+  revStatus(p) { return (this.state.revDecisions[p.sku] && this.state.revDecisions[p.sku].status) || p.status; }
+
+  poStatus(p) { return (this.state.poDecisions[p.ref] && this.state.poDecisions[p.ref].status) || p.status; }
+
+  renderVals() {
+    const s = this.state;
+    const sq = s.sQuery.toLowerCase().trim();
+    const sellerRows = SELLERS.filter(r => {
+      const st = this.sellerStatus(r);
+      if (s.sTab !== 'All' && st !== s.sTab) return false;
+      if (sq && !(r.name + ' ' + r.contact + ' ' + r.email).toLowerCase().includes(sq)) return false;
+      return true;
+    });
+    const sd = SELLERS.find(r => r.slug === s.sdSlug) || SELLERS[0];
+    const sdStatus = this.sellerStatus(sd);
+    const cur = APPLICATIONS[s.appIdx] || APPLICATIONS[0];
+    const curStatus = this.appStatus(cur);
+    const rv = REVIEW[s.revIdx] || REVIEW[0];
+    const rvStatus = this.revStatus(rv);
+    const ordq = (s.oQuery || '').toLowerCase().trim();
+    const oRows = ALL_ORDERS.filter(o => {
+      if ((s.oTab || 'All') !== 'All' && o.status !== s.oTab) return false;
+      if (ordq && !(o.no + ' ' + o.customer + ' ' + o.seller).toLowerCase().includes(ordq)) return false;
+      return true;
+    });
+    const od = ALL_ORDERS.find(o => o.no === s.odNo) || ALL_ORDERS[0];
+    const pq = (s.payQuery || '').toLowerCase().trim();
+    const payRows = PAYMENTS.filter(p => {
+      if ((s.payTab || 'All') !== 'All' && p.status !== s.payTab) return false;
+      if (pq && !(p.ref + ' ' + p.order + ' ' + p.customer).toLowerCase().includes(pq)) return false;
+      return true;
+    });
+    const draft = parseFloat(s.draftRate);
+    const eq = (s.eQuery || '').toLowerCase().trim();
+    const earnRows = SELLER_EARNINGS.filter(r => !eq || r.name.toLowerCase().includes(eq));
+    const poPending = PAYOUT_REQUESTS.filter(p => this.poStatus(p) === 'Requested');
+    const poRows = PAYOUT_REQUESTS.filter(p => {
+      const st = this.poStatus(p);
+      if (s.poTab === 'All') return true;
+      if (s.poTab === 'Awaiting review') return st === 'Requested';
+      return st === s.poTab;
+    });
+    const bq = s.brandQuery.toLowerCase().trim();
+    const brandRows = BRANDS.filter(b => !bq || b.name.toLowerCase().includes(bq));
+    const notesFor = {
+      login: ['Admin login', 'Separate route and separate session from customer and seller accounts — an admin cannot be signed into two roles at once. Two-factor is mandatory for every staff account. Failed attempts lock the account for 15 minutes and are logged; the error never says which of email or password was wrong.'],
+      sellers: ['Seller management', 'One list, status tabs, and exactly one contextual action per row — Suspend for an approved seller, Reactivate for a suspended one, Review for a pending applicant. Suspension always demands a written reason: it hides listings and freezes the balance against payout, but never cancels open orders, which the seller must still fulfil.'],
+      sellerdetail: ['Seller detail', 'Everything the platform team needs to make a decision on one seller: money, catalogue state, business record and an append-only account history. Commission earned is the platform\'s view of this seller; balance owed is the seller\'s. Suspension state is a banner, not a subtle badge — it changes what every other screen does.'],
+      applications: ['Application review', 'Queue on the left, full record on the right — reviewers work down a list, so the decision never costs a page load. Approve is one click; Reject opens a required-reason dialog because the reason is shown to the applicant verbatim and stored on the application forever. Automated checks are surfaced but never auto-decide.'],
+      review: ['Store & product review', 'Same queue pattern as applications, so reviewers learn one interaction. Automated checks flag but never decide — a flag is a prompt to look, not a verdict. Rejection returns the listing to the seller as a draft with the reason attached rather than deleting it, so nothing a seller wrote is ever lost.'],
+      taxonomy: ['Categories & brands', 'Two tabs on one shared table + side-form pattern, reused from every other admin CRUD screen. Categories are two levels only in Phase 1; a category holding products cannot be deleted, and hiding one removes it from navigation without unpublishing its products. Brands can be platform-wide or owned by a single seller; merging keeps a permanent alias so old URLs survive.'],
+      orders: ['All orders', 'The platform-wide view: every order across every seller, with commission and seller earning read from each order\'s own snapshot. Orders whose payment never succeeded show a dash rather than a computed figure — no money was ever split. Admin can read and refund but never edit an order\'s fulfilment; that stays with the seller.'],
+      orderdetail: ['Order detail & history', 'The money panel is the clearest statement of the Phase 1 business rule: total, commission, earning and rate were all written onto this order at capture and are never recalculated. Status history is append-only with an actor on every row — seller, customer or System — so any dispute can be reconstructed.'],
+      payments: ['Payments', 'Every attempt is a row, including failures — a customer retrying produces several rows against one order (see MH-24078). Nothing here is editable; this is the payment provider\'s record mirrored locally so support can answer "did it charge?" without opening Stripe.'],
+      refunds: ['Refunds', 'A refund restores stock, reverses the seller earning and reverses commission at the rate stored on the original order — never today\'s rate. Reversals are their own ledger rows; the original records stay intact so history always reconstructs.'],
+      commission: ['Commission settings', 'The single most consequential control in the product, so the screen is mostly explanation. The preview shows the effect on a $100 order before anything is committed, and the confirmation dialog states the snapshot rule in words. Changes are forward-dated with 7 days\' notice, logged with the actor, and cannot be back-dated — the rate history table is append-only and shows how much was collected under each rate.'],
+      earnings: ['Seller earnings', 'The platform-side mirror of each seller\'s ledger: gross, commission, earnings, paid out and the balance still owed. Commission per seller is the sum of their order snapshots, not gross × today\'s rate — the footnote says so because the two diverge the moment a rate changes. Held payout requests are surfaced here so finance sees committed money before approving more.'],
+      payouts: ['Payout requests', 'A decision queue: approve posts the negative ledger entry and marks the request approved, reject demands a reason and releases the held amount. Balance-after is shown on every row so the reviewer never has to compute it. Context that matters for the decision — recently changed bank details, an account under review — sits under the seller name.'],
+      settings: ['Platform settings', 'Four sections behind one sub-nav rather than a wall of fields, with the destructive-adjacent ones (company, payments) gated to the Owner role. Operational toggles state their consequence in the help line — "sellers publish without review" silently changes whether the product review queue exists at all. Permissions are enforced server-side on every request; hiding sidebar items is a courtesy, not the control.'],
+      dash: ['Admin dashboard', 'Figures, not graphs — sales-over-time charts are explicitly Phase 1.1. The top row is money, the second row is population and platform state. "Needs attention" is the working surface: every number is a queue with items waiting on the team, and each tile links straight into that queue filtered to the waiting items.']
+    };
+    const note = notesFor[s.screen] || notesFor.dash;
+
+    const titles = {
+      dash: 'Dashboard', sellers: 'Sellers', applications: 'Seller applications', review: 'Product review',
+      sellerdetail: (SELLERS.find(r => r.slug === s.sdSlug) || SELLERS[0]).name,
+      orderdetail: 'Order ' + (s.odNo || 'MH-24081'),
+      taxonomy: 'Categories & brands', orders: 'Orders', payments: 'Payments', refunds: 'Refunds',
+      commission: 'Commission settings', earnings: 'Seller earnings', payouts: 'Payout requests', settings: 'Platform settings'
+    };
+
+    return {
+      notes: s.notes,
+      notesLabel: s.notes ? 'Hide' : 'Show',
+      toggleNotes: () => this.setState(x => ({ notes: !x.notes })),
+      noteTitle: note[0], noteBody: note[1],
+      groupLabel: { login: 'Group 1 — Login', dash: 'Group 1 — Dashboard', sellers: 'Group 2 — Sellers', sellerdetail: 'Group 2 — Sellers', applications: 'Group 2 — Applications', review: 'Group 3 — Product review', taxonomy: 'Group 3 — Catalogue', orders: 'Group 4 — Orders', orderdetail: 'Group 4 — Orders', payments: 'Group 4 — Payments', refunds: 'Group 4 — Refunds', commission: 'Group 5 — Commission', earnings: 'Group 5 — Seller earnings', payouts: 'Group 5 — Payouts', settings: 'Group 6 — Platform settings' }[s.screen] || 'Admin portal',
+
+      isLogin: s.screen === 'login',
+      inPortal: s.screen !== 'login',
+      isDash: s.screen === 'dash',
+      isSellers: s.screen === 'sellers',
+      isSellerDetail: s.screen === 'sellerdetail',
+      isApps: s.screen === 'applications',
+      goSellers: () => this.setState({ screen: 'sellers' }),
+      goApplications: () => this.setState({ screen: 'applications' }),
+      goReview: () => this.setState({ screen: 'review' }),
+
+      sQuery: s.sQuery,
+      setSQuery: (e) => this.setState({ sQuery: e.target.value }),
+      clearS: () => this.setState({ sQuery: '', sTab: 'All' }),
+      sellerTabs: ['All', 'Approved', 'Pending', 'Suspended', 'Rejected'].map(label => ({
+        label,
+        bg: s.sTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.sTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ sTab: label })
+      })),
+      sHas: sellerRows.length > 0,
+      sEmpty: sellerRows.length === 0,
+      sSummary: sellerRows.length + ' sellers · ' + money(sellerRows.reduce((n, r) => n + r.balance, 0)) + ' owed',
+      sellerRows: sellerRows.map(r => {
+        const st = this.sellerStatus(r);
+        const isSusp = st === 'Suspended';
+        return {
+          slot: 'ad-s-' + r.slug, name: r.name, slug: 'markethub.com/store/' + r.slug,
+          contact: r.contact, email: r.email, joined: r.joined,
+          products: String(r.products), sales: money(r.sales), balance: money(r.balance),
+          status: st, tagClass: STONE[st].cls, tagStyle: STONE[st].style,
+          actionLabel: isSusp ? 'Reactivate' : (st === 'Pending' ? 'Review' : 'Suspend'),
+          actionColor: isSusp ? 'var(--color-accent)' : (st === 'Pending' ? 'var(--color-accent)' : 'color-mix(in srgb, var(--color-text) 60%, transparent)'),
+          act: () => {
+            if (st === 'Pending') { this.setState({ screen: 'applications' }); return; }
+            if (isSusp) { this.setState(x => ({ statuses: Object.assign({}, x.statuses, { [r.slug]: 'Approved' }) })); this.flash(r.name + ' reactivated · listings restored'); return; }
+            this.setState({ reasonOpen: true, reasonMode: 'suspend', reasonText: '', sdSlug: r.slug });
+          },
+          open: () => this.setState({ screen: 'sellerdetail', sdSlug: r.slug })
+        };
+      }),
+
+      sdName: sd.name, sdSlug: sd.slug, sdJoined: sd.joined,
+      sdContact: sd.contact + ' · ' + sd.email,
+      sdStatus: sdStatus,
+      sdTagClass: STONE[sdStatus].cls, sdTagStyle: STONE[sdStatus].style,
+      sdActive: sdStatus === 'Approved',
+      sdSuspended: sdStatus === 'Suspended',
+      sdSuspendedOn: 'Aug 12, 2026',
+      sdSuspendReason: s.suspendReason || 'Repeated late dispatch across 14 orders.',
+      openSuspend: () => this.setState({ reasonOpen: true, reasonMode: 'suspend', reasonText: '' }),
+      reactivate: () => { this.setState(x => ({ statuses: Object.assign({}, x.statuses, { [sd.slug]: 'Approved' }) })); this.flash(sd.name + ' reactivated · listings restored'); },
+      sdHistory: [
+        { when: 'Aug 12, 2026', event: sdStatus, by: 'ops@markethub.com', note: sdStatus === 'Suspended' ? (s.suspendReason || 'Repeated late dispatch') : 'Status current' },
+        { when: 'Aug 8, 2026', event: 'Payout approved', by: 'finance@markethub.com', note: 'PO-2038 · $4,200.00' },
+        { when: 'Mar 12, 2024', event: 'Store published', by: 'Seller', note: 'First 12 products listed' },
+        { when: 'Mar 2, 2024', event: 'Approved', by: 'ops@markethub.com', note: 'Application APP-0412' }
+      ].map(h => ({ when: h.when, event: h.event, by: h.by, note: h.note, tagClass: (STONE[h.event] || { cls: 'tag tag-neutral' }).cls, tagStyle: (STONE[h.event] || { style: '' }).style })),
+
+      appQueueCount: APPLICATIONS.filter(a => this.appStatus(a) === 'Pending').length + ' pending',
+      applications: APPLICATIONS.map((a, i) => {
+        const st = this.appStatus(a);
+        return {
+          store: a.store, contact: a.contact, category: a.category, waiting: a.waiting,
+          status: st, tagClass: STONE[st].cls, tagStyle: STONE[st].style,
+          bg: i === s.appIdx ? 'color-mix(in srgb, var(--color-text) 7%, transparent)' : 'transparent',
+          select: () => this.setState({ appIdx: i })
+        };
+      }),
+      curRef: cur.ref, curStore: cur.store, curSubmitted: cur.submitted,
+      curLegal: cur.legal, curType: cur.type, curTax: cur.tax, curAddress: cur.address,
+      curContact: cur.contact, curEmail: cur.email, curPhone: cur.phone,
+      curCategory: cur.category, curListings: cur.listings, curSite: cur.site,
+      curBlurb: cur.blurb, curCheck: cur.check,
+      curStatus: curStatus,
+      curTagClass: STONE[curStatus].cls, curTagStyle: STONE[curStatus].style,
+      curPending: curStatus === 'Pending',
+      curDecided: curStatus !== 'Pending',
+      curDecidedOn: cur.decided || 'today',
+      curRejected: curStatus === 'Rejected',
+      curReason: (s.appDecisions[cur.ref] && s.appDecisions[cur.ref].reason) || cur.reason || '',
+      approveApp: () => {
+        this.setState(x => ({ appDecisions: Object.assign({}, x.appDecisions, { [cur.ref]: { status: 'Approved' } }) }));
+        this.flash(cur.store + ' approved · seller notified and store setup unlocked');
+      },
+      openReject: () => this.setState({ reasonOpen: true, reasonMode: 'reject', reasonText: '' }),
+
+      reasonOpen: s.reasonOpen,
+      reasonTitle: { reject: 'Reject this application?', rejectProduct: 'Reject this listing?', suspend: 'Suspend this seller?', rejectPayout: 'Reject this payout request?', rate: 'Schedule commission change to ' + s.draftRate + '%?' }[s.reasonMode] || 'Confirm',
+      reasonBody: {
+        reject: cur.store + ' will be notified with the reason below and can re-apply once corrected. Nothing is created for this seller.',
+        rejectProduct: '“' + rv.name + '” stays unpublished and returns to ' + rv.seller + ' as a draft with the reason attached. They can correct it and resubmit.',
+        suspend: sd.name + ' will have every listing hidden from the storefront and their balance frozen against payout. Open orders must still be fulfilled.',
+        rejectPayout: 'The held amount is released back to the seller\'s available balance and the reason below is shown to them. They can request again immediately.',
+        rate: 'From 19 Aug 2026, orders completing after that date use ' + s.draftRate + '%. Every existing order keeps its own rate, commission and earning — no historical figure changes. Sellers are emailed today.'
+      }[s.reasonMode] || '',
+      reasonConfirm: { reject: 'Reject application', rejectProduct: 'Reject listing', suspend: 'Suspend seller', rejectPayout: 'Reject payout', rate: 'Schedule change' }[s.reasonMode] || 'Confirm',
+      reasonText: s.reasonText,
+      setReasonText: (e) => this.setState({ reasonText: e.target.value }),
+      reasonMissing: s.reasonText.trim().length === 0,
+      closeReason: () => this.setState({ reasonOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      confirmReason: () => {
+        const txt = this.state.reasonText.trim();
+        if (!txt) return;
+        if (this.state.reasonMode === 'rate') {
+          this.setState({ reasonOpen: false, rate: draft });
+          this.flash('Commission scheduled at ' + draft.toFixed(1) + '% from 19 Aug · 412 sellers notified');
+        } else if (this.state.reasonMode === 'rejectPayout') {
+          const ref = this.state.poRef;
+          this.setState(x => ({ reasonOpen: false, poDecisions: Object.assign({}, x.poDecisions, { [ref]: { status: 'Rejected', reason: txt } }) }));
+          this.flash(ref + ' rejected · amount released back to the seller');
+        } else if (this.state.reasonMode === 'rejectProduct') {
+          this.setState(x => ({ reasonOpen: false, revDecisions: Object.assign({}, x.revDecisions, { [rv.sku]: { status: 'Rejected', reason: txt } }) }));
+          this.flash(rv.name + ' rejected · returned to seller as a draft');
+        } else if (this.state.reasonMode === 'reject') {
+          this.setState(x => ({ reasonOpen: false, appDecisions: Object.assign({}, x.appDecisions, { [cur.ref]: { status: 'Rejected', reason: txt } }) }));
+          this.flash(cur.store + ' rejected · reason recorded and sent');
+        } else {
+          this.setState(x => ({ reasonOpen: false, suspendReason: txt, statuses: Object.assign({}, x.statuses, { [x.sdSlug]: 'Suspended' }) }));
+          this.flash('Seller suspended · listings hidden, balance frozen');
+        }
+      },
+
+      isReview: s.screen === 'review',
+      isTaxonomy: s.screen === 'taxonomy',
+      revQueueCount: REVIEW.filter(p => this.revStatus(p) === 'Pending').length + ' pending',
+      reviewList: REVIEW.map((p, i) => {
+        const st = this.revStatus(p);
+        return {
+          slot: 'ad-rvq-' + p.sku, name: p.name, seller: p.seller, waiting: p.waiting,
+          status: st, tagClass: STONE[st].cls, tagStyle: STONE[st].style,
+          bg: i === s.revIdx ? 'color-mix(in srgb, var(--color-text) 7%, transparent)' : 'transparent',
+          select: () => this.setState({ revIdx: i })
+        };
+      }),
+      rvSku: rv.sku, rvName: rv.name, rvSeller: rv.seller, rvCategory: rv.category,
+      rvSubmitted: rv.submitted, rvDescription: rv.description, rvFlag: rv.flag,
+      rvPrice: money(rv.price), rvCompare: rv.compare ? money(rv.compare) : '—',
+      rvBrand: rv.brand, rvCondition: rv.condition, rvImages: rv.images + ' uploaded',
+      rvVariants: rv.variants,
+      rvStatus: rvStatus,
+      rvTagClass: STONE[rvStatus].cls, rvTagStyle: STONE[rvStatus].style,
+      rvPending: rvStatus === 'Pending',
+      rvDecided: rvStatus !== 'Pending',
+      rvRejected: rvStatus === 'Rejected',
+      rvReason: (s.revDecisions[rv.sku] && s.revDecisions[rv.sku].reason) || '',
+      approveProduct: () => { this.setState(x => ({ revDecisions: Object.assign({}, x.revDecisions, { [rv.sku]: { status: 'Approved' } }) })); this.flash(rv.name + ' approved · live on the storefront'); },
+      openRejectProduct: () => this.setState({ reasonOpen: true, reasonMode: 'rejectProduct', reasonText: '' }),
+
+      tabCats: () => this.setState({ screen: 'taxonomy', taxTab: 'categories' }),
+      tabBrands: () => this.setState({ screen: 'taxonomy', taxTab: 'brands' }),
+      onCats: s.taxTab === 'categories',
+      onBrands: s.taxTab === 'brands',
+      catsBar: s.taxTab === 'categories' ? 'var(--color-accent)' : 'transparent',
+      brandsBar: s.taxTab === 'brands' ? 'var(--color-accent)' : 'transparent',
+      catsFg: s.taxTab === 'categories' ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 55%, transparent)',
+      brandsFg: s.taxTab === 'brands' ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 55%, transparent)',
+      catCount: CATEGORIES.length + ' categories · 5 top level',
+      categoryRows: CATEGORIES.map(c => ({
+        name: c.name, slug: c.slug, indent: c.depth * 20 + 'px',
+        products: c.products.toLocaleString(), sellers: String(c.sellers),
+        visibility: c.visible ? 'Visible' : 'Hidden',
+        tagClass: c.visible ? STONE.Visible.cls : STONE.Hidden.cls,
+        tagStyle: c.visible ? STONE.Visible.style : STONE.Hidden.style,
+        delColor: c.products > 0 ? 'color-mix(in srgb, var(--color-text) 35%, transparent)' : 'var(--color-accent-700)',
+        edit: () => this.setState({ catEditing: c.name, catName: c.name, catSlug: c.slug, catVisible: c.visible }),
+        del: () => this.flash(c.products > 0 ? 'Cannot delete “' + c.name + '” — ' + c.products + ' products use it' : c.name + ' deleted')
+      })),
+      catFormTitle: s.catEditing ? 'Edit “' + s.catEditing + '”' : 'Add a category',
+      catSaveLabel: s.catEditing ? 'Save category' : 'Add category',
+      catName: s.catName, catSlug: s.catSlug,
+      setCatName: (e) => this.setState({ catName: e.target.value, catSlug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-') }),
+      catVisible: s.catVisible, catHidden: !s.catVisible,
+      toggleCatVisible: () => this.setState(x => ({ catVisible: !x.catVisible })),
+      resetCat: () => this.setState({ catEditing: null, catName: '', catSlug: '', catVisible: true }),
+      saveCat: () => { if (!s.catName.trim()) { this.flash('Enter a category name first'); return; } this.setState({ catEditing: null, catName: '', catSlug: '' }); this.flash('Category saved'); },
+
+      brandQuery: s.brandQuery,
+      setBrandQuery: (e) => this.setState({ brandQuery: e.target.value }),
+      brandCount: brandRows.length + ' brands',
+      brandRows: brandRows.map(b => ({
+        name: b.name, slug: b.slug, products: String(b.products), owner: b.owner,
+        status: b.status, tagClass: STONE[b.status].cls, tagStyle: STONE[b.status].style,
+        merge: () => this.flash('Merge ' + b.name + ' — pick a target brand')
+      })),
+      brandName: s.brandName, brandSlug: s.brandSlug,
+      setBrandName: (e) => this.setState({ brandName: e.target.value, brandSlug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-') }),
+      saveBrand: () => { if (!s.brandName.trim()) { this.flash('Enter a brand name first'); return; } this.setState({ brandName: '', brandSlug: '' }); this.flash('Brand added'); },
+
+      isOrders: s.screen === 'orders',
+      isOrderDetail: s.screen === 'orderdetail',
+      isPayments: s.screen === 'payments',
+      isRefunds: s.screen === 'refunds',
+      goOrders: () => this.setState({ screen: 'orders' }),
+      goPayments: () => this.setState({ screen: 'payments' }),
+      goRefunds: () => this.setState({ screen: 'refunds' }),
+
+      oQuery: s.oQuery,
+      setOQuery: (e) => this.setState({ oQuery: e.target.value }),
+      clearO: () => this.setState({ oQuery: '', oTab: 'All' }),
+      orderTabs: ['All', 'Processing', 'Packed', 'Shipped', 'Delivered', 'Refunded'].map(label => ({
+        label,
+        bg: s.oTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.oTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ oTab: label })
+      })),
+      oHas: oRows.length > 0,
+      oEmpty: oRows.length === 0,
+      oSummary: oRows.length + ' shown · ' + money(oRows.reduce((n, o) => n + o.total, 0)),
+      orderRows: oRows.map(o => {
+        const settled = o.payment === 'Paid';
+        return {
+          no: o.no, date: o.date, customer: o.customer, seller: o.seller,
+          total: money(o.total),
+          commission: settled ? money(Math.round(o.total * 0.12 * 100) / 100) : '—',
+          earning: settled ? money(Math.round(o.total * 0.88 * 100) / 100) : '—',
+          payment: o.payment, payClass: tone(o.payment).cls, payStyle: tone(o.payment).style,
+          status: o.status, tagClass: tone(o.status).cls, tagStyle: tone(o.status).style,
+          open: () => this.setState({ screen: 'orderdetail', odNo: o.no })
+        };
+      }),
+
+      odNo: od.no, odDate: od.date, odCustomer: od.customer, odSeller: od.seller,
+      odStatus: od.status, odTagClass: tone(od.status).cls, odTagStyle: tone(od.status).style,
+      odPayment: od.payment, odPayClass: tone(od.payment).cls, odPayStyle: tone(od.payment).style,
+      odRefundable: od.payment === 'Paid',
+      openRefund: () => this.flash('Refund flow — issued against ' + od.no + ', reverses earning and commission'),
+      odTotal: money(od.total),
+      odItemsTotal: money(od.total - 20),
+      odCommission: od.payment === 'Paid' ? '−' + money(Math.round(od.total * 0.12 * 100) / 100) : '—',
+      odEarning: od.payment === 'Paid' ? money(Math.round(od.total * 0.88 * 100) / 100) : '—',
+      odLines: [
+        { name: 'Aeris cordless kettle, 1.2L', seller: od.seller, sku: 'AC-KTL-1105-BS', qty: '1', unit: '$92.00', total: '$92.00' },
+        { name: 'Rivet cast iron skillet, 10 inch', seller: od.seller, sku: 'AC-SKL-1000', qty: '1', unit: '$76.00', total: '$76.00' },
+        { name: 'Aeris pour-over set, 600ml', seller: od.seller, sku: 'AC-POS-0600', qty: '2', unit: '$58.00', total: '$116.00' }
+      ],
+      odHistory: [
+        { when: 'Aug 12, 14:20', event: 'Packed', by: 'Nadia Fischer (seller)', detail: 'Ready for carrier collection' },
+        { when: 'Aug 12, 09:41', event: 'Processing', by: 'Nadia Fischer (seller)', detail: 'Order accepted' },
+        { when: 'Aug 12, 09:14', event: 'Placed', by: 'System', detail: 'Commission 12.0% snapshotted · stock reduced' },
+        { when: 'Aug 12, 09:14', event: 'Paid', by: 'System', detail: 'PAY-88204 · Visa ••4242 captured' }
+      ].map(h => ({ when: h.when, event: h.event, by: h.by, detail: h.detail, tagClass: tone(h.event).cls, tagStyle: tone(h.event).style })),
+
+      payQuery: s.payQuery,
+      setPayQuery: (e) => this.setState({ payQuery: e.target.value }),
+      payTabs: ['All', 'Paid', 'Failed', 'Refunded'].map(label => ({
+        label,
+        bg: s.payTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.payTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ payTab: label })
+      })),
+      payCount: payRows.length + ' payment records',
+      payRows: payRows.map(p => ({
+        ref: p.ref, when: p.when, order: p.order, customer: p.customer, method: p.method,
+        amount: money(p.amount), status: p.status, detail: p.detail,
+        tagClass: tone(p.status).cls, tagStyle: tone(p.status).style
+      })),
+
+      refundRows: REFUNDS.map(r => ({
+        ref: r.ref, when: r.when, order: r.order, seller: r.seller, reason: r.reason,
+        amount: money(r.amount), reversed: '−' + money(r.reversed),
+        status: r.status, tagClass: tone(r.status).cls, tagStyle: tone(r.status).style
+      })),
+
+      isCommission: s.screen === 'commission',
+      isEarnings: s.screen === 'earnings',
+      isPayouts: s.screen === 'payouts',
+      goCommission: () => this.setState({ screen: 'commission' }),
+      goEarnings: () => this.setState({ screen: 'earnings' }),
+      goPayouts: () => this.setState({ screen: 'payouts' }),
+
+      rateDisplay: s.rate.toFixed(1) + '%',
+      rateSince: '1 Mar 2026',
+      rateOrders: '8,142',
+      sellerShare: 100 - s.rate,
+      platformShare: s.rate,
+      sellerPct: (100 - s.rate).toFixed(1) + '%',
+      platformPct: s.rate.toFixed(1) + '%',
+      exampleCommission: money(s.rate),
+      exampleEarning: money(100 - s.rate),
+      rateHistory: RATE_HISTORY,
+      draftRate: s.draftRate,
+      setDraftRate: (e) => this.setState({ draftRate: e.target.value }),
+      rateError: !(parseFloat(s.draftRate) >= 0 && parseFloat(s.draftRate) <= 30),
+      rateUnchanged: !(parseFloat(s.draftRate) >= 0 && parseFloat(s.draftRate) <= 30) || parseFloat(s.draftRate) === s.rate,
+      previewCommission: money(draft),
+      previewEarning: money(100 - draft),
+      previewDelta: draft === s.rate ? 'Same as the current rate' : (draft > s.rate ? 'Sellers receive ' + money(draft - s.rate) + ' less per $100 on future orders' : 'Sellers receive ' + money(s.rate - draft) + ' more per $100 on future orders'),
+      openRateChange: () => this.setState({ reasonOpen: true, reasonMode: 'rate', reasonText: '' }),
+
+      eQuery: s.eQuery,
+      setEQuery: (e) => this.setState({ eQuery: e.target.value }),
+      eCount: earnRows.length + ' sellers',
+      earningRows: earnRows.map(r => {
+        const commission = Math.round(r.gross * 0.12 * 100) / 100;
+        const earnings = r.gross - commission;
+        return {
+          name: r.name, orders: r.orders.toLocaleString(),
+          gross: money(r.gross), commission: money(commission), earnings: money(earnings),
+          paid: money(r.paid), balance: money(earnings - r.paid),
+          hasRequest: r.request > 0, requestAmount: money(r.request) + ' held',
+          open: () => this.setState({ screen: 'payouts' })
+        };
+      }),
+
+      pendingCount: String(poPending.length),
+      pendingValue: money(poPending.reduce((n, p) => n + p.amount, 0)),
+      poTabs: ['Awaiting review', 'Approved', 'Rejected', 'All'].map(label => ({
+        label,
+        bg: s.poTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.poTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ poTab: label })
+      })),
+      poCount: poRows.length + ' requests',
+      poRows: poRows.map(p => {
+        const st = this.poStatus(p);
+        return {
+          ref: p.ref, requested: p.requested, seller: p.seller, note: p.note,
+          amount: money(p.amount), after: money(Math.max(0, p.balance - p.amount)), bank: p.bank,
+          status: st, tagClass: STONE[st].cls, tagStyle: STONE[st].style,
+          pending: st === 'Requested',
+          decided: st !== 'Requested',
+          decidedLabel: (p.decided || 'today') + ' · ops',
+          approve: () => { this.setState(x => ({ poDecisions: Object.assign({}, x.poDecisions, { [p.ref]: { status: 'Approved' } }) })); this.flash(p.ref + ' approved · ' + money(p.amount) + ' posted against ' + p.seller); },
+          reject: () => this.setState({ reasonOpen: true, reasonMode: 'rejectPayout', reasonText: '', poRef: p.ref })
+        };
+      }),
+
+      isSettings: s.screen === 'settings',
+      goSettings: () => this.setState({ screen: 'settings' }),
+      settingsNav: [
+        { key: 'company', label: 'Company' },
+        { key: 'ops', label: 'Operational' },
+        { key: 'emails', label: 'Email notifications' },
+        { key: 'team', label: 'Team & roles' }
+      ].map(n => ({
+        label: n.label,
+        fg: s.setTab === n.key ? 'var(--color-accent)' : 'var(--color-text)',
+        weight: s.setTab === n.key ? '600' : '400',
+        go: () => this.setState({ screen: 'settings', setTab: n.key })
+      })),
+      setCompany: s.setTab === 'company',
+      setOps: s.setTab === 'ops',
+      setEmails: s.setTab === 'emails',
+      setTeam: s.setTab === 'team',
+      coName: s.coName,
+      setCoName: (e) => this.setState({ coName: e.target.value }),
+      lowStock: s.lowStock,
+      setLowStock: (e) => this.setState({ lowStock: e.target.value }),
+      toggles: [
+        { key: 'newApplications', label: 'Accept new seller applications', help: 'Turning this off hides the apply form and shows a waitlist message.' },
+        { key: 'sellerSelfPublish', label: 'Sellers publish without review', help: 'When off, every new listing enters the product review queue before going live.' },
+        { key: 'autoApproveProducts', label: 'Auto-approve edits to live products', help: 'Price and stock edits are always instant; this covers title, images and description.' },
+        { key: 'guestCheckout', label: 'Allow guest checkout', help: 'Guests still receive order emails and a tracking link.' },
+        { key: 'maintenance', label: 'Storefront maintenance mode', help: 'Shows a holding page to customers. Seller and admin portals stay available.' }
+      ].map(t => ({
+        label: t.label, help: t.help,
+        on: !!s.flags[t.key], off: !s.flags[t.key],
+        toggle: () => this.setState(x => ({ flags: Object.assign({}, x.flags, { [t.key]: !x.flags[t.key] }) }))
+      })),
+      emails: [
+        { event: 'Order confirmation', who: 'Customer', template: 'order-confirmed', sent: '2,418', state: 'Active' },
+        { event: 'Order shipped', who: 'Customer', template: 'order-shipped', sent: '2,104', state: 'Active' },
+        { event: 'Order delivered', who: 'Customer', template: 'order-delivered', sent: '1,982', state: 'Active' },
+        { event: 'Refund issued', who: 'Customer', template: 'refund-issued', sent: '38', state: 'Active' },
+        { event: 'New order received', who: 'Seller', template: 'seller-new-order', sent: '2,418', state: 'Active' },
+        { event: 'Low stock warning', who: 'Seller', template: 'seller-low-stock', sent: '146', state: 'Active' },
+        { event: 'Payout decision', who: 'Seller', template: 'payout-decision', sent: '61', state: 'Active' },
+        { event: 'Application decision', who: 'Applicant', template: 'application-decision', sent: '23', state: 'Active' },
+        { event: 'Commission rate change', who: 'All sellers', template: 'commission-change', sent: '0', state: 'Paused' }
+      ].map(e => ({ event: e.event, who: e.who, template: e.template, sent: e.sent, state: e.state, tagClass: e.state === 'Active' ? 'tag tag-neutral' : 'tag', tagStyle: e.state === 'Active' ? '' : 'background:transparent;border:1px solid var(--color-divider);opacity:0.6' })),
+      team: [
+        { name: 'Dana Whitfield', email: 'owner@markethub.com', role: 'Owner', can: 'Everything, including commission and company settings', active: '10 min ago' },
+        { name: 'Ops team', email: 'ops@markethub.com', role: 'Operations', can: 'Sellers, applications, product review, orders', active: 'Now' },
+        { name: 'Renée Okonkwo', email: 'finance@markethub.com', role: 'Finance', can: 'Payments, refunds, earnings, payouts, commission', active: '2 hours ago' },
+        { name: 'Sam Ortega', email: 'support@markethub.com', role: 'Support', can: 'Read orders and customers; issue refunds up to $200', active: 'Yesterday' }
+      ],
+      settingsSaved: s.settingsSaved,
+      saveSettings: () => { this.setState({ settingsSaved: 'Saved just now' }); this.flash('Platform settings saved'); },
+
+      isSoon: !['dash', 'login', 'sellers', 'sellerdetail', 'applications', 'review', 'taxonomy', 'orders', 'orderdetail', 'payments', 'refunds', 'commission', 'earnings', 'payouts', 'settings'].includes(s.screen),
+      soonBody: {
+        sellers: 'Seller list with approve, reject, suspend and reactivate, plus seller detail — Admin Group 2.',
+        applications: 'Application review with business details and an approve/reject decision that records a reason — Admin Group 2.',
+        review: 'Store and product review queue — Admin Group 3.',
+        taxonomy: 'Category and brand management on the shared table/form pattern — Admin Group 3.',
+        orders: 'All orders with filters, plus order detail and status history — Admin Group 4.',
+        payments: 'Payment records including failed attempts, and payment detail — Admin Group 4.',
+        refunds: 'Refund records and refund detail — Admin Group 4.',
+        commission: 'Commission rate with the snapshot rule made explicit — Admin Group 5.',
+        earnings: 'Seller balances, earnings and the platform-side ledger — Admin Group 5.',
+        payouts: 'Pending requests with approve and reject, plus payout history — Admin Group 5.',
+        settings: 'Company information and operational settings — Admin Group 6.'
+      }[s.screen] || '',
+      pageTitle: titles[s.screen] || 'Dashboard',
+
+      goLogin: () => this.setState({ screen: 'login', loginError: false }),
+      goDash: () => this.setState({ screen: 'dash' }),
+      signIn: () => this.setState({ screen: 'dash', loginError: false }),
+      failLogin: () => this.setState({ loginError: true }),
+      loginError: s.loginError,
+
+      nav: NAV.map(n => ({
+        label: n.header || n.label,
+        icon: n.icon || '',
+        isHeader: !!n.header,
+        isItem: !n.header,
+        hasBadge: !!n.badge, badge: n.badge || '',
+        bg: n.key === ({ sellerdetail: 'sellers', orderdetail: 'orders' }[s.screen] || s.screen) ? 'var(--color-accent)' : 'transparent',
+        fg: n.key === ({ sellerdetail: 'sellers', orderdetail: 'orders' }[s.screen] || s.screen) ? 'var(--color-bg)' : 'var(--color-text)',
+        go: n.key ? () => this.setState({ screen: n.key }) : () => {}
+      })),
+
+      orders: ORDERS.map(o => ({
+        no: o.no, date: o.date, customer: o.customer, seller: o.seller,
+        total: money(o.total),
+        commission: (o.status === 'Payment failed' || o.status === 'Refunded') ? '—' : money(Math.round(o.total * 0.12 * 100) / 100),
+        status: o.status,
+        tagClass: TONE[o.status].cls, tagStyle: TONE[o.status].style
+      })),
+      activity: ACTIVITY,
+
+      toast: !!s.toast, toastText: s.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:var(--color-bg)}
+@keyframes mh-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes mh-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 40px;background:var(--color-text);color:var(--color-bg);position:sticky;top:0;z-index:60">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-400)">Phase 2 · Customer storefront</div>
+    <div style="font-size:12px;opacity:0.75">Group 1 — Discovery</div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px;margin-left:16px">
+      <button onClick="{{ goHome }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Home</button>
+      <button onClick="{{ goCategory }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Category listing</button>
+      <button onClick="{{ goSearch }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Search results</button>
+      <button onClick="{{ goProduct }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Product detail</button>
+      <button onClick="{{ goStore }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Seller store</button>
+      <button onClick="{{ goCart }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Cart</button>
+      <button onClick="{{ goCheckout }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Checkout</button>
+      <button onClick="{{ goDone }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Confirmation</button>
+      <button onClick="{{ goAuth }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Sign in / register</button>
+      <button onClick="{{ goAccount }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Account</button>
+      <button onClick="{{ goOrderHistory }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Order history</button>
+      <button onClick="{{ goTracking }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Order tracking</button>
+      <button onClick="{{ goEmpty }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Empty search</button>
+      <button onClick="{{ goLoading }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Loading</button>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;opacity:0.6">Dev annotations</span>
+      <button onClick="{{ toggleNotes }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">{{ notesLabel }}</button>
+    </div>
+  </div>
+
+  <div style="border-bottom:2px solid var(--color-divider);background:var(--color-bg);position:sticky;top:40px;z-index:50">
+    <div style="max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:12px 40px">
+      <button onClick="{{ goHome }}" style="font-family:var(--font-heading);font-weight:800;font-size:19px;letter-spacing:-0.02em;background:none;border:0;padding:0;cursor:pointer;color:inherit">MARKET<span style="color:var(--color-accent)">HUB</span></button>
+      <form onSubmit="{{ submitSearch }}" style="flex:1;position:relative;max-width:460px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+        <input class="input" style="padding-left:32px" placeholder="Search 8,400 products" value="{{ query }}" onChange="{{ setQuery }}" />
+      </form>
+      <div style="display:flex;align-items:center;gap:20px;font-size:14px;margin-left:auto">
+        <span style="cursor:pointer">Sell on MarketHub</span>
+        <span onClick="{{ goOrderHistory }}" style="cursor:pointer">Orders</span>
+        <span onClick="{{ goAuth }}" style="display:flex;align-items:center;gap:6px;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="7" r="4"></circle><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path></svg>Account</span>
+        <span onClick="{{ goCart }}" style="display:flex;align-items:center;gap:8px;cursor:pointer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg><span style="background:var(--color-accent);color:var(--color-bg);font-size:11px;padding:1px 7px;font-variant-numeric:tabular-nums">{{ cartCount }}</span></span>
+      </div>
+    </div>
+    <div style="max-width:1280px;margin:0 auto;display:flex;gap:24px;padding:0 40px 10px;font-size:13px;color:color-mix(in srgb, var(--color-text) 75%, transparent)">
+      <span onClick="{{ goCategory }}" style="cursor:pointer;color:var(--color-accent);font-weight:600">All categories</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Electronics</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Home &amp; Kitchen</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Apparel</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Outdoors</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Office</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Sellers</span>
+    </div>
+  </div>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div>
+    <section style="max-width:1280px;margin:0 auto;padding:0 40px">
+      <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0;border-bottom:2px solid var(--color-divider)">
+        <div style="padding:64px 48px 64px 0;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:20px">412 independent sellers · one checkout</div>
+          <h1 style="font-size:60px;line-height:1.02;margin:0 0 20px;max-width:14ch">Everything, from people who make it.</h1>
+          <p style="font-size:16px;max-width:46ch;margin:0 0 28px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">Electronics, kitchen, apparel and outdoors — listed and shipped by small independent stores, bought in one cart.</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onClick="{{ goCategory }}">Browse everything</button>
+            <button class="btn btn-secondary" onClick="{{ goCategory }}">Meet the sellers</button>
+          </div>
+        </div>
+        <div style="border-left:2px solid var(--color-divider);min-height:420px;position:relative" class="grayscale">
+          <image-slot id="cs-hero" shape="rect" fit="cover" placeholder="Hero photograph — grayscale"></image-slot>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:0 40px">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:2px solid var(--color-divider)">
+        <div onClick="{{ goCategory }}" style="padding:24px 16px 24px 0;cursor:pointer"><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:4px">Electronics</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">2,140 items</div></div>
+        <div onClick="{{ goCategory }}" style="padding:24px 16px;border-left:1px solid var(--color-divider);cursor:pointer"><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:4px">Home &amp; Kitchen</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">1,884 items</div></div>
+        <div onClick="{{ goCategory }}" style="padding:24px 16px;border-left:1px solid var(--color-divider);cursor:pointer"><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:4px">Apparel</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">1,502 items</div></div>
+        <div onClick="{{ goCategory }}" style="padding:24px 16px;border-left:1px solid var(--color-divider);cursor:pointer"><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:4px">Outdoors</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">1,213 items</div></div>
+        <div onClick="{{ goCategory }}" style="padding:24px 16px;border-left:1px solid var(--color-divider);cursor:pointer"><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:4px">Office</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">986 items</div></div>
+        <div onClick="{{ goCategory }}" style="padding:24px 0 24px 16px;border-left:1px solid var(--color-divider);cursor:pointer"><div style="font-family:var(--font-heading);font-weight:800;font-size:15px;margin-bottom:4px;color:var(--color-accent)">All categories</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">8,400 items</div></div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:40px 40px 48px;border-bottom:2px solid var(--color-divider)">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+        <h2 style="margin:0;font-size:32px">Featured this week</h2>
+        <span style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Chosen by the MarketHub team</span>
+        <button class="btn btn-ghost" onClick="{{ goCategory }}" style="margin-left:auto;font-size:13px">See all →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px">
+        <sc-for list="{{ featured }}" as="p" hint-placeholder-count="4">
+          <div style="border:1px solid var(--color-divider);background:var(--color-bg);display:flex;flex-direction:column">
+            <div style="position:relative;aspect-ratio:1;border-bottom:1px solid var(--color-divider)" class="grayscale">
+              <image-slot id="{{ p.slot }}" shape="rect" fit="cover" placeholder="Product"></image-slot>
+            </div>
+            <div style="padding:14px;display:flex;flex-direction:column;flex:1">
+              <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">{{ p.seller }}</div>
+              <div onClick="{{ p.open }}" style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:10px;cursor:pointer">{{ p.name }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;margin-top:auto">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{ p.price }}</span>
+                <sc-if value="{{ p.hasWas }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">{{ p.was }}</span></sc-if>
+              </div>
+              <div style="font-size:12px;margin-bottom:12px">{{ p.stockLabel }}</div>
+              <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ p.add }}" disabled="{{ p.out }}">{{ p.cta }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="background:var(--color-accent);color:var(--color-bg)">
+      <div style="max-width:1280px;margin:0 auto;padding:56px 40px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:48px;align-items:end">
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;opacity:0.8;margin-bottom:16px">Sell on MarketHub</div>
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:46px;line-height:1.05;max-width:20ch">Open a store. Keep 88% of every sale.</div>
+        </div>
+        <div>
+          <p style="font-size:15px;opacity:0.9;margin:0 0 20px">A flat 12% commission, no listing fees, and payouts you request whenever your balance suits you.</p>
+          <button class="btn" style="background:var(--color-bg);color:var(--color-text)">Apply to sell</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:48px 40px;border-bottom:2px solid var(--color-divider)">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+        <h2 style="margin:0;font-size:32px">Stores worth following</h2>
+        <button class="btn btn-ghost" style="margin-left:auto;font-size:13px">All 412 sellers →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px">
+        <sc-for list="{{ sellers }}" as="s" hint-placeholder-count="4">
+          <div style="border:1px solid var(--color-divider)">
+            <div style="height:88px;border-bottom:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ s.banner }}" shape="rect" fit="cover" placeholder="Store banner"></image-slot></div>
+            <div style="padding:14px">
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+                <div style="width:38px;height:38px;flex:none;border:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ s.logo }}" shape="rect" fit="cover" placeholder="Logo"></image-slot></div>
+                <div>
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ s.name }}</div>
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ s.meta }}</div>
+                </div>
+              </div>
+              <p style="font-size:12px;margin:0 0 12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);min-height:32px">{{ s.blurb }}</p>
+              <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Visit store</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="max-width:1280px;margin:0 auto;padding:48px 40px 64px">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:24px">
+        <h2 style="margin:0;font-size:32px">New this week</h2>
+        <button class="btn btn-ghost" onClick="{{ goCategory }}" style="margin-left:auto;font-size:13px">See all →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px">
+        <sc-for list="{{ newest }}" as="p" hint-placeholder-count="4">
+          <div style="border:1px solid var(--color-divider);background:var(--color-bg);display:flex;flex-direction:column">
+            <div style="position:relative;aspect-ratio:1;border-bottom:1px solid var(--color-divider)" class="grayscale">
+              <image-slot id="{{ p.slot }}" shape="rect" fit="cover" placeholder="Product"></image-slot>
+            </div>
+            <div style="padding:14px;display:flex;flex-direction:column;flex:1">
+              <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">{{ p.seller }}</div>
+              <div onClick="{{ p.open }}" style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:10px;cursor:pointer">{{ p.name }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;margin-top:auto">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{ p.price }}</span>
+                <sc-if value="{{ p.hasWas }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">{{ p.was }}</span></sc-if>
+              </div>
+              <div style="font-size:12px;margin-bottom:12px">{{ p.stockLabel }}</div>
+              <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ p.add }}" disabled="{{ p.out }}">{{ p.cta }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 64px">
+    <div style="padding:20px 0 0;display:flex;align-items:center;gap:8px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
+      <span onClick="{{ goHome }}" style="cursor:pointer">Home</span><span>/</span><span>{{ crumb }}</span>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:20px;padding:16px 0 20px;border-bottom:2px solid var(--color-divider)">
+      <div>
+        <h1 style="margin:0 0 6px;font-size:42px">{{ listTitle }}</h1>
+        <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ listSubtitle }}</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Sort</span>
+        <select class="input" style="width:auto;appearance:none" value="{{ sort }}" onChange="{{ setSort }}">
+          <option value="relevance">Relevance</option>
+          <option value="low">Price — low to high</option>
+          <option value="high">Price — high to low</option>
+          <option value="new">Newest</option>
+        </select>
+        <div class="seg">
+          <label class="seg-opt"><input type="radio" name="view" checked="{{ true }}" onChange="{{ noop }}" />Grid</label>
+          <label class="seg-opt"><input type="radio" name="view" onChange="{{ noop }}" />List</label>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:236px minmax(0,1fr);gap:40px;padding-top:24px">
+      <aside>
+        <div style="display:flex;align-items:baseline;margin-bottom:14px"><div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Filters</div><button class="btn btn-ghost" onClick="{{ clearFilters }}" style="margin-left:auto;font-size:12px">Clear</button></div>
+
+        <div style="padding-bottom:18px;border-bottom:1px solid var(--color-divider);margin-bottom:18px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Category</div>
+          <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
+            <sc-for list="{{ categories }}" as="c" hint-placeholder-count="5">
+              <label style="display:flex;align-items:center;gap:9px;cursor:pointer" onClick="{{ c.toggle }}">
+                <sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+                <sc-if value="{{ c.off }}" hint-placeholder-val="{{ true }}"><span style="width:15px;height:15px;flex:none;border:1.5px solid var(--color-divider)"></span></sc-if>
+                <span>{{ c.name }}</span><span style="margin-left:auto;font-size:11px;color:color-mix(in srgb, var(--color-text) 45%, transparent)">{{ c.count }}</span>
+              </label>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding-bottom:18px;border-bottom:1px solid var(--color-divider);margin-bottom:18px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Price</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="input" placeholder="Min" value="{{ minPrice }}" onChange="{{ setMin }}" />
+            <span style="opacity:0.5">–</span>
+            <input class="input" placeholder="Max" value="{{ maxPrice }}" onChange="{{ setMax }}" />
+          </div>
+        </div>
+
+        <div style="padding-bottom:18px;border-bottom:1px solid var(--color-divider);margin-bottom:18px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Availability</div>
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px" onClick="{{ toggleInStock }}">
+            <sc-if value="{{ inStockOnly }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+            <sc-if value="{{ notInStockOnly }}" hint-placeholder-val="{{ true }}"><span style="width:15px;height:15px;flex:none;border:1.5px solid var(--color-divider)"></span></sc-if>
+            In stock only
+          </label>
+        </div>
+
+        <div style="padding-bottom:18px;border-bottom:1px solid var(--color-divider);margin-bottom:18px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Seller</div>
+          <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
+            <sc-for list="{{ sellerFilters }}" as="f" hint-placeholder-count="4">
+              <label style="display:flex;align-items:center;gap:9px;cursor:pointer" onClick="{{ f.toggle }}">
+                <sc-if value="{{ f.on }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+                <sc-if value="{{ f.off }}" hint-placeholder-val="{{ true }}"><span style="width:15px;height:15px;flex:none;border:1.5px solid var(--color-divider)"></span></sc-if>
+                {{ f.name }}
+              </label>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Condition</div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <label class="radio"><input type="radio" name="cond2" checked="{{ true }}" onChange="{{ noop }}" /><span class="dot"></span>Any</label>
+            <label class="radio"><input type="radio" name="cond2" onChange="{{ noop }}" /><span class="dot"></span>New</label>
+            <label class="radio"><input type="radio" name="cond2" onChange="{{ noop }}" /><span class="dot"></span>Refurbished</label>
+          </div>
+        </div>
+      </aside>
+
+      <div>
+        <sc-if value="{{ hasChips }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px">
+            <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Active</span>
+            <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="2">
+              <span class="tag tag-accent" style="gap:8px;cursor:pointer" onClick="{{ ch.remove }}">{{ ch.label }} <span style="opacity:0.55">×</span></span>
+            </sc-for>
+            <button class="btn btn-ghost" onClick="{{ clearFilters }}" style="font-size:12px">Clear all</button>
+          </div>
+        </sc-if>
+
+        <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:16px">{{ resultCount }}</div>
+
+        <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+            <sc-for list="{{ results }}" as="p" hint-placeholder-count="6">
+              <div style="border:1px solid var(--color-divider);background:var(--color-bg);display:flex;flex-direction:column">
+                <div style="position:relative;aspect-ratio:4/3;border-bottom:1px solid var(--color-divider)">
+                  <image-slot class="grayscale" id="{{ p.slot }}" shape="rect" fit="cover" placeholder="Product"></image-slot>
+                  <sc-if value="{{ p.hasWas }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:0;left:0;background:var(--color-accent);color:var(--color-bg);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;pointer-events:none">{{ p.discount }}</span></sc-if>
+                </div>
+                <div style="padding:14px;display:flex;flex-direction:column;flex:1">
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">{{ p.seller }}</div>
+                  <div onClick="{{ p.open }}" style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:10px;cursor:pointer">{{ p.name }}</div>
+                  <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;margin-top:auto">
+                    <span style="font-family:var(--font-heading);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{ p.price }}</span>
+                    <sc-if value="{{ p.hasWas }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">{{ p.was }}</span></sc-if>
+                  </div>
+                  <div style="font-size:12px;margin-bottom:12px">{{ p.stockLabel }}</div>
+                  <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ p.add }}" disabled="{{ p.out }}">{{ p.cta }}</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:2px;margin-top:32px;padding-top:20px;border-top:2px solid var(--color-divider)">
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px" disabled="disabled">Previous</button>
+            <button class="btn" style="font-size:13px;padding:6px 12px;background:var(--color-accent);color:var(--color-bg)">1</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">2</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">3</button>
+            <span style="padding:0 8px;font-size:13px;opacity:0.5">…</span>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">42</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Next</button>
+            <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ pageLabel }}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.4"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">No results for “{{ query }}”</div>
+            <p style="font-size:14px;margin:0;max-width:52ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Check the spelling, use fewer words, or remove a filter. You can also browse the category instead.</p>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-primary" onClick="{{ clearFilters }}">Clear filters</button>
+              <button class="btn btn-secondary" onClick="{{ goCategory }}">Browse Home &amp; Kitchen</button>
+            </div>
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--color-divider);width:100%">
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Popular right now</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <span class="tag tag-neutral" style="cursor:pointer">cordless kettle</span>
+                <span class="tag tag-neutral" style="cursor:pointer">desk speakers</span>
+                <span class="tag tag-neutral" style="cursor:pointer">merino crew</span>
+                <span class="tag tag-neutral" style="cursor:pointer">cast iron skillet</span>
+                <span class="tag tag-neutral" style="cursor:pointer">packable duffel</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+            <sc-for list="{{ skeletons }}" as="k" hint-placeholder-count="6">
+              <div style="border:1px solid var(--color-divider)">
+                <div style="aspect-ratio:4/3;background:linear-gradient(90deg,var(--color-neutral-200) 0%,var(--color-neutral-300) 50%,var(--color-neutral-200) 100%);background-size:800px 100%;animation:mh-shimmer 1.4s linear infinite"></div>
+                <div style="padding:14px;display:flex;flex-direction:column;gap:9px">
+                  <div style="height:10px;width:45%;background:var(--color-neutral-300)"></div>
+                  <div style="height:13px;width:85%;background:var(--color-neutral-300)"></div>
+                  <div style="height:16px;width:35%;background:var(--color-neutral-300)"></div>
+                  <div style="height:32px;width:100%;background:var(--color-neutral-200)"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isProduct }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 64px">
+    <div style="padding:20px 0 20px;display:flex;align-items:center;gap:8px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">
+      <span onClick="{{ goHome }}" style="cursor:pointer">Home</span><span>/</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Home &amp; Kitchen</span><span>/</span>
+      <span onClick="{{ goCategory }}" style="cursor:pointer">Small appliances</span><span>/</span>
+      <span style="color:var(--color-text)">Aeris cordless kettle, 1.2L</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:48px;border-top:2px solid var(--color-divider);padding-top:32px">
+      <div>
+        <div style="display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="4">
+              <div style="aspect-ratio:1;border:1px solid var(--color-divider);cursor:pointer" class="grayscale" onClick="{{ g.select }}">
+                <image-slot id="{{ g.slot }}" shape="rect" fit="cover" placeholder="Thumb"></image-slot>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border:1px solid var(--color-divider);aspect-ratio:1;position:relative">
+            <image-slot class="grayscale" id="{{ mainSlot }}" shape="rect" fit="cover" placeholder="Main product image"></image-slot>
+            <span style="position:absolute;top:0;left:0;background:var(--color-accent);color:var(--color-bg);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;padding:4px 10px;pointer-events:none">−29%</span>
+          </div>
+        </div>
+
+        <div style="margin-top:40px;border-top:2px solid var(--color-divider);padding-top:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px">
+          <div>
+            <h3 style="font-size:20px;margin:0 0 10px">About this product</h3>
+            <p style="font-size:14px;margin:0 0 12px;color:color-mix(in srgb, var(--color-text) 78%, transparent)">A 1.2 litre cordless kettle with a 360° base, variable temperature between 60 and 100°C, and a brushed stainless body. Designed for pour-over: the gooseneck spout pours a steady 4 ml/s stream.</p>
+            <p style="font-size:14px;margin:0;color:color-mix(in srgb, var(--color-text) 78%, transparent)">Tested in the Aeris kitchen in Portland for six months before listing. Two-year warranty handled directly by the seller.</p>
+          </div>
+          <div>
+            <h3 style="font-size:20px;margin:0 0 10px">Specification</h3>
+            <table class="table" style="font-size:13px">
+              <tbody>
+                <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Brand</td><td style="padding-right:0">Aeris</td></tr>
+                <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">SKU</td><td style="padding-right:0">AC-KTL-1105</td></tr>
+                <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Condition</td><td style="padding-right:0">New</td></tr>
+                <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Capacity</td><td style="padding-right:0">1.2 L</td></tr>
+                <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Power</td><td style="padding-right:0">1500 W</td></tr>
+                <tr><td style="padding-left:0;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Category</td><td style="padding-right:0">Home &amp; Kitchen / Small appliances</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          Sold by <span onClick="{{ goStore }}" style="color:var(--color-accent);cursor:pointer;font-weight:600">Aeris Kitchen Co.</span>
+          <span class="tag tag-neutral">Verified seller</span>
+        </div>
+        <h1 style="font-size:36px;line-height:1.1;margin:0 0 16px">Aeris cordless kettle, 1.2L</h1>
+
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">
+          <span style="font-family:var(--font-heading);font-weight:800;font-size:34px;font-variant-numeric:tabular-nums">{{ pdPrice }}</span>
+          <span style="font-size:16px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">$129.00</span>
+          <span class="tag tag-accent">Save $37.00</span>
+        </div>
+        <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:20px">Price includes tax · shipping calculated at checkout</div>
+
+        <div style="border-top:1px solid var(--color-divider);padding-top:18px;margin-bottom:18px">
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Colour — <strong style="color:var(--color-text)">{{ pdColor }}</strong></div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ colors }}" as="c" hint-placeholder-count="3">
+              <button onClick="{{ c.select }}" style="font:inherit;font-size:13px;padding:8px 14px;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.border }}">{{ c.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:10px">Capacity — <strong style="color:var(--color-text)">{{ pdSize }}</strong></div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ sizes }}" as="z" hint-placeholder-count="3">
+              <button onClick="{{ z.select }}" disabled="{{ z.disabled }}" style="font:inherit;font-size:13px;padding:8px 14px;cursor:pointer;background:{{ z.bg }};color:{{ z.fg }};border:1px solid {{ z.border }}">{{ z.label }}</button>
+            </sc-for>
+          </div>
+          <div style="font-size:11px;margin-top:8px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Each variant has its own price and stock. Unavailable combinations are disabled, never hidden.</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="font-size:13px;color:var(--color-accent-800);font-weight:600">{{ pdStock }}</div>
+          <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">SKU {{ pdSku }}</div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+          <div style="display:flex;border:1px solid var(--color-divider)">
+            <button onClick="{{ decQty }}" style="width:38px;height:40px;font:inherit;font-size:17px;background:transparent;border:0;cursor:pointer">−</button>
+            <div style="width:46px;height:40px;display:grid;place-items:center;font-size:15px;font-variant-numeric:tabular-nums;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider)">{{ qty }}</div>
+            <button onClick="{{ incQty }}" style="width:38px;height:40px;font:inherit;font-size:17px;background:transparent;border:0;cursor:pointer">+</button>
+          </div>
+          <button class="btn btn-primary" style="flex:1;justify-content:flex-start;height:40px" onClick="{{ addPd }}">Add to cart — {{ pdTotal }}</button>
+        </div>
+        <button class="btn btn-secondary btn-block" style="height:40px" onClick="{{ addPd }}">Buy it now</button>
+
+        <div style="border-top:1px solid var(--color-divider);margin-top:24px;padding-top:18px;display:flex;flex-direction:column;gap:12px;font-size:13px">
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="flex:none;margin-top:1px"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><div><strong>Ships in 1–2 business days</strong><div style="color:color-mix(in srgb, var(--color-text) 60%, transparent)">Dispatched directly by Aeris Kitchen Co. · USPS Ground</div></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="flex:none;margin-top:1px"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg><div><strong>30-day returns</strong><div style="color:color-mix(in srgb, var(--color-text) 60%, transparent)">Unused and in original packaging. Seller pays return shipping on faults.</div></div></div>
+        </div>
+
+        <div onClick="{{ goStore }}" style="border:1px solid var(--color-divider);margin-top:20px;padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer">
+          <div style="width:44px;height:44px;flex:none;border:1px solid var(--color-divider)" class="grayscale"><image-slot id="cs-pd-sellerlogo" shape="rect" fit="cover" placeholder="Logo"></image-slot></div>
+          <div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">Aeris Kitchen Co.</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Portland, OR · 84 products · selling since 2024</div>
+          </div>
+          <span style="margin-left:auto;color:var(--color-accent);font-size:13px;font-weight:600">Visit store →</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:56px;border-top:2px solid var(--color-divider);padding-top:28px">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:22px">
+        <h2 style="margin:0;font-size:28px">More from Aeris Kitchen Co.</h2>
+        <button class="btn btn-ghost" onClick="{{ goStore }}" style="margin-left:auto;font-size:13px">All 84 products →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px">
+        <sc-for list="{{ related }}" as="p" hint-placeholder-count="4">
+          <div style="border:1px solid var(--color-divider);display:flex;flex-direction:column">
+            <div style="aspect-ratio:1;border-bottom:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ p.slot }}" shape="rect" fit="cover" placeholder="Product"></image-slot></div>
+            <div style="padding:14px;display:flex;flex-direction:column;flex:1">
+              <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:5px">{{ p.seller }}</div>
+              <div onClick="{{ p.open }}" style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:10px;cursor:pointer">{{ p.name }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;margin-top:auto"><span style="font-family:var(--font-heading);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{ p.price }}</span></div>
+              <div style="font-size:12px;margin-bottom:12px">{{ p.stockLabel }}</div>
+              <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ p.add }}" disabled="{{ p.out }}">{{ p.cta }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isStore }}" hint-placeholder-val="{{ false }}">
+  <div>
+    <div style="height:260px;border-bottom:2px solid var(--color-divider);position:relative" class="grayscale">
+      <image-slot id="cs-store-banner" shape="rect" fit="cover" placeholder="Store banner — 1600×400"></image-slot>
+    </div>
+    <div style="max-width:1280px;margin:0 auto;padding:0 40px 64px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:end;padding:24px 0;border-bottom:2px solid var(--color-divider)">
+        <div style="display:flex;gap:20px;align-items:flex-end">
+          <div style="width:104px;height:104px;flex:none;border:2px solid var(--color-divider);margin-top:-64px;background:var(--color-bg)" class="grayscale"><image-slot id="cs-store-logo" shape="rect" fit="cover" placeholder="Logo"></image-slot></div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <h1 style="margin:0;font-size:38px">Aeris Kitchen Co.</h1>
+              <span class="tag tag-neutral">Verified seller</span>
+            </div>
+            <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">markethub.com/store/aeris-kitchen · Portland, OR · selling since 2024</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary">Contact seller</button>
+          <button class="btn btn-primary">Follow store</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:236px minmax(0,1fr);gap:40px;padding-top:28px">
+        <aside>
+          <p style="font-size:14px;margin:0 0 20px;color:color-mix(in srgb, var(--color-text) 78%, transparent)">Small-batch kitchen tools, tested in a working restaurant kitchen before we list them. Everything ships from our own workshop in Portland.</p>
+          <div style="border-top:1px solid var(--color-divider);padding-top:16px;margin-bottom:16px">
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Store</div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.6">Products</span><span>84</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.6">Ships from</span><span>Portland, OR</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.6">Dispatch</span><span>1–2 days</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="opacity:0.6">Returns</span><span>30 days</span></div>
+          </div>
+          <div style="border-top:1px solid var(--color-divider);padding-top:16px;margin-bottom:16px">
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Shipping policy</div>
+            <p style="font-size:12px;margin:0;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Orders placed before 2pm PT ship the same day. Flat $6.00 US ground shipping; free over $75.</p>
+          </div>
+          <div style="border-top:1px solid var(--color-divider);padding-top:16px">
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Return policy</div>
+            <p style="font-size:12px;margin:0;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Unused items in original packaging accepted within 30 days. Faulty items are collected at our cost.</p>
+          </div>
+        </aside>
+
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+            <div style="position:relative;flex:1;max-width:320px">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+              <input class="input" style="padding-left:30px" placeholder="Search this store" value="{{ storeQuery }}" onChange="{{ setStoreQuery }}" />
+            </div>
+            <div class="seg">
+              <label class="seg-opt"><input type="radio" name="stcat" checked="{{ true }}" onChange="{{ noop }}" />All</label>
+              <label class="seg-opt"><input type="radio" name="stcat" onChange="{{ noop }}" />Brewing</label>
+              <label class="seg-opt"><input type="radio" name="stcat" onChange="{{ noop }}" />Cookware</label>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ storeCount }}</div>
+          </div>
+
+          <sc-if value="{{ storeHas }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+              <sc-for list="{{ storeProducts }}" as="p" hint-placeholder-count="3">
+                <div style="border:1px solid var(--color-divider);display:flex;flex-direction:column">
+                  <div style="aspect-ratio:4/3;border-bottom:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ p.slot }}" shape="rect" fit="cover" placeholder="Product"></image-slot></div>
+                  <div style="padding:14px;display:flex;flex-direction:column;flex:1">
+                    <div onClick="{{ p.open }}" style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1.25;margin-bottom:10px;cursor:pointer">{{ p.name }}</div>
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;margin-top:auto">
+                      <span style="font-family:var(--font-heading);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums">{{ p.price }}</span>
+                      <sc-if value="{{ p.hasWas }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">{{ p.was }}</span></sc-if>
+                    </div>
+                    <div style="font-size:12px;margin-bottom:12px">{{ p.stockLabel }}</div>
+                    <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ p.add }}" disabled="{{ p.out }}">{{ p.cta }}</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ storeEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--color-divider);padding:48px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:10px">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:20px">Nothing in this store matches “{{ storeQuery }}”</div>
+              <p style="font-size:13px;margin:0;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Try a shorter term, or clear the search to see all 84 products.</p>
+              <button class="btn btn-primary" onClick="{{ clearStoreQuery }}">Clear search</button>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isCart }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 64px">
+    <div style="padding:28px 0 20px;border-bottom:2px solid var(--color-divider);display:flex;align-items:baseline;gap:16px">
+      <h1 style="margin:0;font-size:42px">Your cart</h1>
+      <span style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ cartItemCount }} items from {{ sellerCount }} sellers</span>
+      <button class="btn btn-ghost" onClick="{{ goCategory }}" style="margin-left:auto;font-size:13px">Continue shopping</button>
+    </div>
+
+    <sc-if value="{{ cartHas }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:48px;padding-top:24px">
+        <div>
+          <sc-for list="{{ cartLines }}" as="l" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:20px;padding:20px 0;border-bottom:1px solid var(--color-divider)">
+              <div style="width:96px;height:96px;border:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ l.slot }}" shape="rect" fit="cover" placeholder="Item"></image-slot></div>
+              <div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:4px">{{ l.seller }}</div>
+                <div onClick="{{ l.open }}" style="font-family:var(--font-heading);font-weight:800;font-size:17px;margin-bottom:4px;cursor:pointer">{{ l.name }}</div>
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:12px">{{ l.variant }} · {{ l.price }} each</div>
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div style="display:flex;border:1px solid var(--color-divider)">
+                    <button onClick="{{ l.dec }}" style="width:32px;height:32px;font:inherit;font-size:16px;background:transparent;border:0;cursor:pointer">−</button>
+                    <div style="width:38px;height:32px;display:grid;place-items:center;font-size:14px;font-variant-numeric:tabular-nums;border-left:1px solid var(--color-divider);border-right:1px solid var(--color-divider)">{{ l.qty }}</div>
+                    <button onClick="{{ l.inc }}" style="width:32px;height:32px;font:inherit;font-size:16px;background:transparent;border:0;cursor:pointer">+</button>
+                  </div>
+                  <button class="btn btn-ghost" onClick="{{ l.remove }}" style="font-size:13px">Remove</button>
+                </div>
+              </div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;font-variant-numeric:tabular-nums">{{ l.lineTotal }}</div>
+            </div>
+          </sc-for>
+          <div style="margin-top:20px;background:var(--color-surface);padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="flex:none;margin-top:1px"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>
+            <div style="font-size:13px">Items ship separately from each seller. You'll get one tracking number per seller.</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="border:1px solid var(--color-divider);padding:20px;position:sticky;top:130px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:16px">Order summary</div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Subtotal</span><span style="font-variant-numeric:tabular-nums">{{ subTotal }}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">{{ shipTotal }}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Estimated tax</span><span style="font-variant-numeric:tabular-nums">{{ taxTotal }}</span></div>
+            <div style="font-size:11px;color:var(--color-accent-800);padding:4px 0 10px">{{ freeShipNote }}</div>
+            <div style="height:2px;background:var(--color-divider);margin:10px 0"></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+              <span style="font-size:14px;font-weight:600">Total</span>
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">{{ grandTotal }}</span>
+            </div>
+            <button class="btn btn-primary btn-block" style="height:42px" onClick="{{ goCheckout }}">Checkout</button>
+            <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Taxes recalculated at checkout once the shipping address is confirmed.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid var(--color-divider);margin-top:32px;padding:64px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.4"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:24px">Your cart is empty</div>
+        <p style="font-size:14px;margin:0;max-width:50ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Nothing here yet. Browse 8,400 products from 412 independent sellers, or pick up where you left off.</p>
+        <button class="btn btn-primary" onClick="{{ goCategory }}">Browse everything</button>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isCheckout }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 64px">
+    <div style="padding:28px 0 20px;border-bottom:2px solid var(--color-divider);display:flex;align-items:baseline;gap:20px">
+      <h1 style="margin:0;font-size:42px">Checkout</h1>
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">
+        <span onClick="{{ goCart }}" style="cursor:pointer">Cart</span><span>→</span><span style="color:var(--color-accent);font-weight:600">Details &amp; payment</span><span>→</span><span>Confirmation</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="11" width="16" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        Secure test-mode payment
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:56px;padding-top:28px">
+      <div>
+        <sc-if value="{{ payFailed }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;display:flex;gap:12px;margin-bottom:24px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+            <div><div style="font-weight:600;font-size:14px;color:var(--color-accent-900)">Card declined by the issuer</div><div style="font-size:13px;color:var(--color-accent-900);opacity:0.85">No charge was made and your cart is untouched. The attempt has been recorded — try another card or use the test card that succeeds.</div>
+            <button class="btn btn-ghost" onClick="{{ useGood }}" style="font-size:13px;padding-left:0">Use 4242 4242 4242 4242</button></div>
+          </div>
+        </sc-if>
+
+        <div style="margin-bottom:32px">
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+            <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</span>
+            <h2 style="margin:0;font-size:22px">Contact</h2>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+            <div class="field"><label>Full name</label><input class="input" value="{{ shipName }}" onChange="{{ setName }}" /></div>
+            <div class="field"><label>Email — order updates go here</label><input class="input" value="{{ shipEmail }}" onChange="{{ setEmail }}" /></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:32px">
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+            <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</span>
+            <h2 style="margin:0;font-size:22px">Shipping address</h2>
+            <button class="btn btn-ghost" style="margin-left:auto;font-size:13px">Use a saved address</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px">
+            <div class="field" style="grid-column:span 4"><label>Street address</label><input class="input" value="{{ shipLine1 }}" onChange="{{ setLine1 }}" /></div>
+            <div class="field" style="grid-column:span 2"><label>Apt / suite (optional)</label><input class="input" value="{{ shipLine2 }}" /></div>
+            <div class="field" style="grid-column:span 3"><label>City</label><input class="input" value="{{ shipCity }}" onChange="{{ setCity }}" /></div>
+            <div class="field" style="grid-column:span 1"><label>State</label><input class="input" value="{{ shipState }}" /></div>
+            <div class="field" style="grid-column:span 2">
+              <label>ZIP code</label>
+              <input class="input" value="{{ shipZip }}" onChange="{{ setZip }}" />
+              <sc-if value="{{ zipError }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                  Enter a 5-digit US ZIP code
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+            <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</span>
+            <h2 style="margin:0;font-size:22px">Payment</h2>
+            <span class="tag tag-accent" style="margin-left:auto">Stripe test mode</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-bottom:16px">
+            <div class="field" style="grid-column:span 4"><label>Card number</label><input class="input" value="{{ cardNum }}" onChange="{{ setCardNum }}" /></div>
+            <div class="field" style="grid-column:span 1"><label>Expiry</label><input class="input" value="{{ cardExp }}" /></div>
+            <div class="field" style="grid-column:span 1"><label>CVC</label><input class="input" value="{{ cardCvc }}" /></div>
+          </div>
+          <div style="background:var(--color-surface);padding:12px 14px;font-size:12px;display:flex;align-items:center;gap:12px">
+            <span style="opacity:0.7">Test cards:</span>
+            <button class="btn btn-ghost" onClick="{{ useGood }}" style="font-size:12px">4242 — succeeds</button>
+            <button class="btn btn-ghost" onClick="{{ useDecline }}" style="font-size:12px">4000 0000 0000 0002 — declined</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="border:1px solid var(--color-divider);padding:20px;position:sticky;top:130px">
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:16px">Order summary</div>
+          <sc-for list="{{ cartLines }}" as="l" hint-placeholder-count="2">
+            <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+              <div style="width:48px;height:48px;flex:none;border:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ l.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;line-height:1.3">{{ l.name }}</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ l.variant }} · Qty {{ l.qty }}</div>
+              </div>
+              <div style="font-size:13px;font-variant-numeric:tabular-nums">{{ l.lineTotal }}</div>
+            </div>
+          </sc-for>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0 6px"><span style="opacity:0.7">Subtotal</span><span style="font-variant-numeric:tabular-nums">{{ subTotal }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">{{ shipTotal }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Tax</span><span style="font-variant-numeric:tabular-nums">{{ taxTotal }}</span></div>
+          <div style="height:2px;background:var(--color-divider);margin:10px 0"></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+            <span style="font-size:14px;font-weight:600">Total due</span>
+            <span style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">{{ grandTotal }}</span>
+          </div>
+          <sc-if value="{{ payBusy }}" hint-placeholder-val="{{ false }}">
+            <button class="btn btn-primary btn-block" style="height:44px" disabled="disabled">Placing order…</button>
+          </sc-if>
+          <sc-if value="{{ payIdle }}" hint-placeholder-val="{{ true }}">
+            <button class="btn btn-primary btn-block" style="height:44px" onClick="{{ placeOrder }}" disabled="{{ zipError }}">Place order — {{ grandTotal }}</button>
+          </sc-if>
+          <sc-if value="{{ payFailed }}" hint-placeholder-val="{{ false }}">
+            <button class="btn btn-primary btn-block" style="height:44px" onClick="{{ placeOrder }}">Retry payment</button>
+          </sc-if>
+          <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">By placing this order you agree to MarketHub's terms. Each seller ships their own items.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 64px">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:56px;padding:48px 0 0">
+      <div>
+        <div style="width:44px;height:44px;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center;margin-bottom:20px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg></div>
+        <h1 style="margin:0 0 12px;font-size:48px;max-width:18ch">Thanks — your order is placed.</h1>
+        <p style="font-size:16px;max-width:52ch;margin:0 0 28px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">Order <strong>{{ orderNo }}</strong> · {{ paidTotal }} charged to Visa ending 4242. A confirmation is on its way to {{ shipEmail }}.</p>
+
+        <div style="display:flex;gap:8px;margin-bottom:40px">
+          <button class="btn btn-primary">Track this order</button>
+          <button class="btn btn-secondary" onClick="{{ startOver }}">Continue shopping</button>
+        </div>
+
+        <div style="border-top:2px solid var(--color-divider);padding-top:24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
+          <div>
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Shipping to</div>
+            <div style="font-size:13px;line-height:1.6">{{ shipName }}<br />{{ shipLine1 }}, {{ shipLine2 }}<br />{{ shipCity }}, {{ shipState }} {{ shipZip }}<br />{{ shipPhone }}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Delivery estimate</div>
+            <div style="font-size:13px;line-height:1.6">Aug 17 – Aug 19, 2026<br />USPS Ground<br /><span style="color:color-mix(in srgb, var(--color-text) 60%, transparent)">Tracking appears here once each seller ships.</span></div>
+          </div>
+          <div>
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Payment</div>
+            <div style="font-size:13px;line-height:1.6">Visa ending 4242<br />Captured Aug 12, 2026<br /><span class="tag tag-neutral" style="margin-top:6px">Paid</span></div>
+          </div>
+        </div>
+
+        <div style="border-top:2px solid var(--color-divider);margin-top:32px;padding-top:24px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:16px">Your order ships in {{ sellerCount }} parcels</div>
+          <sc-for list="{{ cartLines }}" as="l" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+              <div style="width:64px;height:64px;border:1px solid var(--color-divider)" class="grayscale"><image-slot id="{{ l.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div>
+              <div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ l.seller }}</div>
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ l.name }}</div>
+                <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ l.variant }} · Qty {{ l.qty }}</div>
+              </div>
+              <div style="text-align:right"><div style="font-size:15px;font-variant-numeric:tabular-nums;font-weight:600">{{ l.lineTotal }}</div><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider);margin-top:4px">Processing</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div>
+        <div style="border:1px solid var(--color-divider);padding:20px">
+          <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:16px">Order {{ orderNo }}</div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Subtotal</span><span style="font-variant-numeric:tabular-nums">{{ subTotal }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">{{ shipTotal }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0"><span style="opacity:0.7">Tax</span><span style="font-variant-numeric:tabular-nums">{{ taxTotal }}</span></div>
+          <div style="height:2px;background:var(--color-divider);margin:10px 0"></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600">Paid</span><span style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">{{ paidTotal }}</span></div>
+          <div style="height:1px;background:var(--color-divider);margin:16px 0"></div>
+          <div style="font-size:12px;line-height:1.6;color:color-mix(in srgb, var(--color-text) 65%, transparent)">Need to change something? You can cancel an item until the seller marks it packed, from order detail.</div>
+          <button class="btn btn-secondary btn-block" style="margin-top:12px">View order detail</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 80px">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-bottom:2px solid var(--color-divider)">
+      <div style="padding:56px 56px 56px 0">
+        <div style="display:flex;gap:2px;margin-bottom:32px">
+          <button onClick="{{ authSignIn }}" style="font:inherit;font-size:13px;padding:7px 14px;border:1px solid var(--color-divider);cursor:pointer;background:{{ signInBg }};color:{{ signInFg }}">Sign in</button>
+          <button onClick="{{ authRegister }}" style="font:inherit;font-size:13px;padding:7px 14px;border:1px solid var(--color-divider);cursor:pointer;background:{{ registerBg }};color:{{ registerFg }}">Create account</button>
+          <button onClick="{{ authReset }}" style="font:inherit;font-size:13px;padding:7px 14px;border:1px solid var(--color-divider);cursor:pointer;background:{{ resetBg }};color:{{ resetFg }}">Reset password</button>
+        </div>
+
+        <sc-if value="{{ onSignIn }}" hint-placeholder-val="{{ true }}">
+          <h1 style="margin:0 0 12px;font-size:44px">Welcome back</h1>
+          <p style="font-size:15px;max-width:44ch;margin:0 0 28px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Sign in to track orders, save addresses and check out faster.</p>
+          <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;display:flex;gap:12px;margin-bottom:20px;max-width:440px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+              <div><div style="font-weight:600;font-size:14px;color:var(--color-accent-900)">We couldn't sign you in</div><div style="font-size:13px;color:var(--color-accent-900);opacity:0.85">Check the email and password and try again, or reset your password.</div></div>
+            </div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:16px;max-width:440px">
+            <div class="field"><label>Email</label><input class="input" value="priya.r@example.com" /></div>
+            <div class="field"><label>Password</label><input class="input" type="password" value="••••••••••" /><button class="btn btn-ghost" style="font-size:12px;padding-left:0;margin-top:6px" onClick="{{ authReset }}">Forgot your password?</button></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onClick="{{ goAccount }}">Sign in</button>
+              <button class="btn btn-secondary" onClick="{{ showAuthError }}">Show error state</button>
+            </div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">New to MarketHub? <span style="color:var(--color-accent);cursor:pointer" onClick="{{ authRegister }}">Create an account</span> — it takes about a minute.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ onRegister }}" hint-placeholder-val="{{ false }}">
+          <h1 style="margin:0 0 12px;font-size:44px">Create your account</h1>
+          <p style="font-size:15px;max-width:44ch;margin:0 0 28px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">One account for every store on MarketHub. You can check out as a guest too — an account just keeps your orders and addresses.</p>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:520px">
+            <div class="field"><label>First name</label><input class="input" value="Priya" /></div>
+            <div class="field"><label>Last name</label><input class="input" value="Raman" /></div>
+            <div class="field" style="grid-column:span 2"><label>Email</label><input class="input" value="{{ regEmail }}" onChange="{{ setRegEmail }}" />
+              <sc-if value="{{ regEmailError }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>Enter a valid email address</div>
+              </sc-if>
+            </div>
+            <div class="field" style="grid-column:span 2"><label>Password</label><input class="input" type="password" value="{{ regPass }}" onChange="{{ setRegPass }}" />
+              <div style="display:flex;gap:4px;margin-top:8px">
+                <div style="flex:1;height:4px;background:{{ pw1 }}"></div>
+                <div style="flex:1;height:4px;background:{{ pw2 }}"></div>
+                <div style="flex:1;height:4px;background:{{ pw3 }}"></div>
+              </div>
+              <div style="font-size:11px;margin-top:6px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ pwLabel }}</div>
+            </div>
+          </div>
+          <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;cursor:pointer;margin:20px 0;max-width:520px" onClick="{{ toggleMarketing }}">
+            <sc-if value="{{ marketing }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center;margin-top:1px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+            <sc-if value="{{ notMarketing }}" hint-placeholder-val="{{ true }}"><span style="width:16px;height:16px;flex:none;border:1.5px solid var(--color-divider);margin-top:1px"></span></sc-if>
+            Email me new arrivals and seller news. Order emails are sent either way.
+          </label>
+          <div style="display:flex;gap:8px"><button class="btn btn-primary" onClick="{{ goAccount }}" disabled="{{ regBlocked }}">Create account</button><button class="btn btn-secondary" onClick="{{ authSignIn }}">I already have one</button></div>
+        </sc-if>
+
+        <sc-if value="{{ onReset }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ resetSent }}" hint-placeholder-val="{{ false }}">
+            <div style="width:40px;height:40px;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center;margin-bottom:18px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"></path></svg></div>
+            <h1 style="margin:0 0 12px;font-size:40px">Check your email</h1>
+            <p style="font-size:15px;max-width:46ch;margin:0 0 24px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">If an account exists for <strong>priya.r@example.com</strong> we've sent a reset link. It expires in 60 minutes and can only be used once.</p>
+            <div style="display:flex;gap:8px"><button class="btn btn-secondary" onClick="{{ authSignIn }}">Back to sign in</button><button class="btn btn-ghost" onClick="{{ authReset }}">Send it again</button></div>
+          </sc-if>
+          <sc-if value="{{ resetForm }}" hint-placeholder-val="{{ true }}">
+            <h1 style="margin:0 0 12px;font-size:44px">Reset your password</h1>
+            <p style="font-size:15px;max-width:46ch;margin:0 0 28px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Enter the email on your account and we'll send a link to set a new password.</p>
+            <div style="display:flex;flex-direction:column;gap:16px;max-width:440px">
+              <div class="field"><label>Email</label><input class="input" value="priya.r@example.com" /></div>
+              <div style="display:flex;gap:8px"><button class="btn btn-primary" onClick="{{ sendReset }}">Send reset link</button><button class="btn btn-secondary" onClick="{{ authSignIn }}">Cancel</button></div>
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">For security, the confirmation is the same whether or not an account exists.</div>
+            </div>
+          </sc-if>
+        </sc-if>
+      </div>
+      <div style="border-left:2px solid var(--color-divider);min-height:520px"><image-slot class="grayscale" id="cs-auth" shape="rect" fit="cover" placeholder="Photograph — grayscale"></image-slot></div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ inAccount }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;margin:0 auto;padding:0 40px 80px">
+    <div style="padding:28px 0 20px;border-bottom:2px solid var(--color-divider);display:flex;align-items:baseline;gap:16px">
+      <h1 style="margin:0;font-size:42px">{{ accountTitle }}</h1>
+      <span style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Priya Raman · priya.r@example.com</span>
+      <button class="btn btn-ghost" style="margin-left:auto;font-size:13px" onClick="{{ goAuth }}">Sign out</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:44px;padding-top:28px">
+      <nav>
+        <sc-for list="{{ accountNav }}" as="n" hint-placeholder-count="4">
+          <div onClick="{{ n.go }}" style="padding:9px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--color-divider);color:{{ n.fg }};font-weight:{{ n.weight }}">{{ n.label }}</div>
+        </sc-for>
+      </nav>
+
+      <div>
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:620px">
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)"><h2 style="margin:0;font-size:22px">Your details</h2></div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:28px">
+              <div class="field"><label>First name</label><input class="input" value="Priya" /></div>
+              <div class="field"><label>Last name</label><input class="input" value="Raman" /></div>
+              <div class="field" style="grid-column:span 2"><label>Email</label><input class="input" value="priya.r@example.com" /><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Changing this sends a confirmation to both addresses</div></div>
+              <div class="field" style="grid-column:span 2"><label>Phone — used for delivery updates</label><input class="input" value="(503) 555-0148" /></div>
+            </div>
+
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)"><h2 style="margin:0;font-size:22px">Password</h2></div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:28px">
+              <div class="field" style="grid-column:span 2"><label>Current password</label><input class="input" type="password" value="••••••••••" /></div>
+              <div class="field"><label>New password</label><input class="input" type="password" value="" /></div>
+              <div class="field"><label>Confirm new password</label><input class="input" type="password" value="" /></div>
+            </div>
+
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)"><h2 style="margin:0;font-size:22px">Email preferences</h2></div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:28px">
+              <div style="display:flex;align-items:center;gap:16px;background:var(--color-surface);padding:14px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">Order updates</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">Confirmation, shipping and delivery — always on</div></div><span style="width:44px;height:24px;padding:2px;border:1px solid var(--color-divider);display:flex;justify-content:flex-end;align-items:center;opacity:0.45"><span style="width:18px;height:18px;background:var(--color-neutral-500)"></span></span></div>
+              <div style="display:flex;align-items:center;gap:16px;background:var(--color-surface);padding:14px 16px"><div style="flex:1"><div style="font-size:14px;font-weight:600">New arrivals and seller news</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">About one email a week</div></div>
+                <button onClick="{{ toggleMarketing }}" style="width:44px;height:24px;padding:2px;border:1px solid var(--color-divider);background:transparent;cursor:pointer;display:flex;align-items:center;flex:none">
+                  <sc-if value="{{ marketing }}" hint-placeholder-val="{{ false }}"><span style="width:100%;height:100%;display:flex;justify-content:flex-end"><span style="width:18px;height:18px;background:var(--color-accent)"></span></span></sc-if>
+                  <sc-if value="{{ notMarketing }}" hint-placeholder-val="{{ true }}"><span style="width:18px;height:18px;background:var(--color-neutral-400)"></span></sc-if>
+                </button>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;padding-top:16px;border-top:2px solid var(--color-divider)">
+              <button class="btn btn-primary" onClick="{{ saveProfile }}">Save changes</button>
+              <button class="btn btn-secondary">Discard</button>
+              <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ profileSaved }}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAddresses }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+            <h2 style="margin:0;font-size:22px">Saved addresses</h2>
+            <button class="btn btn-primary" style="margin-left:auto;font-size:13px;padding:6px 12px" onClick="{{ addAddress }}">Add an address</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px">
+            <sc-for list="{{ addresses }}" as="a" hint-placeholder-count="3">
+              <div style="border:1px solid var(--color-divider);padding:18px;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ a.label }}</div>
+                  <sc-if value="{{ a.isDefault }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent">Default</span></sc-if>
+                </div>
+                <div style="font-size:13px;line-height:1.6;flex:1;color:color-mix(in srgb, var(--color-text) 78%, transparent)">{{ a.name }}<br />{{ a.line1 }}<br />{{ a.city }}<br />{{ a.phone }}</div>
+                <div style="display:flex;gap:6px;margin-top:14px">
+                  <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Edit</button>
+                  <sc-if value="{{ a.notDefault }}" hint-placeholder-val="{{ true }}"><button class="btn btn-ghost" style="font-size:13px" onClick="{{ a.makeDefault }}">Make default</button></sc-if>
+                  <button class="btn btn-ghost" style="font-size:13px;margin-left:auto;color:color-mix(in srgb, var(--color-text) 55%, transparent)" onClick="{{ a.remove }}">Remove</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ noAddresses }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">No saved addresses</div>
+              <p style="font-size:14px;margin:0;max-width:50ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Add one now, or save the address you enter at checkout.</p>
+              <button class="btn btn-primary" onClick="{{ addAddress }}">Add an address</button>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:20px">
+            <div class="seg">
+              <sc-for list="{{ historyTabs }}" as="t" hint-placeholder-count="4">
+                <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+              </sc-for>
+            </div>
+            <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ historyCount }}</div>
+          </div>
+
+          <sc-if value="{{ historyHas }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <sc-for list="{{ history }}" as="h" hint-placeholder-count="4">
+                <div style="border:1px solid var(--color-divider)">
+                  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;padding:14px 18px;background:var(--color-surface)">
+                    <div><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Order</div><div style="font-size:14px;font-weight:600">{{ h.no }}</div></div>
+                    <div><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Placed</div><div style="font-size:14px">{{ h.date }}</div></div>
+                    <div><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Total</div><div style="font-size:14px;font-variant-numeric:tabular-nums">{{ h.total }}</div></div>
+                    <div><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Ships from</div><div style="font-size:14px">{{ h.seller }}</div></div>
+                    <span class="tag {{ h.tagClass }}" style="{{ h.tagStyle }}">{{ h.status }}</span>
+                    <button class="btn btn-secondary" style="margin-left:auto;font-size:13px;padding:6px 12px" onClick="{{ h.open }}">{{ h.action }}</button>
+                  </div>
+                  <div style="padding:16px 18px;display:flex;gap:16px;align-items:center">
+                    <div style="width:64px;height:64px;flex:none;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="{{ h.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                    <div style="flex:1">
+                      <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ h.item }}</div>
+                      <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ h.itemsNote }}</div>
+                    </div>
+                    <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent);text-align:right">{{ h.deliveryNote }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">Nothing in this view</div>
+              <p style="font-size:14px;margin:0;max-width:50ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">You have no orders with this status yet.</p>
+              <button class="btn btn-primary" onClick="{{ goCategory }}">Start shopping</button>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isTracking }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:18px">
+            <span onClick="{{ goOrderHistory }}" style="cursor:pointer">Orders</span><span>/</span><span style="color:var(--color-text)">{{ trkNo }}</span>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;padding-bottom:18px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+            <div>
+              <h2 style="margin:0 0 6px;font-size:30px">{{ trkNo }}</h2>
+              <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Placed {{ trkDate }} · {{ trkTotal }} · ships from {{ trkSeller }}</div>
+            </div>
+            <span class="tag {{ trkTagClass }}" style="{{ trkTagStyle }}">{{ trkStatus }}</span>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <sc-if value="{{ trkCancellable }}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary" style="font-size:13px;border-color:var(--color-accent);color:var(--color-accent-700)" onClick="{{ cancelOrder }}">Cancel order</button></sc-if>
+              <button class="btn btn-secondary" style="font-size:13px">Contact seller</button>
+              <button class="btn btn-primary" style="font-size:13px">Buy it again</button>
+            </div>
+          </div>
+
+          <sc-if value="{{ trkCancelled }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 18px;margin-bottom:24px;font-size:14px;color:var(--color-accent-900)"><strong>Order cancelled.</strong> Nothing was shipped and the full {{ trkTotal }} has been refunded to your Visa ending 4242 — it usually appears within 5 business days.</div>
+          </sc-if>
+
+          <div style="margin-bottom:32px">
+            <div style="display:flex;align-items:flex-start">
+              <sc-for list="{{ trkSteps }}" as="st" hint-placeholder-count="5">
+                <div style="flex:1;padding-right:14px">
+                  <div style="height:4px;background:{{ st.bar }}"></div>
+                  <div style="font-size:13px;margin-top:10px;font-weight:600;color:{{ st.fg }}">{{ st.label }}</div>
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ st.when }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:13px;margin-top:16px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ trkSummary }}</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px">
+            <div>
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)"><h3 style="margin:0;font-size:18px">Items</h3></div>
+              <sc-for list="{{ trkLines }}" as="l" hint-placeholder-count="2">
+                <div style="display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--color-divider)">
+                  <div style="width:64px;height:64px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="{{ l.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  <div>
+                    <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ l.seller }}</div>
+                    <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ l.name }}</div>
+                    <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ l.variant }} · Qty {{ l.qty }}</div>
+                  </div>
+                  <div style="font-size:15px;font-variant-numeric:tabular-nums;font-weight:600">{{ l.lineTotal }}</div>
+                </div>
+              </sc-for>
+
+              <div style="margin-top:28px">
+                <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)"><h3 style="margin:0;font-size:18px">Status history</h3></div>
+                <table class="table">
+                  <thead><tr><th>When</th><th>Status</th><th>Detail</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ trkHistory }}" as="h" hint-placeholder-count="4">
+                      <tr><td style="white-space:nowrap;font-size:13px">{{ h.when }}</td><td><span class="tag {{ h.tagClass }}" style="{{ h.tagStyle }}">{{ h.status }}</span></td><td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ h.detail }}</td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:20px">
+              <div style="border:1px solid var(--color-divider);padding:16px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Delivery</div>
+                <div style="font-size:13px;line-height:1.6;margin-bottom:12px">Priya Raman<br />1841 NE Wasco St, Apt 4<br />Portland, OR 97232</div>
+                <div style="height:1px;background:var(--color-divider);margin-bottom:12px"></div>
+                <div style="font-size:13px;line-height:1.6">{{ trkCarrier }}<br /><span style="color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ trkTracking }}</span></div>
+                <sc-if value="{{ trkHasTracking }}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary btn-block" style="margin-top:12px">Track with carrier</button></sc-if>
+              </div>
+              <div style="border:1px solid var(--color-divider);padding:16px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Payment</div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Items</span><span style="font-variant-numeric:tabular-nums">$308.00</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">$6.00</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Tax</span><span style="font-variant-numeric:tabular-nums">$14.00</span></div>
+                <div style="height:2px;background:var(--color-divider);margin:8px 0"></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:600">{{ trkPaidLabel }}</span><span style="font-family:var(--font-heading);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums">{{ trkTotal }}</span></div>
+                <div style="font-size:12px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Visa ending 4242 · {{ trkPayNote }}</div>
+              </div>
+              <div style="border:1px solid var(--color-divider);padding:16px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Need help?</div>
+                <div style="font-size:13px;line-height:1.6;color:color-mix(in srgb, var(--color-text) 70%, transparent)">You can cancel until the seller marks the order packed. After that, request a return within 30 days of delivery.</div>
+                <button class="btn btn-secondary btn-block" style="margin-top:10px">Request a return</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;right:20px;bottom:20px;z-index:70;width:300px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;box-shadow:var(--shadow-md)">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — {{ noteTitle }}</div>
+      <div style="font-size:12px;line-height:1.55;color:var(--color-accent-900)">{{ noteBody }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:20px;bottom:20px;z-index:80;background:var(--color-text);color:var(--color-bg);padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-md);min-width:320px;animation:mh-rise 0.18s ease-out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span style="font-size:13px">{{ toastText }}</span>
+      <span style="margin-left:auto;font-size:12px;color:var(--color-accent-400);cursor:pointer" onClick="{{ undo }}">Undo</span>
+    </div>
+  </sc-if>
+
+  <footer style="border-top:2px solid var(--color-divider);background:var(--color-bg)">
+    <div style="max-width:1280px;margin:0 auto;padding:48px 40px;display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,minmax(0,1fr));gap:32px">
+      <div>
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px;margin-bottom:10px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+        <p style="font-size:13px;max-width:34ch;color:color-mix(in srgb, var(--color-text) 65%, transparent)">A marketplace of 412 independent stores. One cart, one checkout, shipped direct by the seller.</p>
+      </div>
+      <div><div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent);margin-bottom:12px">Shop</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span>All categories</span><span>New arrivals</span><span>Sellers</span><span>Gift ideas</span></div></div>
+      <div><div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent);margin-bottom:12px">Account</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span>Sign in</span><span>Register</span><span>Orders</span><span>Addresses</span></div></div>
+      <div><div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent);margin-bottom:12px">Sell</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span>Apply to sell</span><span>Seller portal</span><span>Commission</span><span>Policies</span></div></div>
+      <div><div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 50%, transparent);margin-bottom:12px">Support</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><span>Help centre</span><span>Shipping</span><span>Returns</span><span>Contact</span></div></div>
+    </div>
+    <div style="border-top:1px solid var(--color-divider)"><div style="max-width:1280px;margin:0 auto;padding:16px 40px;display:flex;gap:24px;font-size:12px;color:color-mix(in srgb, var(--color-text) 50%, transparent)"><span>© 2026 MarketHub</span><span>Terms</span><span>Privacy</span><span style="margin-left:auto">Prices in USD · ships within the US</span></div></div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+const CATALOG = [
+  { id: 'p1', name: 'Aeris cordless kettle, 1.2L', seller: 'Aeris Kitchen Co.', cat: 'Home & Kitchen', price: 92, was: 129, stock: 3 },
+  { id: 'p2', name: 'Northline S2 desk speakers', seller: 'Northline Audio', cat: 'Electronics', price: 248, was: 0, stock: 0 },
+  { id: 'p3', name: 'Fieldnote A5 notebook, 3-pack', seller: 'Fieldnote Supply', cat: 'Office', price: 24, was: 0, stock: 148 },
+  { id: 'p4', name: 'Halden merino crew, charcoal', seller: 'Halden Apparel', cat: 'Apparel', price: 118, was: 0, stock: 42 },
+  { id: 'p5', name: 'Tessel 65W GaN charger', seller: 'Northline Audio', cat: 'Electronics', price: 49, was: 59, stock: 86 },
+  { id: 'p6', name: 'Rivet cast iron skillet, 10 inch', seller: 'Aeris Kitchen Co.', cat: 'Home & Kitchen', price: 76, was: 0, stock: 27 },
+  { id: 'p7', name: 'Corvid desk lamp, matte black', seller: 'Studio Corvid', cat: 'Office', price: 164, was: 0, stock: 2 },
+  { id: 'p8', name: 'Bramble packable duffel, 40L', seller: 'Fieldnote Supply', cat: 'Outdoors', price: 138, was: 172, stock: 19 },
+  { id: 'p9', name: 'Meridian wall clock, 12 inch', seller: 'Studio Corvid', cat: 'Home & Kitchen', price: 89, was: 0, stock: 11 },
+  { id: 'p10', name: 'Halden ribbed socks, 3-pack', seller: 'Halden Apparel', cat: 'Apparel', price: 32, was: 0, stock: 210 },
+  { id: 'p11', name: 'Aeris pour-over set, 600ml', seller: 'Aeris Kitchen Co.', cat: 'Home & Kitchen', price: 58, was: 0, stock: 5 },
+  { id: 'p12', name: 'Northline N1 over-ear headphones', seller: 'Northline Audio', cat: 'Electronics', price: 329, was: 389, stock: 8 }
+];
+
+const money = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+const TONE = {
+  Placed: { cls: 'tag tag-neutral', style: '' },
+  Processing: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Packed: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Shipped: { cls: 'tag tag-neutral', style: '' },
+  Delivered: { cls: 'tag tag-neutral', style: '' },
+  Cancelled: { cls: 'tag tag-accent', style: '' },
+  Refunded: { cls: 'tag tag-accent', style: '' }
+};
+
+const TRACK_STEPS = ['Placed', 'Processing', 'Packed', 'Shipped', 'Delivered'];
+
+const ADDRESSES = [
+  { label: 'Home', name: 'Priya Raman', line1: '1841 NE Wasco St, Apt 4', city: 'Portland, OR 97232', phone: '(503) 555-0148' },
+  { label: 'Work', name: 'Priya Raman', line1: '600 SW Columbia St, Floor 8', city: 'Portland, OR 97201', phone: '(503) 555-0148' },
+  { label: 'Parents', name: 'Anil Raman', line1: '92 Larch Way', city: 'Eugene, OR 97401', phone: '(541) 555-0122' }
+];
+
+const HISTORY = [
+  { no: 'MH-24081', date: 'Aug 12, 2026', total: 328.00, seller: 'Aeris Kitchen Co.', status: 'Processing', item: 'Aeris cordless kettle, 1.2L', itemsNote: '+ 2 more items', deliveryNote: 'Expected Sun 17 Aug', slot: 'cs-p1' },
+  { no: 'MH-23964', date: 'Jul 28, 2026', total: 248.00, seller: 'Northline Audio', status: 'Delivered', item: 'Northline S2 desk speakers', itemsNote: '1 item', deliveryNote: 'Delivered 2 Aug', slot: 'cs-p2' },
+  { no: 'MH-23820', date: 'Jul 9, 2026', total: 96.50, seller: 'Fieldnote Supply', status: 'Delivered', item: 'Fieldnote A5 notebook, 3-pack', itemsNote: '+ 1 more item', deliveryNote: 'Delivered 13 Jul', slot: 'cs-p3' },
+  { no: 'MH-23701', date: 'Jun 22, 2026', total: 118.00, seller: 'Halden Apparel', status: 'Cancelled', item: 'Halden merino crew, charcoal', itemsNote: '1 item', deliveryNote: 'Refunded 23 Jun', slot: 'cs-p4' }
+];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home', notes: true, toast: null, query: 'cordless kettle',
+    cart: [
+      { key: 'p1|1.2 L|Brushed steel', id: 'p1', name: 'Aeris cordless kettle, 1.2L', seller: 'Aeris Kitchen Co.', variant: '1.2 L · Brushed steel', price: 92, qty: 1, slot: 'cs-p1' },
+      { key: 'p3|-', id: 'p3', name: 'Fieldnote A5 notebook, 3-pack', seller: 'Fieldnote Supply', variant: 'Dot grid', price: 24, qty: 2, slot: 'cs-p3' }
+    ],
+    ship: { name: 'Priya Raman', email: 'priya.r@example.com', phone: '(503) 555-0148', line1: '1841 NE Wasco St', line2: 'Apt 4', city: 'Portland', state: 'OR', zip: '97232' },
+    cardNum: '4242 4242 4242 4242', cardExp: '04 / 29', cardCvc: '123',
+    payState: 'idle', orderNo: 'MH-24081',
+    searchQuery: '', sort: 'relevance', cats: [], sellers: [], inStock: false,
+    min: '', max: '', loading: false,
+    pdColor: 'Brushed steel', pdSize: '1.2 L', qty: 1, gal: 0, storeQuery: '',
+    authTab: 'signin', authError: false, resetSent: false, marketing: false,
+    regEmail: 'priya.r@example.com', regPass: 'kettle-42', accountTab: 'profile',
+    profileSaved: 'Last saved 6 Aug', historyTab: 'All', trkNo: 'MH-24081', trkStatus: 'Processing',
+    addrRemoved: {}, defaultAddr: 'Home'
+  };
+
+  variant() {
+    const sizes = { '1.0 L': { price: 84, stock: 12, sku: 'AC-KTL-1100' }, '1.2 L': { price: 92, stock: 3, sku: 'AC-KTL-1105' }, '1.7 L': { price: 104, stock: 0, sku: 'AC-KTL-1107' } };
+    return sizes[this.state.pdSize];
+  }
+
+  card(p) {
+    return {
+      id: p.id, slot: 'cs-' + p.id, name: p.name, seller: p.seller,
+      price: money(p.price), was: p.was ? money(p.was) : '', hasWas: !!p.was,
+      discount: p.was ? '−' + Math.round((1 - p.price / p.was) * 100) + '%' : '',
+      out: p.stock === 0,
+      cta: p.stock === 0 ? 'Out of stock' : 'Add to cart',
+      stockLabel: p.stock === 0 ? 'Out of stock' : (p.stock <= 5 ? 'Only ' + p.stock + ' left' : 'In stock'),
+      open: () => this.setState({ screen: 'product', loading: false }),
+      add: () => { if (p.stock === 0) return; this.addLine({ key: p.id + '|-', id: p.id, name: p.name, seller: p.seller, variant: 'Default', price: p.price, qty: 1, slot: 'cs-' + p.id }); }
+    };
+  }
+
+  addLine(line) {
+    this.setState(s => {
+      const cart = s.cart.slice();
+      const i = cart.findIndex(l => l.key === line.key);
+      if (i > -1) cart[i] = Object.assign({}, cart[i], { qty: cart[i].qty + line.qty });
+      else cart.push(line);
+      return { cart, toast: line.name + ' added to cart' };
+    });
+    this.bump();
+  }
+
+  totals() {
+    const sub = this.state.cart.reduce((n, l) => n + l.price * l.qty, 0);
+    const shipping = sub === 0 ? 0 : (sub >= 75 ? 0 : 6);
+    const tax = Math.round(sub * 0.0875 * 100) / 100;
+    return { sub, shipping, tax, total: sub + shipping + tax };
+  }
+
+  bump() {
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: null }), 3200);
+  }
+
+  filtered() {
+    const s = this.state;
+    let out = CATALOG.filter(p => {
+      if (s.cats.length && !s.cats.includes(p.cat)) return false;
+      if (s.sellers.length && !s.sellers.includes(p.seller)) return false;
+      if (s.inStock && p.stock === 0) return false;
+      if (s.min && p.price < parseFloat(s.min)) return false;
+      if (s.max && p.price > parseFloat(s.max)) return false;
+      if (s.screen === 'search') {
+        const q = s.searchQuery.toLowerCase().trim();
+        if (q && !(p.name + ' ' + p.seller).toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+    if (s.sort === 'low') out = out.slice().sort((a, b) => a.price - b.price);
+    if (s.sort === 'high') out = out.slice().sort((a, b) => b.price - a.price);
+    if (s.sort === 'new') out = out.slice().reverse();
+    return out;
+  }
+
+  toggleIn(key, val) {
+    this.setState(s => {
+      const list = s[key];
+      return { [key]: list.includes(val) ? list.filter(x => x !== val) : list.concat([val]) };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const results = this.filtered();
+    const isSearch = s.screen === 'search';
+    const v = this.variant();
+    const t = this.totals();
+    const histRows = HISTORY.filter(h => {
+      if (s.historyTab === 'All') return true;
+      if (s.historyTab === 'In progress') return ['Placed', 'Processing', 'Packed', 'Shipped'].includes(h.status);
+      return h.status === s.historyTab;
+    });
+    const sq = s.storeQuery.toLowerCase().trim();
+    const storeItems = CATALOG.filter(p => p.seller === 'Aeris Kitchen Co.' && (!sq || p.name.toLowerCase().includes(sq)));
+    const chips = []
+      .concat(s.cats.map(c => ({ label: c, remove: () => this.toggleIn('cats', c) })))
+      .concat(s.sellers.map(c => ({ label: c, remove: () => this.toggleIn('sellers', c) })))
+      .concat(s.inStock ? [{ label: 'In stock only', remove: () => this.setState({ inStock: false }) }] : []);
+
+    const notesFor = {
+      home: ['Home', 'Featured and New are two separate curated lists, both admin-controlled. Product cards are one component with three stock states — in stock, low (≤5), out of stock — and the out-of-stock card disables its button rather than hiding it, so the layout stays stable.'],
+      category: ['Category listing', 'Filters write to URL query params (?cat=&seller=&in_stock=1&sort=) and are server-rendered for SEO. Sort and filter changes refetch the grid only — the sidebar and header do not re-render. Pagination is 24 per page.'],
+      search: ['Search results', 'Search hits title, seller name and SKU. The query stays in the header input so it can be refined without going back. Zero results keeps the filters visible — the most common cause of an empty result is an over-narrow filter, not a bad query.'],
+      empty: ['Empty search', 'The empty state offers three ways out: clear filters, browse the category, or pick a popular query. Never a dead end.'],
+      product: ['Product detail', 'Variant selection drives price, SKU and stock together — every combination is its own record. Sold-out combinations stay visible and disabled so the customer can see the range. Quantity is capped at the variant stock. "Buy it now" adds to cart and jumps straight to checkout; it never bypasses the cart record.'],
+      store: ['Seller store page', 'Same components as the storefront listing — this page is a filtered catalogue with the seller\'s branding on top. Banner, logo, description and both policy blocks come from Store Setup in the seller portal (Phase 3), so this screen is the live preview of what a seller edits there. A suspended seller\'s store returns 404 rather than an empty shell.'],
+      cart: ['Shopping cart', 'One cart spans multiple sellers; the order is split into one sub-order per seller at capture, each with its own commission snapshot. Quantity changes revalidate stock server-side before checkout — the cart never guarantees availability, checkout does. An empty cart is a first-class screen, not a redirect.'],
+      checkout: ['Checkout', 'Single page, three blocks: address, payment, review. Validation runs on blur then live. Stripe test mode: 4242… succeeds, 4000 0000 0000 0002 is declined — a declined attempt is recorded as a payment attempt row and the customer can retry without rebuilding the cart. Stock is only decremented after capture succeeds.'],
+      done: ['Order confirmation', 'The order number is the customer\'s reference everywhere — email, tracking, support. The confirmation shows the seller split because each seller ships separately. Nothing on this page is editable; changes go through order detail.'],
+      auth: ['Account access', 'Three states on one route so a customer never loses their place: sign in, register, reset. Registration is optional — guest checkout is supported and the account can be claimed afterwards from the order email. Password strength is advisory, not blocking, above the 8-character minimum. The reset confirmation is deliberately identical whether or not the email exists.'],
+      profile: ['Customer profile', 'Name, email, phone, password and email preferences in one page. Order emails cannot be switched off — they are transactional — so that toggle is shown disabled rather than hidden, which stops support asking why. Changing the email address requires confirmation from both the old and new addresses.'],
+      addresses: ['Addresses', 'A saved address is a record, not a text blob — the same fields as checkout, so one can be selected there in a single tap. Exactly one default; removing the default promotes nothing automatically and the customer is asked to pick. Addresses are never edited retroactively on past orders, which keep their own snapshot.'],
+      history: ['Order history', 'Grouped by order, not by item, because an order is what a customer remembers. Each card leads with the number, date, total and seller, then the primary action for that status — Track order while in flight, Buy again once delivered. Multi-seller orders appear once with a per-seller shipment breakdown inside.'],
+      tracking: ['Order tracking', 'The rail is the whole point: Placed → Processing → Packed → Shipped → Delivered, with real timestamps on completed steps and the carrier and tracking number appearing only once the seller ships. Cancel is available until the seller marks Packed; try it — the order flips to Cancelled with the refund message and the history collapses to the cancellation record.'],
+      loading: ['Loading', 'Skeletons match the real card geometry so nothing shifts on load. Shown only after 200ms — faster responses skip the skeleton entirely.']
+    };
+    const noteKey = s.loading ? 'loading' : (isSearch ? (results.length ? 'search' : 'empty') : s.screen);
+    const note = notesFor[noteKey] || notesFor.home;
+
+    return {
+      notes: s.notes,
+      notesLabel: s.notes ? 'Hide' : 'Show',
+      toggleNotes: () => this.setState(x => ({ notes: !x.notes })),
+      noteTitle: note[0], noteBody: note[1],
+
+      isHome: s.screen === 'home',
+      isList: s.screen === 'category' || isSearch,
+      isAuth: s.screen === 'auth',
+      inAccount: ['profile', 'addresses', 'history', 'tracking'].includes(s.screen),
+      isProfile: s.screen === 'profile',
+      isAddresses: s.screen === 'addresses',
+      isHistory: s.screen === 'history',
+      isTracking: s.screen === 'tracking',
+      goAuth: () => this.setState({ screen: 'auth', authTab: 'signin', authError: false, resetSent: false }),
+      goAccount: () => this.setState({ screen: 'profile' }),
+      goOrderHistory: () => this.setState({ screen: 'history' }),
+      goTracking: () => this.setState({ screen: 'tracking' }),
+      accountTitle: { profile: 'Your account', addresses: 'Your account', history: 'Your orders', tracking: 'Your orders' }[s.screen] || 'Your account',
+      accountNav: [
+        { key: 'profile', label: 'Profile' },
+        { key: 'addresses', label: 'Addresses' },
+        { key: 'history', label: 'Orders' },
+        { key: 'tracking', label: 'Order tracking' }
+      ].map(n => ({
+        label: n.label,
+        fg: s.screen === n.key ? 'var(--color-accent)' : 'var(--color-text)',
+        weight: s.screen === n.key ? '600' : '400',
+        go: () => this.setState({ screen: n.key })
+      })),
+
+      authTabSignIn: s.authTab === 'signin',
+      onSignIn: s.authTab === 'signin',
+      onRegister: s.authTab === 'register',
+      onReset: s.authTab === 'reset',
+      signInBg: s.authTab === 'signin' ? 'var(--color-accent)' : 'transparent',
+      signInFg: s.authTab === 'signin' ? 'var(--color-bg)' : 'var(--color-text)',
+      registerBg: s.authTab === 'register' ? 'var(--color-accent)' : 'transparent',
+      registerFg: s.authTab === 'register' ? 'var(--color-bg)' : 'var(--color-text)',
+      resetBg: s.authTab === 'reset' ? 'var(--color-accent)' : 'transparent',
+      resetFg: s.authTab === 'reset' ? 'var(--color-bg)' : 'var(--color-text)',
+      authSignIn: () => this.setState({ screen: 'auth', authTab: 'signin', authError: false, resetSent: false }),
+      authRegister: () => this.setState({ screen: 'auth', authTab: 'register' }),
+      authReset: () => this.setState({ screen: 'auth', authTab: 'reset', resetSent: false }),
+      showAuthError: () => this.setState({ authError: true }),
+      authError: s.authError,
+      sendReset: () => this.setState({ resetSent: true }),
+      resetSent: s.resetSent,
+      resetForm: !s.resetSent,
+      regEmail: s.regEmail, regPass: s.regPass,
+      setRegEmail: (e) => this.setState({ regEmail: e.target.value }),
+      setRegPass: (e) => this.setState({ regPass: e.target.value }),
+      regEmailError: !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.regEmail),
+      regBlocked: !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.regEmail) || s.regPass.length < 8,
+      pw1: s.regPass.length >= 4 ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+      pw2: s.regPass.length >= 8 ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+      pw3: s.regPass.length >= 12 ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+      pwLabel: s.regPass.length >= 12 ? 'Strong password' : (s.regPass.length >= 8 ? 'Good — 12 characters or more is stronger' : 'At least 8 characters'),
+      marketing: s.marketing, notMarketing: !s.marketing,
+      toggleMarketing: () => this.setState(x => ({ marketing: !x.marketing })),
+      profileSaved: s.profileSaved,
+      saveProfile: () => { this.setState({ profileSaved: 'Saved just now' }); this.setState({ toast: 'Profile updated' }); this.bump(); },
+
+      addresses: ADDRESSES.filter(a => !s.addrRemoved[a.label]).map(a => ({
+        label: a.label, name: a.name, line1: a.line1, city: a.city, phone: a.phone,
+        isDefault: s.defaultAddr === a.label,
+        notDefault: s.defaultAddr !== a.label,
+        makeDefault: () => { this.setState({ defaultAddr: a.label, toast: a.label + ' is now your default address' }); this.bump(); },
+        remove: () => { this.setState(x => ({ addrRemoved: Object.assign({}, x.addrRemoved, { [a.label]: true }), toast: a.label + ' address removed' })); this.bump(); }
+      })),
+      noAddresses: ADDRESSES.filter(a => !s.addrRemoved[a.label]).length === 0,
+      addAddress: () => { this.setState({ toast: 'New address form — same fields as checkout' }); this.bump(); },
+
+      historyTabs: ['All', 'In progress', 'Delivered', 'Cancelled'].map(label => ({
+        label,
+        bg: s.historyTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.historyTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ historyTab: label })
+      })),
+      historyCount: histRows.length + ' orders',
+      historyHas: histRows.length > 0,
+      historyEmpty: histRows.length === 0,
+      history: histRows.map(h => ({
+        no: h.no, date: h.date, total: money(h.total), seller: h.seller,
+        status: h.status, tagClass: TONE[h.status].cls, tagStyle: TONE[h.status].style,
+        item: h.item, itemsNote: h.itemsNote, deliveryNote: h.deliveryNote, slot: h.slot,
+        action: h.status === 'Delivered' ? 'Buy again' : 'Track order',
+        open: () => this.setState({ screen: 'tracking', trkNo: h.no, trkStatus: h.status })
+      })),
+
+      trkNo: s.trkNo, trkDate: 'Aug 12, 2026', trkTotal: '$328.00', trkSeller: 'Aeris Kitchen Co.',
+      trkStatus: s.trkStatus,
+      trkTagClass: TONE[s.trkStatus].cls, trkTagStyle: TONE[s.trkStatus].style,
+      trkCancellable: ['Processing', 'Placed'].includes(s.trkStatus),
+      trkCancelled: s.trkStatus === 'Cancelled',
+      cancelOrder: () => { this.setState({ trkStatus: 'Cancelled', toast: 'Order cancelled · refund issued' }); this.bump(); },
+      trkSteps: TRACK_STEPS.map((label, i) => {
+        const idx = TRACK_STEPS.indexOf(s.trkStatus);
+        const done = idx >= 0 && i <= idx;
+        return {
+          label,
+          bar: done ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+          fg: done ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 45%, transparent)',
+          when: done ? ['Aug 12', 'Aug 12', 'Aug 13', 'Aug 13', 'Aug 17'][i] : '—'
+        };
+      }),
+      trkSummary: {
+        Placed: 'Payment confirmed. Aeris Kitchen Co. has been notified and will start packing shortly.',
+        Processing: 'Aeris Kitchen Co. is preparing your order. You can still cancel until it is packed.',
+        Packed: 'Packed and waiting for carrier collection — it can no longer be cancelled.',
+        Shipped: 'On its way with USPS Ground Advantage. Expected Sunday 17 August.',
+        Delivered: 'Delivered on 17 August. You can request a return within 30 days.',
+        Cancelled: 'This order was cancelled and refunded in full.'
+      }[s.trkStatus] || '',
+      trkCarrier: ['Shipped', 'Delivered'].includes(s.trkStatus) ? 'USPS Ground Advantage' : 'Carrier assigned at dispatch',
+      trkTracking: ['Shipped', 'Delivered'].includes(s.trkStatus) ? '9400 1000 0000 2841 7712' : 'Tracking appears once the seller ships',
+      trkHasTracking: ['Shipped', 'Delivered'].includes(s.trkStatus),
+      trkPaidLabel: s.trkStatus === 'Cancelled' ? 'Refunded' : 'Paid',
+      trkPayNote: s.trkStatus === 'Cancelled' ? 'refunded 12 Aug' : 'charged 12 Aug 2026',
+      trkLines: [
+        { slot: 'cs-p1', seller: 'Aeris Kitchen Co.', name: 'Aeris cordless kettle, 1.2L', variant: '1.2 L · Brushed steel', qty: '1', lineTotal: '$92.00' },
+        { slot: 'cs-p6', seller: 'Aeris Kitchen Co.', name: 'Rivet cast iron skillet, 10 inch', variant: 'Seasoned', qty: '1', lineTotal: '$76.00' },
+        { slot: 'cs-p11', seller: 'Aeris Kitchen Co.', name: 'Aeris pour-over set, 600ml', variant: 'Standard', qty: '2', lineTotal: '$116.00' }
+      ],
+      trkHistory: (s.trkStatus === 'Cancelled'
+        ? [{ when: 'Aug 12, 15:02', status: 'Cancelled', detail: 'Cancelled by you · refunded in full' }]
+        : TRACK_STEPS.slice(0, TRACK_STEPS.indexOf(s.trkStatus) + 1).reverse().map(st => ({
+            when: { Placed: 'Aug 12, 09:14', Processing: 'Aug 12, 09:41', Packed: 'Aug 13, 08:20', Shipped: 'Aug 13, 16:05', Delivered: 'Aug 17, 11:32' }[st],
+            status: st,
+            detail: { Placed: 'Payment captured · seller notified', Processing: 'Seller accepted your order', Packed: 'Ready for carrier collection', Shipped: 'USPS · 9400 1000 0000 2841 7712', Delivered: 'Left with resident' }[st]
+          }))
+      ).map(h => ({ when: h.when, status: h.status, detail: h.detail, tagClass: TONE[h.status].cls, tagStyle: TONE[h.status].style })),
+
+      isProduct: s.screen === 'product',
+      isStore: s.screen === 'store',
+      goProduct: () => this.setState({ screen: 'product', loading: false }),
+      goStore: () => this.setState({ screen: 'store', loading: false }),
+
+      gallery: [0, 1, 2, 3].map(i => ({ slot: 'cs-pd-thumb-' + i, select: () => this.setState({ gal: i }) })),
+      mainSlot: 'cs-pd-main-' + s.gal,
+      pdPrice: money(v.price),
+      pdStock: v.stock === 0 ? 'Out of stock in this size' : (v.stock <= 5 ? 'Only ' + v.stock + ' left in stock' : 'In stock — ' + v.stock + ' available'),
+      pdSku: v.sku,
+      pdColor: s.pdColor,
+      pdSize: s.pdSize,
+      qty: s.qty,
+      pdTotal: money(v.price * s.qty),
+      incQty: () => this.setState(x => ({ qty: Math.min(x.qty + 1, 9) })),
+      decQty: () => this.setState(x => ({ qty: Math.max(1, x.qty - 1) })),
+      addPd: () => this.addLine({ key: 'p1|' + s.pdSize + '|' + s.pdColor, id: 'p1', name: 'Aeris cordless kettle, 1.2L', seller: 'Aeris Kitchen Co.', variant: s.pdSize + ' · ' + s.pdColor, price: v.price, qty: s.qty, slot: 'cs-p1' }),
+      colors: ['Brushed steel', 'Matte black', 'Cream'].map(name => ({
+        name,
+        bg: s.pdColor === name ? 'var(--color-accent)' : 'transparent',
+        fg: s.pdColor === name ? 'var(--color-bg)' : 'var(--color-text)',
+        border: s.pdColor === name ? 'var(--color-accent)' : 'var(--color-divider)',
+        select: () => this.setState({ pdColor: name })
+      })),
+      sizes: ['1.0 L', '1.2 L', '1.7 L'].map(label => {
+        const stock = { '1.0 L': 12, '1.2 L': 3, '1.7 L': 0 }[label];
+        const on = s.pdSize === label;
+        return {
+          label: stock === 0 ? label + ' — sold out' : label,
+          disabled: stock === 0,
+          bg: on ? 'var(--color-accent)' : 'transparent',
+          fg: on ? 'var(--color-bg)' : (stock === 0 ? 'color-mix(in srgb, var(--color-text) 40%, transparent)' : 'var(--color-text)'),
+          border: on ? 'var(--color-accent)' : 'var(--color-divider)',
+          select: () => this.setState({ pdSize: label, qty: 1 })
+        };
+      }),
+      related: CATALOG.filter(p => p.seller === 'Aeris Kitchen Co.' || p.seller === 'Studio Corvid').slice(0, 4).map(p => this.card(p)),
+
+      storeQuery: s.storeQuery,
+      setStoreQuery: (e) => this.setState({ storeQuery: e.target.value }),
+      clearStoreQuery: () => this.setState({ storeQuery: '' }),
+      storeProducts: storeItems.map(p => this.card(p)),
+      storeHas: storeItems.length > 0,
+      storeEmpty: storeItems.length === 0,
+      storeCount: storeItems.length + ' of 84 products',
+      goHome: () => this.setState({ screen: 'home', loading: false }),
+      goCategory: () => this.setState({ screen: 'category', loading: false, searchQuery: '' }),
+      goSearch: () => this.setState({ screen: 'search', loading: false, searchQuery: 'kettle', query: 'kettle', cats: [], sellers: [] }),
+      goEmpty: () => this.setState({ screen: 'search', loading: false, searchQuery: 'espresso tamper', query: 'espresso tamper' }),
+      goLoading: () => { this.setState({ screen: 'category', loading: true }); clearTimeout(this._l); this._l = setTimeout(() => this.setState({ loading: false }), 2600); },
+
+      cartCount: s.cart.reduce((n, l) => n + l.qty, 0),
+      isCart: s.screen === 'cart',
+      isCheckout: s.screen === 'checkout',
+      isDone: s.screen === 'done',
+      goCart: () => this.setState({ screen: 'cart', loading: false }),
+      goCheckout: () => this.setState({ screen: 'checkout', loading: false, payState: 'idle' }),
+      goDone: () => this.setState({ screen: 'done', loading: false }),
+      cartLines: s.cart.map(l => ({
+        name: l.name, seller: l.seller, variant: l.variant, slot: l.slot, qty: l.qty,
+        price: money(l.price), lineTotal: money(l.price * l.qty),
+        inc: () => this.setState(x => ({ cart: x.cart.map(z => z.key === l.key ? Object.assign({}, z, { qty: Math.min(9, z.qty + 1) }) : z) })),
+        dec: () => this.setState(x => ({ cart: x.cart.map(z => z.key === l.key ? Object.assign({}, z, { qty: Math.max(1, z.qty - 1) }) : z) })),
+        remove: () => { this.setState(x => ({ cart: x.cart.filter(z => z.key !== l.key), toast: l.name + ' removed' })); this.bump(); },
+        open: () => this.setState({ screen: 'product' })
+      })),
+      cartEmpty: s.cart.length === 0,
+      cartHas: s.cart.length > 0,
+      cartItemCount: s.cart.reduce((n, l) => n + l.qty, 0),
+      sellerCount: new Set(s.cart.map(l => l.seller)).size,
+      subTotal: money(t.sub),
+      shipTotal: t.shipping === 0 ? 'Free' : money(t.shipping),
+      taxTotal: money(t.tax),
+      grandTotal: money(t.total),
+      freeShipNote: t.sub >= 75 ? 'Free shipping applied' : 'Add ' + money(75 - t.sub) + ' for free shipping',
+
+      shipName: s.ship.name, shipEmail: s.ship.email, shipPhone: s.ship.phone,
+      shipLine1: s.ship.line1, shipLine2: s.ship.line2, shipCity: s.ship.city,
+      shipState: s.ship.state, shipZip: s.ship.zip,
+      setShip: (k) => (e) => this.setState(x => ({ ship: Object.assign({}, x.ship, { [k]: e.target.value }) })),
+      setName: (e) => this.setState(x => ({ ship: Object.assign({}, x.ship, { name: e.target.value }) })),
+      setEmail: (e) => this.setState(x => ({ ship: Object.assign({}, x.ship, { email: e.target.value }) })),
+      setLine1: (e) => this.setState(x => ({ ship: Object.assign({}, x.ship, { line1: e.target.value }) })),
+      setCity: (e) => this.setState(x => ({ ship: Object.assign({}, x.ship, { city: e.target.value }) })),
+      setZip: (e) => this.setState(x => ({ ship: Object.assign({}, x.ship, { zip: e.target.value }) })),
+      cardNum: s.cardNum, cardExp: s.cardExp, cardCvc: s.cardCvc,
+      setCardNum: (e) => this.setState({ cardNum: e.target.value }),
+      payIdle: s.payState === 'idle',
+      payBusy: s.payState === 'busy',
+      payFailed: s.payState === 'failed',
+      zipError: !/^\d{5}$/.test(s.ship.zip),
+      zipOk: /^\d{5}$/.test(s.ship.zip),
+      placeOrder: () => {
+        if (!/^\d{5}$/.test(this.state.ship.zip)) return;
+        this.setState({ payState: 'busy' });
+        clearTimeout(this._p);
+        this._p = setTimeout(() => {
+          const declined = this.state.cardNum.replace(/\s/g, '').startsWith('4000');
+          if (declined) this.setState({ payState: 'failed' });
+          else this.setState({ screen: 'done', payState: 'idle', paidTotal: money(this.totals().total) });
+        }, 1400);
+      },
+      useDecline: () => this.setState({ cardNum: '4000 0000 0000 0002', payState: 'idle' }),
+      useGood: () => this.setState({ cardNum: '4242 4242 4242 4242', payState: 'idle' }),
+      orderNo: s.orderNo,
+      paidTotal: s.paidTotal || money(t.total),
+      startOver: () => this.setState({ screen: 'home' }),
+
+      query: s.query,
+      setQuery: (e) => this.setState({ query: e.target.value }),
+      submitSearch: (e) => { e.preventDefault(); this.setState({ screen: 'search', searchQuery: this.state.query, loading: false }); },
+
+      featured: CATALOG.slice(0, 4).map(p => this.card(p)),
+      newest: CATALOG.slice(8, 12).map(p => this.card(p)),
+      results: results.map(p => this.card(p)),
+      skeletons: [1, 2, 3, 4, 5, 6],
+      loading: s.loading,
+      hasResults: !s.loading && results.length > 0,
+      noResults: !s.loading && results.length === 0,
+
+      crumb: isSearch ? 'Search' : 'All categories',
+      listTitle: isSearch ? 'Results for “' + s.searchQuery + '”' : 'All categories',
+      listSubtitle: isSearch ? 'Across 412 sellers' : '8,400 products from 412 independent sellers',
+      resultCount: s.loading ? 'Loading products…' : (results.length ? 'Showing 1–' + results.length + ' of ' + results.length : '0 products'),
+      pageLabel: 'Showing 1–' + results.length + ' of ' + results.length,
+
+      sort: s.sort,
+      setSort: (e) => this.setState({ sort: e.target.value }),
+      minPrice: s.min, maxPrice: s.max,
+      setMin: (e) => this.setState({ min: e.target.value }),
+      setMax: (e) => this.setState({ max: e.target.value }),
+      inStockOnly: s.inStock, notInStockOnly: !s.inStock,
+      toggleInStock: () => this.setState(x => ({ inStock: !x.inStock })),
+
+      categories: ['Electronics', 'Home & Kitchen', 'Apparel', 'Outdoors', 'Office'].map(name => ({
+        name, count: CATALOG.filter(p => p.cat === name).length,
+        on: s.cats.includes(name), off: !s.cats.includes(name),
+        toggle: () => this.toggleIn('cats', name)
+      })),
+      sellerFilters: ['Aeris Kitchen Co.', 'Northline Audio', 'Fieldnote Supply', 'Studio Corvid', 'Halden Apparel'].map(name => ({
+        name, on: s.sellers.includes(name), off: !s.sellers.includes(name),
+        toggle: () => this.toggleIn('sellers', name)
+      })),
+      chips, hasChips: chips.length > 0,
+      clearFilters: () => this.setState({ cats: [], sellers: [], inStock: false, min: '', max: '' }),
+
+      sellers: [
+        { name: 'Aeris Kitchen Co.', meta: 'Portland, OR · 84 products', blurb: 'Small-batch kitchen tools, tested in a working restaurant kitchen.', banner: 'cs-sb1', logo: 'cs-sl1' },
+        { name: 'Northline Audio', meta: 'Chicago, IL · 46 products', blurb: 'Desk speakers and headphones built and tuned in the Midwest.', banner: 'cs-sb2', logo: 'cs-sl2' },
+        { name: 'Fieldnote Supply', meta: 'Boulder, CO · 129 products', blurb: 'Paper goods and packable gear for people who work outside.', banner: 'cs-sb3', logo: 'cs-sl3' },
+        { name: 'Studio Corvid', meta: 'Providence, RI · 38 products', blurb: 'Lighting and objects made in a two-person studio.', banner: 'cs-sb4', logo: 'cs-sl4' }
+      ],
+
+      toast: !!s.toast, toastText: s.toast || '',
+      undo: () => this.setState(x => ({ cart: x.cart.slice(0, -1), toast: null })),
+      noop: () => {},
+      true: true
+    };
+  }
+}
+</script>
+</body>
+</html>

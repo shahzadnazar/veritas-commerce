@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/styles.css">
+<script src="_ds/modernist-d4cd3685-e071-400e-b410-e1eebfa902f7/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:var(--color-bg)}
+@keyframes mh-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 24px;background:var(--color-text);color:var(--color-bg);position:sticky;top:0;z-index:60">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-400)">Phase 3 · Seller portal</div>
+    <div style="font-size:12px;opacity:0.75">{{ groupLabel }}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px;margin-left:16px">
+      <button onClick="{{ goApply }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Application</button>
+      <button onClick="{{ goDash }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Dashboard</button>
+      <button onClick="{{ goStore }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Store setup</button>
+      <button onClick="{{ goProducts }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Product list</button>
+      <button onClick="{{ goAdd }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Add product</button>
+      <button onClick="{{ goEdit }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Edit product</button>
+      <button onClick="{{ goInventory }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Inventory</button>
+      <button onClick="{{ goOrders }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Orders</button>
+      <button onClick="{{ goOrderDetail }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Order detail</button>
+      <button onClick="{{ tabStatement }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Earnings</button>
+      <button onClick="{{ tabPayouts }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">Payouts</button>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;opacity:0.6">Dev annotations</span>
+      <button onClick="{{ toggleNotes }}" style="font:inherit;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,0.25);background:transparent;color:inherit;cursor:pointer">{{ notesLabel }}</button>
+    </div>
+  </div>
+
+  <sc-if value="{{ isApply }}" hint-placeholder-val="{{ false }}">
+  <div>
+    <div style="border-bottom:2px solid var(--color-divider)">
+      <div style="max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:14px 40px">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+        <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Seller application</div>
+        <div style="margin-left:auto;font-size:13px">Already applied? <span style="color:var(--color-accent);cursor:pointer">Check your status</span></div>
+      </div>
+    </div>
+
+    <div style="max-width:1080px;margin:0 auto;padding:40px 40px 80px">
+      <div style="display:flex;gap:2px;margin-bottom:32px">
+        <button onClick="{{ setStatePending }}" style="font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--color-divider);background:transparent;cursor:pointer">State: form</button>
+        <button onClick="{{ setStateSubmitted }}" style="font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--color-divider);background:transparent;cursor:pointer">Submitted</button>
+        <button onClick="{{ setStateApproved }}" style="font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--color-divider);background:transparent;cursor:pointer">Approved</button>
+        <button onClick="{{ setStateRejected }}" style="font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--color-divider);background:transparent;cursor:pointer">Rejected</button>
+      </div>
+
+      <sc-if value="{{ appForm }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:56px">
+          <div>
+            <h1 style="margin:0 0 12px;font-size:44px;max-width:16ch">Apply to sell on MarketHub</h1>
+            <p style="font-size:15px;max-width:56ch;margin:0 0 32px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">Tell us about your business. Applications are reviewed by the marketplace team, usually within two business days.</p>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</span>
+                <h2 style="margin:0;font-size:22px">Business details</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                <div class="field"><label>Registered business name</label><input class="input" value="Aeris Kitchen Company LLC" /></div>
+                <div class="field"><label>Trading / store name</label><input class="input" value="Aeris Kitchen Co." /></div>
+                <div class="field"><label>Business type</label><select class="input"><option>LLC</option><option>Sole proprietor</option><option>Corporation</option></select></div>
+                <div class="field"><label>Tax ID (EIN)</label><input class="input" value="87-2214905" /></div>
+                <div class="field" style="grid-column:span 2"><label>Business address</label><input class="input" value="2211 SE Belmont St, Portland, OR 97214" /></div>
+                <div class="field" style="grid-column:span 2"><label>What do you sell?</label><textarea class="input">Kitchen tools and small appliances — kettles, pour-over sets, cast iron. We design in Portland and assemble in-house.</textarea></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</span>
+                <h2 style="margin:0;font-size:22px">Contact</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                <div class="field"><label>Contact name</label><input class="input" value="Nadia Fischer" /></div>
+                <div class="field"><label>Role</label><input class="input" value="Founder" /></div>
+                <div class="field"><label>Email</label><input class="input" value="nadia@aeriskitchen.com" /></div>
+                <div class="field"><label>Phone</label><input class="input" value="(503) 555-0132" /></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</span>
+                <h2 style="margin:0;font-size:22px">Catalogue &amp; volume</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                <div class="field"><label>Primary category</label><select class="input"><option>Home &amp; Kitchen</option><option>Electronics</option><option>Apparel</option><option>Outdoors</option><option>Office</option></select></div>
+                <div class="field"><label>Products you plan to list</label><input class="input" value="80–100" /></div>
+                <div class="field" style="grid-column:span 2"><label>Existing website or shop (optional)</label><input class="input" value="aeriskitchen.com" /></div>
+              </div>
+              <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;cursor:pointer;margin-top:18px">
+                <span style="width:16px;height:16px;flex:none;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center;margin-top:1px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M20 6 9 17l-5-5"></path></svg></span>
+                I accept the seller agreement and the 12% platform commission on completed orders.
+              </label>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onClick="{{ submitApp }}">Submit application</button>
+              <button class="btn btn-secondary">Save and finish later</button>
+            </div>
+          </div>
+
+          <div>
+            <div style="border:1px solid var(--color-divider);padding:18px;margin-bottom:20px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">What happens next</div>
+              <div style="display:flex;flex-direction:column;gap:14px;font-size:13px">
+                <div style="display:flex;gap:10px"><span style="font-family:var(--font-heading);font-weight:800;color:var(--color-accent)">1</span><div><strong>Review</strong><div style="opacity:0.7">The marketplace team checks your business details. Usually 2 business days.</div></div></div>
+                <div style="display:flex;gap:10px"><span style="font-family:var(--font-heading);font-weight:800;color:var(--color-accent)">2</span><div><strong>Store setup</strong><div style="opacity:0.7">Name, slug, logo, banner and policies.</div></div></div>
+                <div style="display:flex;gap:10px"><span style="font-family:var(--font-heading);font-weight:800;color:var(--color-accent)">3</span><div><strong>List and sell</strong><div style="opacity:0.7">Publish products, receive orders, request payouts.</div></div></div>
+              </div>
+            </div>
+            <div style="background:var(--color-surface);padding:18px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:10px">Commission</div>
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:32px;margin-bottom:6px">12%</div>
+              <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Deducted per completed order. No listing fees, no monthly fee. The rate applied to an order is fixed at the moment it completes.</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ appSubmitted }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:660px">
+          <span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider);margin-bottom:20px">Pending review</span>
+          <h1 style="margin:12px 0;font-size:40px">Application received</h1>
+          <p style="font-size:15px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">Reference <strong>APP-1180</strong>, submitted 12 Aug 2026. The marketplace team is reviewing your business details — we'll email nadia@aeriskitchen.com as soon as there's a decision.</p>
+          <div style="border-top:2px solid var(--color-divider);margin-top:28px;padding-top:20px">
+            <div style="display:flex;align-items:flex-start">
+              <div style="flex:1"><div style="height:3px;background:var(--color-accent)"></div><div style="font-size:12px;margin-top:8px;font-weight:600">Submitted</div><div style="font-size:11px;opacity:0.55">Aug 12, 09:14</div></div>
+              <div style="flex:1"><div style="height:3px;background:var(--color-neutral-300)"></div><div style="font-size:12px;margin-top:8px;opacity:0.5">In review</div><div style="font-size:11px;opacity:0.4">Expected Aug 14</div></div>
+              <div style="flex:1"><div style="height:3px;background:var(--color-neutral-300)"></div><div style="font-size:12px;margin-top:8px;opacity:0.5">Decision</div><div style="font-size:11px;opacity:0.4">—</div></div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:28px">Edit application</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ appApproved }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:660px">
+          <div style="width:40px;height:40px;background:var(--color-accent);color:var(--color-bg);display:grid;place-items:center;margin-bottom:18px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg></div>
+          <h1 style="margin:0 0 12px;font-size:40px">You're approved</h1>
+          <p style="font-size:15px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">Aeris Kitchen Co. is now a MarketHub seller. Set up your store — name, slug, logo, banner and policies — and your public store page goes live.</p>
+          <div style="display:flex;gap:8px;margin-top:24px"><button class="btn btn-primary" onClick="{{ goStore }}">Set up my store</button><button class="btn btn-secondary" onClick="{{ goDash }}">Go to dashboard</button></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ appRejected }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:660px">
+          <span class="tag tag-accent" style="margin-bottom:20px">Not approved</span>
+          <h1 style="margin:12px 0;font-size:40px">We can't approve this application</h1>
+          <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:16px 18px;margin-bottom:20px">
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Reason from the review team</div>
+            <div style="font-size:14px;color:var(--color-accent-900)">The tax ID provided does not match the registered business name. Please re-apply with documentation that matches, or correct the business name on the application.</div>
+          </div>
+          <p style="font-size:14px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">Reference APP-1180 · decided 13 Aug 2026. You can re-apply immediately once the details are corrected.</p>
+          <div style="display:flex;gap:8px;margin-top:20px"><button class="btn btn-primary" onClick="{{ setStatePending }}">Correct and re-apply</button><button class="btn btn-secondary">Contact support</button></div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ inPortal }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid;grid-template-columns:240px minmax(0,1fr);min-height:calc(100vh - 40px)">
+    <aside style="border-right:2px solid var(--color-divider);display:flex;flex-direction:column;position:sticky;top:40px;height:calc(100vh - 40px)">
+      <div style="padding:16px;border-bottom:2px solid var(--color-divider)">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;margin-bottom:2px">MARKET<span style="color:var(--color-accent)">HUB</span></div>
+        <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Seller portal</div>
+      </div>
+      <div style="padding:14px 0;flex:1;overflow:auto">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:14px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }}">
+            <span style="line-height:0;opacity:0.9"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg></span>
+            {{ n.label }}
+            <sc-if value="{{ n.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-size:11px;padding:1px 7px;background:var(--color-accent);color:var(--color-bg)">{{ n.badge }}</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border-top:2px solid var(--color-divider);padding:14px 16px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:32px;height:32px;flex:none;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-avatar" shape="rect" fit="cover" placeholder=""></image-slot></div>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Aeris Kitchen Co.</div>
+            <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Nadia Fischer</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main style="min-width:0">
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 32px;border-bottom:2px solid var(--color-divider);position:sticky;top:40px;background:var(--color-bg);z-index:40">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:19px">{{ pageTitle }}</div>
+        <span class="tag tag-neutral">Store live</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+          <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">View public store</button>
+          <button class="btn btn-primary" style="font-size:13px;padding:6px 12px">Add product</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:28px 32px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:32px">
+          <div style="background:var(--color-surface);padding:18px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Revenue · last 30 days</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums">$12,486.20</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Gross, before commission</div>
+          </div>
+          <div style="background:var(--color-surface);padding:18px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Orders · last 30 days</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums">104</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">18 awaiting action</div>
+          </div>
+          <div style="background:var(--color-surface);padding:18px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Available balance</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums;color:var(--color-accent)">$6,842.15</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">After 12% commission</div>
+          </div>
+          <div style="background:var(--color-surface);padding:18px">
+            <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Pending payout</div>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums">$0.00</div>
+            <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">No open request</div>
+          </div>
+        </div>
+
+        <div style="background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 18px;display:flex;gap:12px;align-items:center;margin-bottom:32px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <div style="font-size:14px;color:var(--color-accent-900)"><strong>4 products are low or out of stock.</strong> Aeris cordless kettle 1.2L has 3 left; Northline pour-over filter pack is out.</div>
+          <button class="btn btn-secondary" style="margin-left:auto;font-size:13px;padding:6px 12px;border-color:var(--color-accent);color:var(--color-accent-700)">Review inventory</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:40px">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px">
+              <h2 style="margin:0;font-size:22px">Recent orders</h2>
+              <button class="btn btn-ghost" style="margin-left:auto;font-size:13px">All orders →</button>
+            </div>
+            <table class="table">
+              <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th style="text-align:right">Total</th><th style="text-align:right">Your earning</th><th>Status</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ orders }}" as="o" hint-placeholder-count="6">
+                  <tr>
+                    <td style="font-weight:600">{{ o.no }}</td><td>{{ o.date }}</td><td>{{ o.customer }}</td><td>{{ o.items }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.total }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.earning }}</td>
+                    <td><span class="tag {{ o.tagClass }}" style="{{ o.tagStyle }}">{{ o.status }}</span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h2 style="margin:0 0 14px;font-size:22px">Orders by status</h2>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:32px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:76px">Processing</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:34%;background:var(--color-accent)"></span></span><span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">18</span></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:76px">Packed</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:16%;background:var(--color-neutral-600)"></span></span><span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">9</span></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:76px">Shipped</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:52%;background:var(--color-neutral-600)"></span></span><span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">27</span></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:76px">Delivered</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:88%;background:var(--color-neutral-800)"></span></span><span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">46</span></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:76px">Refunded</span><span style="flex:1;height:14px;background:var(--color-neutral-200)"><span style="display:block;height:100%;width:6%;background:var(--color-accent-700)"></span></span><span style="width:28px;text-align:right;font-variant-numeric:tabular-nums">3</span></div>
+            </div>
+
+            <h2 style="margin:0 0 14px;font-size:22px">This month's split</h2>
+            <div style="display:flex;height:40px;border:1px solid var(--color-divider)">
+              <div style="flex:88;background:var(--color-neutral-300);display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600">Your earning 88%</div>
+              <div style="flex:12;background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">12%</div>
+            </div>
+            <table class="table" style="font-size:13px;margin-top:10px">
+              <tbody>
+                <tr><td style="padding-left:0">Gross sales</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">$12,486.20</td></tr>
+                <tr><td style="padding-left:0">Commission deducted</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">−$1,498.34</td></tr>
+                <tr><td style="padding-left:0;font-weight:600">Your earning</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums;font-weight:600">$10,987.86</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isStore }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:28px 32px 64px">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:48px">
+          <div>
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</span>
+                <h2 style="margin:0;font-size:22px">Store identity</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                <div class="field"><label>Store name</label><input class="input" value="{{ storeName }}" onChange="{{ setStoreName }}" /></div>
+                <div class="field">
+                  <label>Store web address</label>
+                  <div style="display:flex;align-items:center;gap:0">
+                    <span style="font-size:13px;padding:8px 8px 8px 0;color:color-mix(in srgb, var(--color-text) 55%, transparent);white-space:nowrap">markethub.com/store/</span>
+                    <input class="input" value="{{ storeSlug }}" onChange="{{ setStoreSlug }}" />
+                  </div>
+                  <div style="font-size:11px;margin-top:5px;color:var(--color-accent-800)">{{ slugNote }}</div>
+                </div>
+                <div class="field" style="grid-column:span 2"><label>Store description — shown on your public store page</label><textarea class="input" style="min-height:84px" value="{{ storeDesc }}" onChange="{{ setStoreDesc }}"></textarea><div style="font-size:11px;margin-top:5px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ descCount }}</div></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</span>
+                <h2 style="margin:0;font-size:22px">Branding</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:180px minmax(0,1fr);gap:20px">
+                <div>
+                  <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:8px">Logo — square, min 400px</div>
+                  <div style="width:140px;height:140px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-logo" shape="rect" fit="cover" placeholder="Drop logo"></image-slot></div>
+                </div>
+                <div>
+                  <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 70%, transparent);margin-bottom:8px">Banner — 1600×400</div>
+                  <div style="height:140px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-banner" shape="rect" fit="cover" placeholder="Drop banner"></image-slot></div>
+                  <div style="font-size:11px;margin-top:6px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">JPG or PNG · max 5 MB · photographs render in black and white across MarketHub.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</span>
+                <h2 style="margin:0;font-size:22px">Business &amp; contact</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                <div class="field"><label>Registered business name</label><input class="input" value="Aeris Kitchen Company LLC" /></div>
+                <div class="field"><label>Tax ID (EIN)</label><input class="input" value="87-2214905" readOnly="{{ true }}" style="border-style:dashed;opacity:0.7" /><div style="font-size:11px;margin-top:4px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Locked after approval — contact support to change</div></div>
+                <div class="field"><label>Support email</label><input class="input" value="hello@aeriskitchen.com" /></div>
+                <div class="field"><label>Support phone</label><input class="input" value="(503) 555-0132" /></div>
+                <div class="field" style="grid-column:span 2"><label>Ships from</label><input class="input" value="2211 SE Belmont St, Portland, OR 97214" /></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">04</span>
+                <h2 style="margin:0;font-size:22px">Policies</h2>
+              </div>
+              <div class="field" style="margin-bottom:16px"><label>Shipping policy — shown on your store page and every product</label><textarea class="input" style="min-height:76px">Orders placed before 2pm PT ship the same day. Flat $6.00 US ground shipping; free over $75.</textarea></div>
+              <div class="field"><label>Return policy</label><textarea class="input" style="min-height:76px">Unused items in original packaging accepted within 30 days. Faulty items are collected at our cost.</textarea></div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;padding-top:20px;border-top:2px solid var(--color-divider)">
+              <button class="btn btn-primary" onClick="{{ saveStore }}">Save changes</button>
+              <button class="btn btn-secondary">Discard</button>
+              <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ savedNote }}</span>
+            </div>
+          </div>
+
+          <div>
+            <div style="position:sticky;top:110px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Store preview</div>
+              <div style="border:1px solid var(--color-divider)">
+                <div style="height:96px;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-preview-banner" shape="rect" fit="cover" placeholder="Banner"></image-slot></div>
+                <div style="padding:14px">
+                  <div style="display:flex;gap:12px;align-items:flex-end;margin-top:-42px;margin-bottom:12px">
+                    <div style="width:56px;height:56px;flex:none;border:2px solid var(--color-divider);background:var(--color-bg)"><image-slot class="grayscale" id="sp-preview-logo" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  </div>
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:18px">{{ storeName }}</div>
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">markethub.com/store/{{ storeSlug }}</div>
+                  <p style="font-size:12px;margin:0 0 12px;color:color-mix(in srgb, var(--color-text) 72%, transparent)">{{ storeDesc }}</p>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                    <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-pv-1" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                    <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-pv-2" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                    <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-pv-3" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  </div>
+                </div>
+              </div>
+              <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">This is exactly the customer-facing store page from Phase 2 — same components, same layout, rendered at preview scale.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isProducts }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 32px 64px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px">
+          <div style="position:relative;width:280px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Search title or SKU" value="{{ pQuery }}" onChange="{{ setPQuery }}" />
+          </div>
+          <div class="seg">
+            <sc-for list="{{ statusTabs }}" as="t" hint-placeholder-count="5">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Category: All <span style="opacity:0.5">▾</span></button>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+            <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ pCount }}</span>
+            <button class="btn btn-primary" style="font-size:13px;padding:7px 12px" onClick="{{ goAdd }}">Add product</button>
+          </div>
+        </div>
+
+        <sc-if value="{{ pHas }}" hint-placeholder-val="{{ true }}">
+          <table class="table">
+            <thead><tr><th style="width:38px"></th><th>Product</th><th>SKU</th><th>Category</th><th style="text-align:right">Price</th><th style="text-align:right">Stock</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ productRows }}" as="p" hint-placeholder-count="8">
+                <tr>
+                  <td><div style="width:34px;height:34px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="{{ p.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div></td>
+                  <td><div style="font-weight:600">{{ p.name }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ p.variantNote }}</div></td>
+                  <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ p.sku }}</td>
+                  <td style="font-size:13px">{{ p.cat }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ p.price }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums;color:{{ p.stockColor }}">{{ p.stock }}</td>
+                  <td><span class="tag {{ p.tagClass }}" style="{{ p.tagStyle }}">{{ p.status }}</span></td>
+                  <td style="text-align:right;white-space:nowrap">
+                    <button class="btn btn-ghost" style="font-size:13px" onClick="{{ goEdit }}">Edit</button>
+                    <button class="btn btn-ghost" style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)" onClick="{{ p.archive }}">Archive</button>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <div style="display:flex;align-items:center;gap:2px;margin-top:24px;padding-top:16px;border-top:2px solid var(--color-divider)">
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px" disabled="disabled">Previous</button>
+            <button class="btn" style="font-size:13px;padding:6px 12px;background:var(--color-accent);color:var(--color-bg)">1</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">2</button>
+            <button class="btn btn-secondary" style="font-size:13px;padding:6px 12px">Next</button>
+            <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ pCount }} · 84 total</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ pEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.4"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path></svg>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">{{ pEmptyTitle }}</div>
+            <p style="font-size:14px;margin:0;max-width:52ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ pEmptyBody }}</p>
+            <div style="display:flex;gap:8px"><button class="btn btn-primary" onClick="{{ goAdd }}">Add a product</button><button class="btn btn-secondary" onClick="{{ clearP }}">Clear filters</button></div>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 32px 64px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:20px">
+          <span onClick="{{ goProducts }}" style="cursor:pointer">Products</span><span>/</span><span style="color:var(--color-text)">{{ editorCrumb }}</span>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:10px">
+            <span class="tag {{ draftTagClass }}" style="{{ draftTagStyle }}">{{ draftLabel }}</span>
+            <span style="font-size:12px">{{ autosave }}</span>
+          </span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px">
+          <div>
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">01</span>
+                <h2 style="margin:0;font-size:22px">Product details</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px">
+                <div class="field" style="grid-column:span 6"><label>Title</label><input class="input" value="{{ prodTitle }}" onChange="{{ setProdTitle }}" /></div>
+                <div class="field" style="grid-column:span 6"><label>Description — supports plain text and line breaks</label><textarea class="input" style="min-height:110px">A 1.2 litre cordless kettle with a 360° base, variable temperature between 60 and 100°C, and a brushed stainless body. Designed for pour-over: the gooseneck spout pours a steady 4 ml/s stream.</textarea></div>
+                <div class="field" style="grid-column:span 2"><label>Category</label><select class="input"><option>Home &amp; Kitchen / Small appliances</option><option>Home &amp; Kitchen / Cookware</option><option>Electronics</option></select></div>
+                <div class="field" style="grid-column:span 2"><label>Brand</label><select class="input"><option>Aeris</option><option>Rivet</option><option>Unbranded</option></select></div>
+                <div class="field" style="grid-column:span 2"><label>Condition</label><select class="input"><option>New</option><option>Refurbished</option><option>Used</option></select></div>
+                <div class="field" style="grid-column:span 2"><label>Base SKU</label><input class="input" value="AC-KTL-1105" /></div>
+                <div class="field" style="grid-column:span 4"><label>Search keywords (optional)</label><input class="input" value="kettle, gooseneck, pour over, cordless" /></div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">02</span>
+                <h2 style="margin:0;font-size:22px">Images</h2>
+                <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">First image is the main image · drag to reorder</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+                <div style="position:relative;aspect-ratio:1;border:1px solid var(--color-divider)">
+                  <image-slot class="grayscale" id="sp-img-1" shape="rect" fit="cover" placeholder="Main"></image-slot>
+                  <span style="position:absolute;left:0;bottom:0;background:var(--color-accent);color:var(--color-bg);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;pointer-events:none">Main</span>
+                </div>
+                <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-img-2" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-img-3" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                <div style="aspect-ratio:1;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-img-4" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                <div style="aspect-ratio:1;border:1px dashed var(--color-divider);display:grid;place-items:center;color:color-mix(in srgb, var(--color-text) 45%, transparent);cursor:pointer">
+                  <div style="text-align:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 4px"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg><div style="font-size:10px">Add image</div></div>
+                </div>
+              </div>
+              <div style="font-size:11px;margin-top:8px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">JPG or PNG · max 5 MB each · minimum 800×800. Photographs render in black and white across MarketHub.</div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">03</span>
+                <h2 style="margin:0;font-size:22px">Pricing</h2>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;align-items:start">
+                <div class="field" style="grid-column:span 2"><label>Price (USD)</label><input class="input" value="{{ basePrice }}" onChange="{{ setBasePrice }}" /></div>
+                <div class="field" style="grid-column:span 2"><label>Compare-at price (optional)</label><input class="input" value="{{ comparePrice }}" onChange="{{ setComparePrice }}" />
+                  <sc-if value="{{ priceError }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>Compare-at must be higher than the price</div>
+                  </sc-if>
+                </div>
+                <div style="grid-column:span 2;background:var(--color-surface);padding:12px">
+                  <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">You earn per sale</div>
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums">{{ sellerEarn }}</div>
+                  <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ commissionNote }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <span style="font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-accent)">04</span>
+                <h2 style="margin:0;font-size:22px">Variants</h2>
+                <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Each variant has its own price, SKU and stock</span>
+              </div>
+              <div style="display:flex;gap:10px;margin-bottom:16px">
+                <div class="field" style="flex:1"><label>Option 1</label><input class="input" value="Capacity — 1.0 L, 1.2 L, 1.7 L" /></div>
+                <div class="field" style="flex:1"><label>Option 2</label><input class="input" value="Colour — Brushed steel, Matte black, Cream" /></div>
+              </div>
+              <table class="table">
+                <thead><tr><th>Variant</th><th>SKU</th><th style="text-align:right">Price</th><th style="text-align:right">Stock</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ variants }}" as="v" hint-placeholder-count="4">
+                    <tr>
+                      <td style="font-weight:600">{{ v.name }}</td>
+                      <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ v.sku }}</td>
+                      <td style="text-align:right"><input class="input" style="width:90px;margin-left:auto;text-align:right" value="{{ v.price }}" onChange="{{ v.setPrice }}" /></td>
+                      <td style="text-align:right"><input class="input" style="width:70px;margin-left:auto;text-align:right" value="{{ v.stock }}" onChange="{{ v.setStock }}" /></td>
+                      <td><span class="tag {{ v.tagClass }}" style="{{ v.tagStyle }}">{{ v.status }}</span></td>
+                      <td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px">Remove</button></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+              <button class="btn btn-secondary" style="font-size:13px;margin-top:14px">Add variant</button>
+            </div>
+          </div>
+
+          <div>
+            <div style="position:sticky;top:110px;display:flex;flex-direction:column;gap:20px">
+              <div style="border:1px solid var(--color-divider);padding:16px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Visibility</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <label class="radio" onClick="{{ setDraft }}"><input type="radio" name="vis" checked="{{ isDraft }}" onChange="{{ noop }}" /><span class="dot"></span>Draft — hidden from the storefront</label>
+                  <label class="radio" onClick="{{ setPublished }}"><input type="radio" name="vis" checked="{{ isPublished }}" onChange="{{ noop }}" /><span class="dot"></span>Published — live in search and category</label>
+                </div>
+                <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ visibilityNote }}</div>
+              </div>
+
+              <div style="border:1px solid var(--color-divider);padding:16px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Storefront preview</div>
+                <div style="border:1px solid var(--color-divider)">
+                  <div style="aspect-ratio:1;border-bottom:1px solid var(--color-divider)"><image-slot class="grayscale" id="sp-img-1" shape="rect" fit="cover" placeholder=""></image-slot></div>
+                  <div style="padding:12px">
+                    <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:4px">Aeris Kitchen Co.</div>
+                    <div style="font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1.25;margin-bottom:8px">{{ prodTitle }}</div>
+                    <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:var(--font-heading);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums">{{ basePriceFmt }}</span><span style="font-size:12px;text-decoration:line-through;color:color-mix(in srgb, var(--color-text) 45%, transparent)">{{ comparePriceFmt }}</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ savePublish }}">{{ primaryAction }}</button>
+                <button class="btn btn-secondary btn-block" style="margin-top:0" onClick="{{ saveDraft }}">Save as draft</button>
+                <button class="btn btn-ghost" style="justify-content:flex-start" onClick="{{ goProducts }}">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isInventory }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 32px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:24px">
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Units on hand</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">1,284</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Low stock</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--color-accent)">3</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Out of stock</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--color-accent)">1</div></div>
+          <div style="background:var(--color-surface);padding:16px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Held by open orders</div><div style="font-family:var(--font-heading);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums">27</div></div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="position:relative;width:280px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Search variant or SKU" value="{{ invQuery }}" onChange="{{ setInvQuery }}" />
+          </div>
+          <div class="seg">
+            <sc-for list="{{ invTabs }}" as="t" hint-placeholder-count="3">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ invCount }}</div>
+        </div>
+
+        <table class="table">
+          <thead><tr><th>Variant</th><th>SKU</th><th style="text-align:right">On hand</th><th style="text-align:right">Held</th><th style="text-align:right">Available</th><th>State</th><th style="text-align:right">Adjust</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ invRows }}" as="r" hint-placeholder-count="6">
+              <tr>
+                <td><div style="font-weight:600">{{ r.product }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ r.variant }}</div></td>
+                <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ r.sku }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">{{ r.onHand }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ r.held }}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:{{ r.color }}">{{ r.available }}</td>
+                <td><span class="tag {{ r.tagClass }}">{{ r.state }}</span></td>
+                <td style="text-align:right"><button class="btn btn-secondary" style="font-size:12px;padding:5px 10px" onClick="{{ r.adjust }}">Adjust stock</button></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+
+        <div style="margin-top:40px">
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+            <h2 style="margin:0;font-size:22px">Stock movement history</h2>
+            <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Append-only — entries are never edited or deleted</span>
+          </div>
+          <table class="table">
+            <thead><tr><th>When</th><th>Variant</th><th>Reason</th><th style="text-align:right">Change</th><th style="text-align:right">Resulting stock</th><th>By</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ movements }}" as="m" hint-placeholder-count="6">
+                <tr>
+                  <td style="font-size:13px;white-space:nowrap">{{ m.when }}</td>
+                  <td style="font-size:13px">{{ m.variant }}</td>
+                  <td style="font-size:13px">{{ m.reason }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:{{ m.color }}">{{ m.change }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ m.result }}</td>
+                  <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ m.by }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isOrders }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 32px 64px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+          <div style="position:relative;width:280px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;line-height:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+            <input class="input" style="padding-left:30px" placeholder="Order number or customer" value="{{ oQuery }}" onChange="{{ setOQuery }}" />
+          </div>
+          <div class="seg">
+            <sc-for list="{{ orderTabs }}" as="t" hint-placeholder-count="6">
+              <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+            </sc-for>
+          </div>
+          <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Last 30 days <span style="opacity:0.5">▾</span></button>
+          <div style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ oSummary }}</div>
+        </div>
+
+        <sc-if value="{{ oHas }}" hint-placeholder-val="{{ true }}">
+          <table class="table">
+            <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th style="text-align:right">Total</th><th style="text-align:right">Commission</th><th style="text-align:right">Your earning</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <sc-for list="{{ orderRows }}" as="o" hint-placeholder-count="6">
+                <tr>
+                  <td style="font-weight:600">{{ o.no }}</td><td style="white-space:nowrap">{{ o.date }}</td><td>{{ o.customer }}</td><td>{{ o.items }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums">{{ o.total }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ o.commission }}</td>
+                  <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ o.earning }}</td>
+                  <td><span class="tag {{ o.tagClass }}" style="{{ o.tagStyle }}">{{ o.status }}</span></td>
+                  <td style="text-align:right"><button class="btn btn-ghost" style="font-size:13px" onClick="{{ o.open }}">Open</button></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </sc-if>
+        <sc-if value="{{ oEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--color-divider);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:22px">No orders in this view</div>
+            <p style="font-size:14px;margin:0;max-width:52ch;color:color-mix(in srgb, var(--color-text) 70%, transparent)">Nothing matches the current status filter and date range. Widen the range or switch back to All.</p>
+            <button class="btn btn-primary" onClick="{{ clearO }}">Clear filters</button>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isOrderDetail }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 32px 64px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent);margin-bottom:20px">
+          <span onClick="{{ goOrders }}" style="cursor:pointer">Orders</span><span>/</span><span style="color:var(--color-text)">{{ odNo }}</span>
+        </div>
+
+        <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:20px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+          <div>
+            <h1 style="margin:0 0 6px;font-size:36px">{{ odNo }}</h1>
+            <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Placed {{ odDate }} · paid in full · {{ odItems }} items</div>
+          </div>
+          <span class="tag {{ odTagClass }}" style="{{ odTagStyle }}">{{ odStatus }}</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-secondary" style="font-size:13px">Print order</button>
+            <sc-if value="{{ odCanAdvance }}" hint-placeholder-val="{{ true }}">
+              <button class="btn btn-primary" style="font-size:13px" onClick="{{ odAdvance }}">{{ odNextLabel }}</button>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="margin-bottom:32px">
+          <div style="display:flex;align-items:flex-start">
+            <sc-for list="{{ odSteps }}" as="st" hint-placeholder-count="5">
+              <div style="flex:1;padding-right:12px">
+                <div style="height:3px;background:{{ st.bar }}"></div>
+                <div style="font-size:12px;margin-top:8px;font-weight:600;color:{{ st.fg }}">{{ st.label }}</div>
+                <div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent)">{{ st.when }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+              <h2 style="margin:0;font-size:20px">Items</h2>
+            </div>
+            <table class="table">
+              <thead><tr><th style="width:56px"></th><th>Product</th><th>SKU</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit</th><th style="text-align:right">Total</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ odLines }}" as="l" hint-placeholder-count="2">
+                  <tr>
+                    <td><div style="width:44px;height:44px;border:1px solid var(--color-divider)"><image-slot class="grayscale" id="{{ l.slot }}" shape="rect" fit="cover" placeholder=""></image-slot></div></td>
+                    <td><div style="font-weight:600">{{ l.name }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ l.variant }}</div></td>
+                    <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ l.sku }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ l.qty }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums">{{ l.unit }}</td>
+                    <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ l.total }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <div style="margin-top:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <h2 style="margin:0;font-size:20px">Shipping</h2>
+                <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Visible to the customer as soon as you save</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:end">
+                <div class="field"><label>Carrier</label><select class="input" value="{{ carrier }}" onChange="{{ setCarrier }}"><option>USPS Ground Advantage</option><option>UPS Ground</option><option>FedEx Home Delivery</option></select></div>
+                <div class="field"><label>Tracking number</label><input class="input" value="{{ tracking }}" onChange="{{ setTracking }}" placeholder="Enter when shipped" /></div>
+                <button class="btn btn-secondary" style="height:36px" onClick="{{ saveTracking }}">Save tracking</button>
+              </div>
+            </div>
+
+            <div style="margin-top:32px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <h2 style="margin:0;font-size:20px">Status history</h2>
+              </div>
+              <table class="table">
+                <thead><tr><th>When</th><th>Status</th><th>By</th><th>Note</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ odHistory }}" as="h" hint-placeholder-count="3">
+                    <tr><td style="white-space:nowrap;font-size:13px">{{ h.when }}</td><td><span class="tag {{ h.tagClass }}" style="{{ h.tagStyle }}">{{ h.status }}</span></td><td style="font-size:13px">{{ h.by }}</td><td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ h.note }}</td></tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Customer</div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:2px">Priya Raman</div>
+              <div style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-bottom:12px">priya.r@example.com · (503) 555-0148</div>
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:6px">Ship to</div>
+              <div style="font-size:13px;line-height:1.6">1841 NE Wasco St, Apt 4<br />Portland, OR 97232<br />United States</div>
+            </div>
+
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Payment &amp; earning</div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Items</span><span style="font-variant-numeric:tabular-nums">$308.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Shipping</span><span style="font-variant-numeric:tabular-nums">$6.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Tax</span><span style="font-variant-numeric:tabular-nums">$14.00</span></div>
+              <div style="height:1px;background:var(--color-divider);margin:8px 0"></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;padding:5px 0;font-weight:600"><span>Order total</span><span style="font-variant-numeric:tabular-nums">$328.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--color-accent-700)"><span>Commission (12.0%)</span><span style="font-variant-numeric:tabular-nums">−$39.36</span></div>
+              <div style="height:2px;background:var(--color-divider);margin:8px 0"></div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:600">Your earning</span><span style="font-family:var(--font-heading);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums">$288.64</span></div>
+              <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Rate snapshotted on this order at 12.0% on 12 Aug 2026. Later rate changes do not affect it.</div>
+            </div>
+
+            <div style="border:1px solid var(--color-divider);padding:16px">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:10px">Actions</div>
+              <button class="btn btn-secondary btn-block" style="margin-top:0">Message customer</button>
+              <button class="btn btn-secondary btn-block" style="border-color:var(--color-accent);color:var(--color-accent-700)">Cancel order</button>
+              <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Cancelling restores stock and reverses the earning. Refunds are handled by the marketplace team.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isEarnings }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:24px 32px 64px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:28px">
+          <div style="background:var(--color-surface);padding:18px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Gross sales · lifetime</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$84,310.00</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">612 completed orders</div></div>
+          <div style="background:var(--color-surface);padding:18px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Commission deducted</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">−$10,117.20</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Weighted rate 12.0%</div></div>
+          <div style="background:var(--color-surface);padding:18px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Paid out to date</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums">$67,350.65</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">7 payouts</div></div>
+          <div style="background:var(--color-surface);padding:18px"><div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:8px">Available balance</div><div style="font-family:var(--font-heading);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ balance }}</div><div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ balanceNote }}</div></div>
+        </div>
+
+        <div style="display:flex;gap:24px;border-bottom:2px solid var(--color-divider);margin-bottom:24px">
+          <button onClick="{{ tabStatement }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:15px;font-family:var(--font-heading);font-weight:800;cursor:pointer;border-bottom:3px solid {{ tabStatementBar }};margin-bottom:-2px;color:{{ tabStatementFg }}">Earnings statement</button>
+          <button onClick="{{ tabPayouts }}" style="background:none;border:0;padding:8px 0;font:inherit;font-size:15px;font-family:var(--font-heading);font-weight:800;cursor:pointer;border-bottom:3px solid {{ tabPayoutsBar }};margin-bottom:-2px;color:{{ tabPayoutsFg }}">Payouts</button>
+        </div>
+
+        <sc-if value="{{ onStatement }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px">
+            <div>
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px">
+                <div class="seg">
+                  <sc-for list="{{ ledgerTabs }}" as="t" hint-placeholder-count="4">
+                    <label class="seg-opt" style="background:{{ t.bg }};color:{{ t.fg }}" onClick="{{ t.go }}">{{ t.label }}</label>
+                  </sc-for>
+                </div>
+                <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Aug 2026 <span style="opacity:0.5">▾</span></button>
+                <div style="margin-left:auto;display:flex;gap:8px">
+                  <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);align-self:center">{{ ledgerCount }}</span>
+                  <button class="btn btn-secondary" style="font-size:13px;padding:7px 12px">Download CSV</button>
+                </div>
+              </div>
+
+              <table class="table">
+                <thead><tr><th>Date</th><th>Entry</th><th>Reference</th><th style="text-align:right">Order total</th><th style="text-align:right">Commission</th><th style="text-align:right">Amount</th><th style="text-align:right">Balance</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ ledger }}" as="e" hint-placeholder-count="8">
+                    <tr>
+                      <td style="white-space:nowrap;font-size:13px">{{ e.date }}</td>
+                      <td><div style="font-weight:600">{{ e.type }}</div><div style="font-size:11px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ e.note }}</div></td>
+                      <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ e.ref }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ e.orderTotal }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">{{ e.commission }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:{{ e.color }}">{{ e.amount }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums;color:color-mix(in srgb, var(--color-text) 60%, transparent)">{{ e.balance }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+              <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Every line is a permanent record. Reversals appear as their own negative entry — the original earning is never edited.</div>
+            </div>
+
+            <div>
+              <div style="border:1px solid var(--color-divider);padding:18px;margin-bottom:20px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:14px">How an order becomes your earning</div>
+                <div style="display:flex;height:36px;border:1px solid var(--color-divider);margin-bottom:12px">
+                  <div style="flex:88;background:var(--color-neutral-300);display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600">You 88%</div>
+                  <div style="flex:12;background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">12%</div>
+                </div>
+                <table class="table" style="font-size:13px">
+                  <tbody>
+                    <tr><td style="padding-left:0">Order MH-24081 total</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums">$328.00</td></tr>
+                    <tr><td style="padding-left:0">Commission at 12.0%</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums;color:var(--color-accent-700)">−$39.36</td></tr>
+                    <tr><td style="padding-left:0;font-weight:600">Added to your balance</td><td style="text-align:right;padding-right:0;font-variant-numeric:tabular-nums;font-weight:600">$288.64</td></tr>
+                  </tbody>
+                </table>
+                <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">The rate is fixed on each order when it completes. If MarketHub changes the platform rate tomorrow, this order keeps 12.0% forever.</div>
+              </div>
+              <div style="background:var(--color-surface);padding:18px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:10px">Available to withdraw</div>
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:32px;font-variant-numeric:tabular-nums;margin-bottom:10px">{{ balance }}</div>
+                <button class="btn btn-primary btn-block" style="margin-top:0" onClick="{{ tabPayouts }}" disabled="{{ payoutBlocked }}">Request a payout</button>
+                <div style="font-size:11px;margin-top:10px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ payoutHint }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ onPayouts }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:40px">
+            <div>
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+                <h2 style="margin:0;font-size:20px">Payout history</h2>
+                <span style="margin-left:auto;font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">{{ payoutCount }}</span>
+              </div>
+              <table class="table">
+                <thead><tr><th>Requested</th><th>Reference</th><th style="text-align:right">Amount</th><th>Status</th><th>Decided</th><th>Note</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ payouts }}" as="p" hint-placeholder-count="5">
+                    <tr>
+                      <td style="white-space:nowrap;font-size:13px">{{ p.requested }}</td>
+                      <td style="font-weight:600">{{ p.ref }}</td>
+                      <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ p.amount }}</td>
+                      <td><span class="tag {{ p.tagClass }}" style="{{ p.tagStyle }}">{{ p.status }}</span></td>
+                      <td style="white-space:nowrap;font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ p.decided }}</td>
+                      <td style="font-size:13px;color:color-mix(in srgb, var(--color-text) 65%, transparent)">{{ p.note }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+              <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent)">Phase 1 records payout requests and decisions. Bank settlement is handled outside the platform and marked here once complete.</div>
+            </div>
+
+            <div>
+              <div style="border:1px solid var(--color-divider);padding:20px;position:sticky;top:110px">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 55%, transparent);margin-bottom:12px">Request a payout</div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Available balance</span><span style="font-variant-numeric:tabular-nums;font-weight:600">{{ balance }}</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0"><span style="opacity:0.7">Held by open requests</span><span style="font-variant-numeric:tabular-nums">{{ heldAmount }}</span></div>
+                <div style="height:1px;background:var(--color-divider);margin:12px 0"></div>
+
+                <sc-if value="{{ canRequest }}" hint-placeholder-val="{{ true }}">
+                  <div class="field" style="margin-bottom:12px">
+                    <label>Amount to withdraw</label>
+                    <input class="input" value="{{ payoutAmount }}" onChange="{{ setPayoutAmount }}" />
+                    <sc-if value="{{ amountError }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;gap:6px;align-items:center;font-size:11px;margin-top:6px;color:var(--color-accent-800)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>{{ amountErrorText }}</div>
+                    </sc-if>
+                    <button class="btn btn-ghost" style="font-size:12px;padding-left:0;margin-top:4px" onClick="{{ withdrawAll }}">Withdraw the full balance</button>
+                  </div>
+                  <div class="field" style="margin-bottom:16px">
+                    <label>Pay to</label>
+                    <select class="input"><option>Chase ••4417 — Aeris Kitchen Company LLC</option><option>Add a new bank account</option></select>
+                  </div>
+                  <button class="btn btn-primary btn-block" style="margin-top:0;height:40px" onClick="{{ requestPayout }}" disabled="{{ amountError }}">Request {{ payoutAmountFmt }}</button>
+                </sc-if>
+
+                <sc-if value="{{ hasOpenRequest }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:var(--color-surface);border-top:2px dashed var(--color-divider);padding:14px;margin-bottom:12px">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="tag" style="background:var(--color-surface);border:1px dashed var(--color-divider)">Requested</span><span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">PO-2044</span></div>
+                    <div style="font-family:var(--font-heading);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums">{{ openAmount }}</div>
+                    <div style="font-size:12px;color:color-mix(in srgb, var(--color-text) 65%, transparent);margin-top:4px">Submitted just now · awaiting marketplace review. The amount is held and cannot be spent or re-requested.</div>
+                  </div>
+                  <button class="btn btn-secondary btn-block" style="margin-top:0" onClick="{{ cancelRequest }}">Cancel request</button>
+                </sc-if>
+
+                <div style="font-size:11px;margin-top:12px;color:color-mix(in srgb, var(--color-text) 60%, transparent)">Minimum payout $50.00. Requests are reviewed by the marketplace team, usually within two business days; a rejection always records a reason.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isSoon }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:64px 32px;max-width:620px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:12px">Not designed yet</div>
+        <h2 style="margin:0 0 10px;font-size:28px">{{ pageTitle }} comes in the next group</h2>
+        <p style="font-size:14px;margin:0 0 20px;color:color-mix(in srgb, var(--color-text) 70%, transparent)">{{ soonBody }}</p>
+        <button class="btn btn-primary" onClick="{{ goDash }}">Back to dashboard</button>
+      </div>
+      </sc-if>
+    </main>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ adjustOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent)" onClick="{{ closeAdjust }}">
+      <div style="width:min(480px,100%);background:var(--color-surface);box-shadow:var(--shadow-lg);padding:24px" onClick="{{ stop }}">
+        <div style="font-family:var(--font-heading);font-weight:800;font-size:20px;margin-bottom:6px">Adjust stock — {{ adjustName }}</div>
+        <div style="font-size:14px;opacity:0.8;margin-bottom:18px">On hand {{ adjustCurrent }} units. Adjustments are written to the movement history with your name and cannot be edited afterwards.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+          <div class="field"><label>New quantity</label><input class="input" value="{{ adjustQty }}" onChange="{{ setAdjustQty }}" /></div>
+          <div class="field"><label>Reason</label><select class="input" value="{{ adjustReason }}" onChange="{{ setAdjustReason }}"><option>Restock received</option><option>Count correction</option><option>Damaged</option><option>Returned to supplier</option></select></div>
+        </div>
+        <div style="background:var(--color-bg);padding:12px;font-size:13px;margin-bottom:18px">Change: <strong style="font-variant-numeric:tabular-nums">{{ adjustDelta }}</strong> · resulting stock <strong style="font-variant-numeric:tabular-nums">{{ adjustQty }}</strong></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-secondary" onClick="{{ closeAdjust }}">Cancel</button><button class="btn btn-primary" onClick="{{ saveAdjust }}">Save adjustment</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ notes }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;right:20px;bottom:20px;z-index:70;width:300px;background:var(--color-accent-100);border-top:2px solid var(--color-accent);padding:14px 16px;box-shadow:var(--shadow-md)">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-800);margin-bottom:6px">Dev note — {{ noteTitle }}</div>
+      <div style="font-size:12px;line-height:1.55;color:var(--color-accent-900)">{{ noteBody }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:20px;bottom:20px;z-index:80;background:var(--color-text);color:var(--color-bg);padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-md);min-width:300px;animation:mh-rise 0.18s ease-out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span style="font-size:13px">{{ toastText }}</span>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+const ORDERS = [
+  { no: 'MH-24081', date: 'Aug 12, 2026', customer: 'Priya Raman', items: 2, total: 328.00, status: 'Processing' },
+  { no: 'MH-24076', date: 'Aug 11, 2026', customer: 'Daniel Okafor', items: 1, total: 92.00, status: 'Packed' },
+  { no: 'MH-24071', date: 'Aug 11, 2026', customer: 'Elena Sokolova', items: 3, total: 214.00, status: 'Shipped' },
+  { no: 'MH-24068', date: 'Aug 10, 2026', customer: 'Marcus Bell', items: 1, total: 76.00, status: 'Delivered' },
+  { no: 'MH-24063', date: 'Aug 9, 2026', customer: 'Yuki Tanaka', items: 2, total: 150.00, status: 'Delivered' },
+  { no: 'MH-24059', date: 'Aug 8, 2026', customer: 'Sofia Marchetti', items: 1, total: 58.00, status: 'Refunded' }
+];
+
+const money = (n) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+const TONE = {
+  Processing: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Packed: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Shipped: { cls: 'tag tag-neutral', style: '' },
+  Delivered: { cls: 'tag tag-neutral', style: '' },
+  Refunded: { cls: 'tag tag-accent', style: '' }
+};
+
+const ICONS = {
+  dash: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  products: 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z',
+  inventory: 'M4 7h16M4 12h16M4 17h10',
+  orders: 'M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14',
+  earnings: 'M16 7h6v6M22 7l-8.5 8.5-5-5L2 17',
+  settings: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'
+};
+
+const PRODUCTS = [
+  { name: 'Aeris cordless kettle, 1.2L', sku: 'AC-KTL-1105', cat: 'Small appliances', price: 92, stock: 3, variants: 9, status: 'Published' },
+  { name: 'Aeris pour-over set, 600ml', sku: 'AC-POS-0600', cat: 'Brewing', price: 58, stock: 5, variants: 2, status: 'Published' },
+  { name: 'Rivet cast iron skillet, 10 inch', sku: 'AC-SKL-1000', cat: 'Cookware', price: 76, stock: 27, variants: 3, status: 'Published' },
+  { name: 'Aeris gooseneck spout, replacement', sku: 'AC-GSN-0101', cat: 'Parts', price: 18, stock: 64, variants: 1, status: 'Published' },
+  { name: 'Aeris pour-over filter pack, 100ct', sku: 'AC-FLT-0100', cat: 'Brewing', price: 12, stock: 0, variants: 1, status: 'Out of stock' },
+  { name: 'Aeris milk pitcher, 350ml', sku: 'AC-PTC-0350', cat: 'Brewing', price: 34, stock: 41, variants: 2, status: 'Draft' },
+  { name: 'Aeris travel press, 400ml', sku: 'AC-TRP-0400', cat: 'Brewing', price: 46, stock: 12, variants: 3, status: 'Draft' },
+  { name: 'Rivet enamel dutch oven, 5qt', sku: 'AC-DUT-5000', cat: 'Cookware', price: 148, stock: 0, variants: 4, status: 'Archived' }
+];
+
+const VARIANTS = [
+  { name: '1.0 L · Brushed steel', sku: 'AC-KTL-1100-BS', price: '84.00', stock: 12 },
+  { name: '1.2 L · Brushed steel', sku: 'AC-KTL-1105-BS', price: '92.00', stock: 3 },
+  { name: '1.2 L · Matte black', sku: 'AC-KTL-1105-MB', price: '92.00', stock: 18 },
+  { name: '1.7 L · Brushed steel', sku: 'AC-KTL-1107-BS', price: '104.00', stock: 0 }
+];
+
+const INVENTORY = [
+  { product: 'Aeris cordless kettle, 1.2L', variant: '1.2 L · Brushed steel', sku: 'AC-KTL-1105-BS', onHand: 3, held: 1 },
+  { product: 'Aeris cordless kettle, 1.2L', variant: '1.2 L · Matte black', sku: 'AC-KTL-1105-MB', onHand: 18, held: 2 },
+  { product: 'Aeris cordless kettle, 1.7L', variant: '1.7 L · Brushed steel', sku: 'AC-KTL-1107-BS', onHand: 0, held: 0 },
+  { product: 'Aeris pour-over set, 600ml', variant: 'Standard', sku: 'AC-POS-0600', onHand: 5, held: 3 },
+  { product: 'Rivet cast iron skillet, 10 inch', variant: 'Seasoned', sku: 'AC-SKL-1000', onHand: 27, held: 6 },
+  { product: 'Aeris gooseneck spout', variant: 'Replacement', sku: 'AC-GSN-0101', onHand: 64, held: 4 },
+  { product: 'Aeris pour-over filter pack', variant: '100 count', sku: 'AC-FLT-0100', onHand: 0, held: 0 },
+  { product: 'Aeris milk pitcher, 350ml', variant: 'Brushed steel', sku: 'AC-PTC-0350', onHand: 41, held: 11 }
+];
+
+const MOVEMENTS = [
+  { when: 'Aug 12, 09:41', variant: 'AC-KTL-1105-BS', reason: 'Order MH-24081', change: -1, result: 3, by: 'System' },
+  { when: 'Aug 11, 16:02', variant: 'AC-POS-0600', reason: 'Order MH-24076', change: -2, result: 5, by: 'System' },
+  { when: 'Aug 11, 10:18', variant: 'AC-SKL-1000', reason: 'Restock received', change: 24, result: 27, by: 'Nadia Fischer' },
+  { when: 'Aug 10, 14:55', variant: 'AC-FLT-0100', reason: 'Order MH-24068', change: -6, result: 0, by: 'System' },
+  { when: 'Aug 9, 11:30', variant: 'AC-KTL-1107-BS', reason: 'Damaged', change: -2, result: 0, by: 'Nadia Fischer' },
+  { when: 'Aug 8, 09:05', variant: 'AC-PTC-0350', reason: 'Order MH-24059 cancelled — stock restored', change: 1, result: 41, by: 'System' }
+];
+
+const SELLER_ORDERS = [
+  { no: 'MH-24081', date: 'Aug 12, 2026', customer: 'Priya Raman', items: 2, total: 328.00, status: 'Processing' },
+  { no: 'MH-24076', date: 'Aug 11, 2026', customer: 'Daniel Okafor', items: 1, total: 92.00, status: 'Packed' },
+  { no: 'MH-24071', date: 'Aug 11, 2026', customer: 'Elena Sokolova', items: 3, total: 214.00, status: 'Shipped' },
+  { no: 'MH-24068', date: 'Aug 10, 2026', customer: 'Marcus Bell', items: 1, total: 76.00, status: 'Delivered' },
+  { no: 'MH-24063', date: 'Aug 9, 2026', customer: 'Yuki Tanaka', items: 2, total: 150.00, status: 'Delivered' },
+  { no: 'MH-24059', date: 'Aug 8, 2026', customer: 'Sofia Marchetti', items: 1, total: 58.00, status: 'Refunded' },
+  { no: 'MH-24054', date: 'Aug 7, 2026', customer: 'Owen Whitfield', items: 4, total: 412.00, status: 'Delivered' }
+];
+
+const STEPS = ['Placed', 'Processing', 'Packed', 'Shipped', 'Delivered'];
+
+const LEDGER = [
+  { date: 'Aug 12, 2026', type: 'Order earning', note: 'Priya Raman · 3 items', ref: 'MH-24081', orderTotal: 328.00, commission: 39.36, amount: 288.64, balance: 6842.15 },
+  { date: 'Aug 11, 2026', type: 'Order earning', note: 'Elena Sokolova · 3 items', ref: 'MH-24071', orderTotal: 214.00, commission: 25.68, amount: 188.32, balance: 6553.51 },
+  { date: 'Aug 11, 2026', type: 'Order earning', note: 'Daniel Okafor · 1 item', ref: 'MH-24076', orderTotal: 92.00, commission: 11.04, amount: 80.96, balance: 6365.19 },
+  { date: 'Aug 10, 2026', type: 'Order earning', note: 'Marcus Bell · 1 item', ref: 'MH-24068', orderTotal: 76.00, commission: 9.12, amount: 66.88, balance: 6284.23 },
+  { date: 'Aug 9, 2026', type: 'Refund reversal', note: 'Order refunded in full · earning reversed', ref: 'MH-24059', orderTotal: 58.00, commission: 6.96, amount: -51.04, balance: 6217.35 },
+  { date: 'Aug 8, 2026', type: 'Payout', note: 'Approved by marketplace team', ref: 'PO-2038', orderTotal: 0, commission: 0, amount: -4200.00, balance: 6268.39 },
+  { date: 'Aug 7, 2026', type: 'Order earning', note: 'Owen Whitfield · 4 items', ref: 'MH-24054', orderTotal: 412.00, commission: 49.44, amount: 362.56, balance: 10468.39 },
+  { date: 'Aug 6, 2026', type: 'Order earning', note: 'Yuki Tanaka · 2 items', ref: 'MH-24063', orderTotal: 150.00, commission: 18.00, amount: 132.00, balance: 10105.83 }
+];
+
+const PAYOUTS = [
+  { requested: 'Aug 8, 2026', ref: 'PO-2038', amount: 4200.00, status: 'Approved', decided: 'Aug 9, 2026', note: 'Settled to Chase ••4417' },
+  { requested: 'Jul 24, 2026', ref: 'PO-1994', amount: 5100.00, status: 'Approved', decided: 'Jul 25, 2026', note: 'Settled to Chase ••4417' },
+  { requested: 'Jul 11, 2026', ref: 'PO-1962', amount: 2800.00, status: 'Rejected', decided: 'Jul 12, 2026', note: 'Bank details did not match the registered business name' },
+  { requested: 'Jun 28, 2026', ref: 'PO-1907', amount: 6350.65, status: 'Approved', decided: 'Jun 29, 2026', note: 'Settled to Chase ••4417' },
+  { requested: 'Jun 14, 2026', ref: 'PO-1866', amount: 3900.00, status: 'Approved', decided: 'Jun 15, 2026', note: 'Settled to Chase ••4417' }
+];
+
+const POTONE = {
+  Requested: { cls: 'tag', style: 'background:var(--color-surface);border:1px dashed var(--color-divider)' },
+  Approved: { cls: 'tag tag-neutral', style: '' },
+  Rejected: { cls: 'tag tag-accent', style: '' }
+};
+
+const PTONE = {
+  Published: { cls: 'tag tag-neutral', style: '' },
+  Draft: { cls: 'tag', style: 'background:transparent;border:1px solid var(--color-divider);opacity:0.7' },
+  'Out of stock': { cls: 'tag tag-accent', style: '' },
+  Archived: { cls: 'tag', style: 'background:transparent;border:1px solid var(--color-divider);opacity:0.5' }
+};
+
+class Component extends DCLogic {
+  state = {
+    screen: 'dash', appState: 'form', notes: true, toast: null,
+    pQuery: '', pStatus: 'All', draft: false,
+    invQuery: '', invTab: 'All', adjustOpen: false, adjustIdx: 0, adjustQty: '24', adjustReason: 'Restock received',
+    oQuery: '', oStatus: 'All', odIdx: 0, odStatus: 'Processing',
+    carrier: 'USPS Ground Advantage', tracking: '',
+    earnTab: 'statement', ledgerTab: 'All', payoutAmount: '6842.15', openRequest: null,
+    prodTitle: 'Aeris cordless kettle, 1.2L', basePrice: '92.00', comparePrice: '129.00',
+    storeName: 'Aeris Kitchen Co.', storeSlug: 'aeris-kitchen',
+    storeDesc: 'Small-batch kitchen tools, tested in a working restaurant kitchen before we list them. Everything ships from our own workshop in Portland.',
+    saved: 'Last saved 12 Aug, 09:41'
+  };
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: null }), 3000);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const q = s.pQuery.toLowerCase().trim();
+    const rows = PRODUCTS.filter(p => {
+      if (s.pStatus !== 'All' && p.status !== s.pStatus) return false;
+      if (q && !(p.name + ' ' + p.sku).toLowerCase().includes(q)) return false;
+      return true;
+    });
+    const iq = s.invQuery.toLowerCase().trim();
+    const invRows = INVENTORY.filter(r => {
+      if (iq && !(r.product + ' ' + r.variant + ' ' + r.sku).toLowerCase().includes(iq)) return false;
+      if (s.invTab === 'Out of stock' && r.onHand !== 0) return false;
+      if (s.invTab === 'Low stock' && !(r.onHand > 0 && r.onHand - r.held <= 5)) return false;
+      return true;
+    });
+    const oq = s.oQuery.toLowerCase().trim();
+    const oRows = SELLER_ORDERS.filter(o => {
+      if (s.oStatus !== 'All' && o.status !== s.oStatus) return false;
+      if (oq && !(o.no + ' ' + o.customer).toLowerCase().includes(oq)) return false;
+      return true;
+    });
+    const bal = 6842.15 - (s.openRequest || 0);
+    const ledgerRows = LEDGER.filter(e => s.ledgerTab === 'All' || e.type === s.ledgerTab);
+    const payoutRows = (s.openRequest ? [{ requested: 'Just now', ref: 'PO-2044', amount: s.openRequest, status: 'Requested', decided: '—', note: 'Awaiting marketplace review' }] : []).concat(PAYOUTS);
+    const notesFor = {
+      apply: ['Seller application', 'One form, three sections, no wizard — sellers abandon multi-step onboarding. The application is a record with its own status (pending / approved / rejected); a rejection stores the admin\'s reason verbatim and is shown to the seller unedited. Re-applying edits the same record rather than creating a duplicate.'],
+      dash: ['Seller dashboard', 'Figures only — no time-series charts in Phase 1. Every number here is derived from stored order records, not recalculated from the current commission rate. "Awaiting action" counts orders in Processing, which is the one thing a seller must do daily; it is the only badge in the sidebar.'],
+      products: ['Product list', 'Status tabs are the primary filter — a seller\'s daily question is "what is out of stock" or "what is still a draft". Archived rows show a dash for stock, not 0: archived products keep their history but no longer hold inventory. Row actions are Edit and Archive only; deactivate lives inside the editor as the Draft toggle.'],
+      add: ['Add product', 'Add and Edit are the same component — the only differences are the crumb, the autosave label and whether the primary button says Publish or Save. Variants are generated from the two option rows; each generated row is its own record with its own SKU, price and stock. The earning box makes the 12% commission visible at the moment the seller sets a price.'],
+      edit: ['Edit product', 'Identical to Add Product. Editing a published product does not change any historical order — orders store their own price snapshot. Changing a variant\'s stock here writes a stock movement with reason "manual edit".'],
+      inventory: ['Inventory', 'Three numbers per variant: on hand, held by open orders, and available (what the storefront can sell). Held is derived from unfulfilled orders, never edited. Every adjustment writes an append-only movement with actor and reason — order-driven changes show as System, manual ones as the seller. Low stock is available ≤ 5.'],
+      orders: ['Seller order list', 'A seller only ever sees their own sub-orders. Commission and earning are shown per row from the snapshot on that order — refunded rows show a dash because the earning was reversed, not zeroed. Status tabs plus a date range are the only filters; anything more belongs in admin.'],
+      orderdetail: ['Seller order detail', 'The status button advances one step at a time — Processing → Packed → Shipped → Delivered — and will not let the seller mark Shipped without a tracking number. Each transition appends to status history and emails the customer. Commission is shown with its snapshot rate and date so the seller can see it is fixed.'],
+      earnings: ['Earnings & payouts', 'The ledger is the source of truth: every earning, reversal and payout is its own immutable row with a running balance. A refund posts a negative reversal rather than editing the original earning. Payouts: one open request at a time, minimum $50, requested amount is held out of the available balance until the admin approves or rejects — a rejection releases it and records a reason.'],
+      store: ['Store setup', 'The slug is validated live and must be globally unique; changing it after launch leaves a permanent redirect from the old URL. The preview panel renders the actual Phase 2 store-page components at 0.5 scale, so what a seller edits is literally what customers see. Tax ID locks after approval.']
+    };
+    const note = notesFor[s.screen === 'apply' ? 'apply' : s.screen] || notesFor.dash;
+
+    const nav = [
+      { key: 'dash', label: 'Dashboard', icon: ICONS.dash },
+      { key: 'products', label: 'Products', icon: ICONS.products },
+      { key: 'inventory', label: 'Inventory', icon: ICONS.inventory, badge: '4 low' },
+      { key: 'orders', label: 'Orders', icon: ICONS.orders, badge: '18' },
+      { key: 'earnings', label: 'Earnings', icon: ICONS.earnings },
+      { key: 'store', label: 'Store settings', icon: ICONS.settings }
+    ].map(n => ({
+      label: n.label, icon: n.icon,
+      hasBadge: !!n.badge, badge: n.badge || '',
+      bg: ({ add: 'products', edit: 'products', orderdetail: 'orders' }[s.screen] || s.screen) === n.key ? 'var(--color-accent)' : 'transparent',
+      fg: ({ add: 'products', edit: 'products', orderdetail: 'orders' }[s.screen] || s.screen) === n.key ? 'var(--color-bg)' : 'var(--color-text)',
+      go: () => this.setState({ screen: n.key })
+    }));
+
+    const titles = { dash: 'Dashboard', store: 'Store settings', products: 'Products', add: 'New product', edit: 'Edit product', inventory: 'Inventory', orders: 'Orders', orderdetail: 'Order ' + (s.odNo || 'MH-24081'), earnings: 'Earnings' };
+
+    return {
+      notes: s.notes,
+      notesLabel: s.notes ? 'Hide' : 'Show',
+      toggleNotes: () => this.setState(x => ({ notes: !x.notes })),
+      noteTitle: note[0], noteBody: note[1],
+      groupLabel: { apply: 'Group 1 — Onboarding', dash: 'Group 1 — Dashboard', store: 'Group 2 — Store', products: 'Group 3 — Products', add: 'Group 3 — Products', edit: 'Group 3 — Products', inventory: 'Group 4 — Inventory', orders: 'Group 4 — Orders', orderdetail: 'Group 4 — Orders', earnings: 'Group 5 — Earnings & payouts' }[s.screen] || 'Seller portal',
+      noop: () => {},
+
+      isApply: s.screen === 'apply',
+      inPortal: s.screen !== 'apply',
+      isDash: s.screen === 'dash',
+      isStore: s.screen === 'store',
+      isProducts: s.screen === 'products',
+      isEditor: s.screen === 'add' || s.screen === 'edit',
+      goProducts: () => this.setState({ screen: 'products' }),
+      goAdd: () => this.setState({ screen: 'add', draft: true }),
+      goEdit: () => this.setState({ screen: 'edit', draft: false }),
+      editorCrumb: s.screen === 'add' ? 'New product' : 'Aeris cordless kettle, 1.2L',
+      autosave: s.screen === 'add' ? 'Draft saved 10:22' : 'All changes saved',
+      draftLabel: s.draft ? 'Draft' : 'Published',
+      draftTagClass: s.draft ? 'tag' : 'tag tag-neutral',
+      draftTagStyle: s.draft ? 'background:transparent;border:1px solid var(--color-divider);opacity:0.7' : '',
+      isDraft: s.draft, isPublished: !s.draft,
+      setDraft: () => this.setState({ draft: true }),
+      setPublished: () => this.setState({ draft: false }),
+      visibilityNote: s.draft ? 'Drafts keep their stock and SKUs but never appear in search, category or store pages.' : 'Published products appear in search within a minute. Stock reaching zero hides the buy button, not the listing.',
+      primaryAction: s.draft ? 'Publish product' : 'Save changes',
+      savePublish: () => { this.setState({ draft: false, screen: 'products' }); this.flash(s.draft ? 'Product published — live on your store' : 'Changes saved'); },
+      saveDraft: () => { this.setState({ draft: true, screen: 'products' }); this.flash('Saved as draft'); },
+
+      prodTitle: s.prodTitle,
+      setProdTitle: (e) => this.setState({ prodTitle: e.target.value }),
+      basePrice: s.basePrice, comparePrice: s.comparePrice,
+      setBasePrice: (e) => this.setState({ basePrice: e.target.value }),
+      setComparePrice: (e) => this.setState({ comparePrice: e.target.value }),
+      basePriceFmt: money(parseFloat(s.basePrice) || 0),
+      comparePriceFmt: money(parseFloat(s.comparePrice) || 0),
+      priceError: (parseFloat(s.comparePrice) || 0) <= (parseFloat(s.basePrice) || 0),
+      sellerEarn: money(Math.round((parseFloat(s.basePrice) || 0) * 0.88 * 100) / 100),
+      commissionNote: 'after 12% commission on ' + money(parseFloat(s.basePrice) || 0),
+
+      pQuery: s.pQuery,
+      setPQuery: (e) => this.setState({ pQuery: e.target.value }),
+      clearP: () => this.setState({ pQuery: '', pStatus: 'All' }),
+      statusTabs: ['All', 'Published', 'Draft', 'Out of stock', 'Archived'].map(label => ({
+        label,
+        bg: s.pStatus === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.pStatus === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ pStatus: label })
+      })),
+      productRows: rows.map(p => ({
+        slot: 'sp-p-' + p.sku, name: p.name, sku: p.sku, cat: p.cat,
+        variantNote: p.variants + ' variants',
+        price: money(p.price),
+        stock: p.status === 'Archived' ? '—' : String(p.stock),
+        stockColor: p.stock === 0 ? 'var(--color-accent-700)' : (p.stock <= 5 ? 'var(--color-accent-800)' : 'inherit'),
+        status: p.status,
+        tagClass: PTONE[p.status].cls,
+        tagStyle: PTONE[p.status].style,
+        archive: () => this.flash(p.name + ' archived')
+      })),
+      pHas: rows.length > 0,
+      pEmpty: rows.length === 0,
+      pCount: rows.length + ' shown',
+      pEmptyTitle: s.pQuery ? 'No products match “' + s.pQuery + '”' : 'No ' + s.pStatus.toLowerCase() + ' products',
+      pEmptyBody: s.pQuery ? 'Try the SKU instead, or clear the filters to see all 84 products.' : 'Nothing in this view yet. Add a product, or switch back to All.',
+
+      variants: VARIANTS.map(v => ({
+        name: v.name, sku: v.sku, price: v.price, stock: String(v.stock),
+        status: v.stock === 0 ? 'Out of stock' : (v.stock <= 5 ? 'Low stock' : 'In stock'),
+        tagClass: v.stock === 0 ? 'tag tag-accent' : (v.stock <= 5 ? 'tag tag-outline' : 'tag tag-neutral'),
+        tagStyle: '',
+        setPrice: () => {}, setStock: () => {}
+      })),
+
+      isInventory: s.screen === 'inventory',
+      isOrders: s.screen === 'orders',
+      isOrderDetail: s.screen === 'orderdetail',
+      goOrders: () => this.setState({ screen: 'orders' }),
+      goInventory: () => this.setState({ screen: 'inventory' }),
+      goOrderDetail: () => this.setState({ screen: 'orderdetail' }),
+
+      invQuery: s.invQuery,
+      setInvQuery: (e) => this.setState({ invQuery: e.target.value }),
+      invTabs: ['All', 'Low stock', 'Out of stock'].map(label => ({
+        label,
+        bg: s.invTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.invTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ invTab: label })
+      })),
+      invCount: invRows.length + ' variants',
+      invRows: invRows.map((r) => {
+        const avail = r.onHand - r.held;
+        const state = r.onHand === 0 ? 'Out of stock' : (avail <= 5 ? 'Low stock' : 'In stock');
+        return {
+          product: r.product, variant: r.variant, sku: r.sku,
+          onHand: String(r.onHand), held: String(r.held), available: String(avail),
+          color: r.onHand === 0 ? 'var(--color-accent-700)' : (avail <= 5 ? 'var(--color-accent-800)' : 'inherit'),
+          state,
+          tagClass: r.onHand === 0 ? 'tag tag-accent' : (avail <= 5 ? 'tag tag-outline' : 'tag tag-neutral'),
+          adjust: () => this.setState({ adjustOpen: true, adjustName: r.variant, adjustCurrent: r.onHand, adjustQty: String(r.onHand) })
+        };
+      }),
+      movements: MOVEMENTS.map(m => ({
+        when: m.when, variant: m.variant, reason: m.reason,
+        change: (m.change > 0 ? '+' : '') + m.change,
+        result: String(m.result), by: m.by,
+        color: m.change > 0 ? 'inherit' : 'var(--color-accent-700)'
+      })),
+      adjustOpen: s.adjustOpen,
+      adjustName: s.adjustName || '',
+      adjustCurrent: String(s.adjustCurrent === undefined ? 0 : s.adjustCurrent),
+      adjustQty: s.adjustQty,
+      adjustReason: s.adjustReason,
+      setAdjustQty: (e) => this.setState({ adjustQty: e.target.value }),
+      setAdjustReason: (e) => this.setState({ adjustReason: e.target.value }),
+      adjustDelta: (() => { const d = (parseInt(s.adjustQty, 10) || 0) - (s.adjustCurrent || 0); return (d > 0 ? '+' : '') + d; })(),
+      closeAdjust: () => this.setState({ adjustOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      saveAdjust: () => { this.setState({ adjustOpen: false }); this.flash('Stock adjusted · movement recorded'); },
+
+      oQuery: s.oQuery,
+      setOQuery: (e) => this.setState({ oQuery: e.target.value }),
+      clearO: () => this.setState({ oQuery: '', oStatus: 'All' }),
+      orderTabs: ['All', 'Processing', 'Packed', 'Shipped', 'Delivered', 'Refunded'].map(label => ({
+        label,
+        bg: s.oStatus === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.oStatus === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ oStatus: label })
+      })),
+      orderRows: oRows.map(o => ({
+        no: o.no, date: o.date, customer: o.customer, items: o.items,
+        total: money(o.total),
+        commission: o.status === 'Refunded' ? '—' : '−' + money(Math.round(o.total * 0.12 * 100) / 100),
+        earning: o.status === 'Refunded' ? '—' : money(Math.round(o.total * 0.88 * 100) / 100),
+        status: o.status,
+        tagClass: TONE[o.status].cls, tagStyle: TONE[o.status].style,
+        open: () => this.setState({ screen: 'orderdetail', odNo: o.no, odStatus: o.status === 'Refunded' ? 'Delivered' : o.status, odDate: o.date })
+      })),
+      oHas: oRows.length > 0,
+      oEmpty: oRows.length === 0,
+      oSummary: oRows.length + ' orders · ' + money(oRows.reduce((n, o) => n + o.total, 0)),
+
+      odNo: s.odNo || 'MH-24081',
+      odDate: s.odDate || 'Aug 12, 2026',
+      odItems: 2,
+      odStatus: s.odStatus,
+      odTagClass: TONE[s.odStatus] ? TONE[s.odStatus].cls : 'tag tag-neutral',
+      odTagStyle: TONE[s.odStatus] ? TONE[s.odStatus].style : '',
+      odSteps: STEPS.map((label, i) => {
+        const done = i <= STEPS.indexOf(s.odStatus);
+        return {
+          label,
+          bar: done ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+          fg: done ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 45%, transparent)',
+          when: done ? ['Aug 12, 09:14', 'Aug 12, 09:41', 'Aug 12, 14:20', 'Aug 13, 08:05', 'Aug 15, 11:32'][i] : '—'
+        };
+      }),
+      odCanAdvance: STEPS.indexOf(s.odStatus) < 4,
+      odNextLabel: { Placed: 'Accept order', Processing: 'Mark as packed', Packed: 'Mark as shipped', Shipped: 'Mark as delivered' }[s.odStatus] || 'Done',
+      odAdvance: () => {
+        const next = STEPS[Math.min(4, STEPS.indexOf(this.state.odStatus) + 1)];
+        if (next === 'Shipped' && !this.state.tracking) { this.flash('Add a tracking number before marking as shipped'); return; }
+        this.setState({ odStatus: next });
+        this.flash('Order marked ' + next.toLowerCase() + ' · customer notified');
+      },
+      odLines: [
+        { slot: 'sp-od-1', name: 'Aeris cordless kettle, 1.2L', variant: '1.2 L · Brushed steel', sku: 'AC-KTL-1105-BS', qty: 1, unit: '$92.00', total: '$92.00' },
+        { slot: 'sp-od-2', name: 'Rivet cast iron skillet, 10 inch', variant: 'Seasoned', sku: 'AC-SKL-1000', qty: 1, unit: '$76.00', total: '$76.00' },
+        { slot: 'sp-od-3', name: 'Aeris pour-over set, 600ml', variant: 'Standard', sku: 'AC-POS-0600', qty: 2, unit: '$58.00', total: '$116.00' }
+      ],
+      odHistory: STEPS.slice(0, STEPS.indexOf(s.odStatus) + 1).reverse().map((st, i) => ({
+        when: ['Aug 12, 09:14', 'Aug 12, 09:41', 'Aug 12, 14:20', 'Aug 13, 08:05', 'Aug 15, 11:32'][STEPS.indexOf(st)],
+        status: st,
+        tagClass: TONE[st] ? TONE[st].cls : 'tag tag-neutral',
+        tagStyle: TONE[st] ? TONE[st].style : '',
+        by: st === 'Placed' ? 'Customer' : 'Nadia Fischer',
+        note: st === 'Placed' ? 'Payment captured · stock reduced' : (st === 'Shipped' ? (s.tracking ? 'Tracking ' + s.tracking : 'Tracking added') : '')
+      })),
+      carrier: s.carrier, tracking: s.tracking,
+      setCarrier: (e) => this.setState({ carrier: e.target.value }),
+      setTracking: (e) => this.setState({ tracking: e.target.value }),
+      saveTracking: () => this.flash(s.tracking ? 'Tracking saved · customer notified' : 'Enter a tracking number first'),
+
+      isEarnings: s.screen === 'earnings',
+      isSoon: false,
+      balance: money(bal),
+      balanceNote: s.openRequest ? money(s.openRequest) + ' held by an open request' : 'Ready to withdraw',
+      heldAmount: money(s.openRequest || 0),
+      payoutBlocked: !!s.openRequest,
+      payoutHint: s.openRequest ? 'You already have an open request — one at a time.' : 'Minimum $50.00 · reviewed within 2 business days.',
+
+      onStatement: s.earnTab === 'statement',
+      onPayouts: s.earnTab === 'payouts',
+      tabStatement: () => this.setState({ screen: 'earnings', earnTab: 'statement' }),
+      tabPayouts: () => this.setState({ screen: 'earnings', earnTab: 'payouts' }),
+      tabStatementBar: s.earnTab === 'statement' ? 'var(--color-accent)' : 'transparent',
+      tabPayoutsBar: s.earnTab === 'payouts' ? 'var(--color-accent)' : 'transparent',
+      tabStatementFg: s.earnTab === 'statement' ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 55%, transparent)',
+      tabPayoutsFg: s.earnTab === 'payouts' ? 'var(--color-text)' : 'color-mix(in srgb, var(--color-text) 55%, transparent)',
+
+      ledgerTabs: ['All', 'Order earning', 'Refund reversal', 'Payout'].map(label => ({
+        label,
+        bg: s.ledgerTab === label ? 'var(--color-accent)' : 'transparent',
+        fg: s.ledgerTab === label ? 'var(--color-bg)' : 'var(--color-text)',
+        go: () => this.setState({ ledgerTab: label })
+      })),
+      ledgerCount: ledgerRows.length + ' entries',
+      ledger: ledgerRows.map(e => ({
+        date: e.date, type: e.type, note: e.note, ref: e.ref,
+        orderTotal: e.orderTotal ? money(e.orderTotal) : '—',
+        commission: e.commission ? '−' + money(e.commission) : '—',
+        amount: (e.amount > 0 ? '+' : '−') + money(Math.abs(e.amount)),
+        color: e.amount > 0 ? 'inherit' : 'var(--color-accent-700)',
+        balance: money(e.balance)
+      })),
+
+      payouts: payoutRows.map(p => ({
+        requested: p.requested, ref: p.ref, amount: money(p.amount), status: p.status,
+        decided: p.decided, note: p.note,
+        tagClass: POTONE[p.status].cls, tagStyle: POTONE[p.status].style
+      })),
+      payoutCount: payoutRows.length + ' requests',
+      canRequest: !s.openRequest,
+      hasOpenRequest: !!s.openRequest,
+      openAmount: money(s.openRequest || 0),
+      payoutAmount: s.payoutAmount,
+      payoutAmountFmt: money(parseFloat(s.payoutAmount) || 0),
+      setPayoutAmount: (e) => this.setState({ payoutAmount: e.target.value }),
+      withdrawAll: () => this.setState({ payoutAmount: bal.toFixed(2) }),
+      amountError: !((parseFloat(s.payoutAmount) || 0) >= 50 && (parseFloat(s.payoutAmount) || 0) <= bal),
+      amountErrorText: (parseFloat(s.payoutAmount) || 0) > bal ? 'More than your available balance' : 'Minimum payout is $50.00',
+      requestPayout: () => { const amt = parseFloat(this.state.payoutAmount) || 0; this.setState({ openRequest: amt }); this.flash('Payout request PO-2044 submitted · ' + money(amt) + ' held'); },
+      cancelRequest: () => { this.setState({ openRequest: null }); this.flash('Request cancelled · balance released'); },
+      soonBody: {
+        products: 'Product list, add product and edit product — Seller Group 3.',
+        inventory: 'Stock per variant, manual adjustment with reason, and the movement history — Seller Group 4.',
+        orders: 'Order list with status and date filters, plus order detail with packing, carrier and tracking — Seller Group 4.',
+        earnings: 'Earnings statement, transaction history and payout requests — Seller Group 5.'
+      }[s.screen] || '',
+      pageTitle: titles[s.screen] || 'Dashboard',
+      goApply: () => this.setState({ screen: 'apply' }),
+      goDash: () => this.setState({ screen: 'dash' }),
+      goStore: () => this.setState({ screen: 'store' }),
+
+      appForm: s.appState === 'form',
+      appSubmitted: s.appState === 'submitted',
+      appApproved: s.appState === 'approved',
+      appRejected: s.appState === 'rejected',
+      setStatePending: () => this.setState({ screen: 'apply', appState: 'form' }),
+      setStateSubmitted: () => this.setState({ screen: 'apply', appState: 'submitted' }),
+      setStateApproved: () => this.setState({ screen: 'apply', appState: 'approved' }),
+      setStateRejected: () => this.setState({ screen: 'apply', appState: 'rejected' }),
+      submitApp: () => this.setState({ appState: 'submitted' }),
+
+      nav,
+      orders: ORDERS.map(o => ({
+        no: o.no, date: o.date, customer: o.customer, items: o.items,
+        total: money(o.total),
+        earning: o.status === 'Refunded' ? '—' : money(Math.round(o.total * 0.88 * 100) / 100),
+        status: o.status,
+        tagClass: TONE[o.status].cls,
+        tagStyle: TONE[o.status].style
+      })),
+
+      storeName: s.storeName, storeSlug: s.storeSlug, storeDesc: s.storeDesc,
+      setStoreName: (e) => this.setState({ storeName: e.target.value }),
+      setStoreSlug: (e) => this.setState({ storeSlug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') }),
+      setStoreDesc: (e) => this.setState({ storeDesc: e.target.value }),
+      slugNote: s.storeSlug === 'aeris-kitchen' ? 'Available — this is your current address' : 'Available · changing this keeps a redirect from the old address',
+      descCount: s.storeDesc.length + ' / 400 characters',
+      savedNote: s.saved,
+      saveStore: () => { this.setState({ saved: 'Saved just now' }); this.flash('Store settings saved · public store updated'); },
+
+      toast: !!s.toast, toastText: s.toast || '',
+      true: true
+    };
+  }
+}
+</script>
+</body>
+</html>
