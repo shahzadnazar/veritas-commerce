@@ -72,6 +72,12 @@ jobs:
             - name: Code style
               run: ./vendor/bin/pint --test
 
+            # Larastan installs normally on a runner, so this is the strict
+            # configuration — the local fallback in phpstan.neon is not used
+            # here and cannot hide a finding from CI.
+            - name: Static analysis
+              run: php tools/phpstan.php analyse --memory-limit=1G --no-progress
+
             # The architectural invariants run first and on their own: if
             # money or tenant isolation is broken, nothing else in the suite
             # is interesting.

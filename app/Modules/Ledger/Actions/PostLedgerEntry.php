@@ -68,7 +68,7 @@ final class PostLedgerEntry
                     : now();
             }
 
-            return SellerLedgerEntry::create([
+            return SellerLedgerEntry::query()->create([
                 'seller_account_id' => $seller->id,
                 'type' => $type->value,
                 'status' => $resolvedStatus->value,

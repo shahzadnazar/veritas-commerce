@@ -27,7 +27,7 @@ final class BuildCommissionSnapshot
         ?string $campaignCode = null,
         ?Carbon $at = null,
     ): CommissionSnapshot {
-        $at ??= now();
+        $at ??= Carbon::now();
         $rule = ($this->resolveRule)($sellerAccountId, $categoryId, $campaignCode, $at);
 
         // The earning is the remainder, never computed independently, so

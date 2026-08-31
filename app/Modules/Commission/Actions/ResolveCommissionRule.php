@@ -25,7 +25,7 @@ final class ResolveCommissionRule
         ?string $campaignCode = null,
         ?Carbon $at = null,
     ): CommissionRule {
-        $at ??= now();
+        $at ??= Carbon::now();
 
         $candidates = CommissionRule::query()
             ->where('effective_from', '<=', $at)

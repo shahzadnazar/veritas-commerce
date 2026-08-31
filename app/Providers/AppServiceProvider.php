@@ -42,7 +42,7 @@ final class AppServiceProvider extends ServiceProvider
 
         // A lazy load is a performance bug that reaches production as an N+1.
         // Failing loudly outside production is how it gets caught in review.
-        Model::preventLazyLoading(! $this->app->isProduction());
-        Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
+        Model::preventLazyLoading(! $this->app->environment('production'));
+        Model::preventSilentlyDiscardingAttributes(! $this->app->environment('production'));
     }
 }

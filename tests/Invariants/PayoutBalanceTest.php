@@ -15,6 +15,7 @@ use App\Modules\Payouts\Models\PayoutRequest;
 use App\Modules\Sellers\Models\SellerAccount;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
@@ -38,7 +39,7 @@ final class PayoutBalanceTest extends TestCase
             type: LedgerEntryType::SaleEarning,
             amountMinor: $minor,
             status: $status,
-            availableAt: $status === LedgerEntryStatus::Available ? now()->subDay() : null,
+            availableAt: $status === LedgerEntryStatus::Available ? Carbon::now()->subDay() : null,
         );
     }
 
@@ -197,7 +198,7 @@ final class PayoutBalanceTest extends TestCase
             amountMinor: -2_500,
         );
 
-        $entries = SellerLedgerEntry::withoutGlobalScopes()
+        $entries = SellerLedgerEntry::query()->withoutGlobalScopes()
             ->where('seller_account_id', $seller->id)
             ->orderBy('id')
             ->get();

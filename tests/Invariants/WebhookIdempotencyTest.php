@@ -79,7 +79,7 @@ final class WebhookIdempotencyTest extends TestCase
         $this->assertFalse($handle($this->event()), 'The retry is a no-op.');
         $this->assertFalse($handle($this->event()));
 
-        $entries = SellerLedgerEntry::withoutGlobalScopes()->where('seller_account_id', $seller->id)->get();
+        $entries = SellerLedgerEntry::query()->withoutGlobalScopes()->where('seller_account_id', $seller->id)->get();
 
         $this->assertCount(1, $entries, 'Three deliveries, one earning.');
         $this->assertSame(28_864, (int) $entries->sum('amount_minor'));

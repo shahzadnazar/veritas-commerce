@@ -45,7 +45,7 @@ final class RecordMovement
 
             $locked->update(['on_hand' => $resulting]);
 
-            return InventoryMovement::create([
+            return InventoryMovement::query()->create([
                 'offer_id' => $locked->offer_id,
                 'inventory_location_id' => $locked->inventory_location_id,
                 'change' => $change,

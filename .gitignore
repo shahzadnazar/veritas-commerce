@@ -30,3 +30,4 @@ Thumbs.db
 /.phpunit.cache
 /storage/framework/testing
 .env.testing
+/tools/phpstan.phar

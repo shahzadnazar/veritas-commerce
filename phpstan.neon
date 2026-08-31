@@ -1,0 +1,54 @@
+# Static analysis configuration.
+#
+# This is the base configuration, used when Larastan is not installed.
+# phpstan.larastan.neon layers Larastan's Laravel extension on top and is
+# selected automatically by tools/phpstan.php whenever vendor/larastan is
+# present — which is the case on CI runners. See docs/architecture/M1-REPORT.md
+# for why this environment cannot install it.
+parameters:
+    level: 6
+
+    paths:
+        - app
+        - database
+        - config
+        - routes
+        - tests
+
+    # Laravel resolves a handful of APIs at runtime. Larastan derives these
+    # by reflecting the framework; without it, the same facts are declared
+    # explicitly. See tools/stubs/laravel.stub.
+    stubFiles:
+        - tools/stubs/laravel.stub
+
+    excludePaths:
+        analyse:
+            - vendor
+            - bootstrap/cache
+            - storage
+
+    # Findings below exist only because Larastan is absent: they are all
+    # cases where Eloquent's generics do not resolve, so a query's element
+    # type degrades to stdClass and a relation's nullability is guessed.
+    #
+    # They are NOT ignored in phpstan.larastan.neon, which is what CI runs —
+    # so the strict analysis still happens, and this list cannot be used to
+    # hide a real finding without it showing up there.
+    #
+    # Acting on them here would be actively harmful: rewriting a `?->` that
+    # PHPStan believes is redundant would introduce a null dereference the
+    # moment the relation really is empty.
+    ignoreErrors:
+        -
+            identifier: nullsafe.neverNull
+            reportUnmatched: false
+        -
+            identifier: method.nonObject
+            reportUnmatched: false
+            message: '#Cannot call method \w+\(\) on stdClass#'
+        -
+            identifier: argument.type
+            reportUnmatched: false
+            message: '#Collection<int,stdClass>::map#'
+
+    reportUnmatchedIgnoredErrors: false

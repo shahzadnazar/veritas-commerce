@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\AdminPortal\Http\Controllers;
 
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 final class AdminLoginController
 {
@@ -26,7 +28,13 @@ final class AdminLoginController
             'code' => ['nullable', 'string'],
         ]);
 
-        if (! Auth::guard('admin')->attempt([
+        $guard = Auth::guard('admin');
+
+        if (! $guard instanceof StatefulGuard) {
+            throw new RuntimeException('The admin guard must be session-based.');
+        }
+
+        if (! $guard->attempt([
             'email' => $credentials['email'],
             'password' => $credentials['password'],
         ])) {

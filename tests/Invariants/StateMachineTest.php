@@ -70,7 +70,6 @@ final class StateMachineTest extends TestCase
             $reachable = [];
 
             foreach ($enum::cases() as $case) {
-                /** @var StatusTransitions&BackedEnum $case */
                 foreach ($case->allowedTransitions() as $target) {
                     $reachable[$target->value] = true;
                 }

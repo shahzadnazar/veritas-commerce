@@ -11,6 +11,7 @@ use App\Modules\Orders\Models\OrderItem;
 use App\Modules\Orders\Models\SellerOrder;
 use App\Modules\Sellers\Concerns\CurrentSeller;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
@@ -90,14 +91,18 @@ final class PriceSnapshotTest extends TestCase
         // assignment from a request — so they are not in $fillable.
         CurrentSeller::actingAs($seller->id, function () use ($offer): void {
             $offer->status = OfferStatus::Archived;
-            $offer->archived_at = now();
+            $offer->archived_at = Carbon::now();
             $offer->save();
         });
 
         $item->refresh();
 
         $this->assertSame(7_600, $item->unit_price_snapshot_minor);
-        $this->assertNotNull($item->product_title, 'The item describes itself without the offer.');
+        $this->assertSame(
+            $item->getOriginal('product_title'),
+            $item->product_title,
+            'The item describes itself from its own snapshot, without reading the offer.',
+        );
     }
 
     #[Test]

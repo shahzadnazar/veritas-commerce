@@ -64,7 +64,7 @@ final class RequestPayout
                 throw PayoutNotPermitted::exceedsAvailable($amountMinor, $balance->available->minor);
             }
 
-            $request = PayoutRequest::create([
+            $request = PayoutRequest::query()->create([
                 'reference' => $this->references->payoutReference(),
                 'seller_account_id' => $seller->id,
                 'seller_bank_account_id' => $bankAccountId,

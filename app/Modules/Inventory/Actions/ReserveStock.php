@@ -71,7 +71,7 @@ final class ReserveStock
                     throw new InsufficientStock($offerId, $quantity, max(0, $available));
                 }
 
-                $reservations[] = InventoryReservation::create([
+                $reservations[] = InventoryReservation::query()->create([
                     'offer_id' => $offerId,
                     'inventory_location_id' => $balance->inventory_location_id,
                     'quantity' => $quantity,
