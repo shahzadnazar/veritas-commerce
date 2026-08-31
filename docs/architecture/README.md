@@ -26,7 +26,17 @@ Read them in order:
 | 10 | [Performance & scalability](10-performance-scale.md) | Caching layers, query budgets, capacity targets, the growth path. |
 | 11 | [Design system implementation](11-design-system.md) | Turning `design/prototype` into code: tokens, 44 components, `statusTone()`, responsive patterns, accessibility. |
 | 12 | [Quality, observability & delivery](12-quality-observability-delivery.md) | Testing pyramid, CI/CD, monitoring, backups, runbooks. |
-| 13 | [Roadmap & decision register](13-roadmap-and-decisions.md) | Milestones, definition of done, and the 12 open decisions that need an owner. |
+| 13 | [Roadmap & decision register](13-roadmap-and-decisions.md) | Milestones, definition of done, the three decisions taken, and the nine that still need an owner. |
+
+## Decisions taken so far
+
+| # | Decision | Outcome |
+|---|---|---|
+| 2 | Admin stack | A third Inertia area sharing the design system — not Filament |
+| 5 | When earning becomes withdrawable | Posted at Delivered, withdrawable after a 7-day clearing window |
+| 12 | Payment mode at launch | Stripe test mode for the Phase 1 pilot, as the specification states |
+
+Two decisions still block the start of implementation: **order numbering (1)** and **domain, brand assets and legal entity (11)**. See [13](13-roadmap-and-decisions.md#137-what-we-still-need-before-writing-application-code).
 
 ## The one-paragraph version
 
@@ -36,5 +46,5 @@ Veritas Commerce is a three-audience marketplace — customer storefront, seller
 
 1. **Rebrand.** Every prototype screen says `MARKETHUB` / `markethub.com`. The product is **Veritas Commerce**. This is a token-level and copy-level rename, not a design change — see [11-design-system.md](11-design-system.md#brand-rename).
 2. **Ambition vs Phase 1.** The brief says "no functionality invented beyond Phase 1". The stated goal is an Amazon-level marketplace. These are not in conflict: Phase 1 is the *foundation*, and every document below marks Phase-1 scope separately from the *scale path* so we build the foundation in a shape that does not have to be torn out. Nothing outside Phase 1 gets built now; everything outside Phase 1 gets a seam now.
-3. **Admin panel technology.** The spec proposes Filament. The prototype designs a bespoke admin against the Modernist design system (queue rails, required-reason dialogs, commission preview, snapshot money panels). Filament cannot reach that fidelity without fighting it. We recommend building admin as a third Inertia area sharing the same component library — see [Decision 2 in 13](13-roadmap-and-decisions.md).
+3. **Admin panel technology.** The spec proposes Filament. The prototype designs a bespoke admin against the Modernist design system (queue rails, required-reason dialogs, commission preview, snapshot money panels). Filament cannot reach that fidelity without fighting it. Admin is built as a **third Inertia area** sharing the same component library — Decision 2, settled 31 Aug 2026.
 4. **Findings adopted.** All five findings from the Phase 6 consistency review are carried into implementation requirements, including the single `statusTone()` helper and the no-raw-hex / accent-contrast lint rules.

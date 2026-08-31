@@ -94,7 +94,7 @@ resources/js/
 ```
 
 - **Storefront runs Inertia SSR** (`@inertiajs/react` server render via a Node side-process) so crawlers and first paint get complete HTML. This is the SEO requirement in the spec, and it is non-negotiable — see [06](06-seo-and-search.md).
-- **Seller and admin portals run client-side only.** They are behind auth, never crawled, and skipping SSR halves their infrastructure surface.
+- **Seller and admin portals run client-side only.** Admin is a third Inertia area rather than Filament (Decision 2, settled) — so all three areas import the same component library and there is exactly one design system in the codebase. They are behind auth, never crawled, and skipping SSR halves their infrastructure surface.
 - **No component is duplicated across areas.** The consistency review found 38 of 44 components appear in at least two apps; the six that do not are genuinely single-purpose. A component that exists in two areas lives in `design-system/` and takes a `density` prop (`comfortable` for storefront, `compact` for portals) — that prop is the only expression of the density step.
 
 ## 2.4 Request lifecycle

@@ -88,7 +88,8 @@ A marketplace holds three things worth attacking: **customer payment journeys**,
 **Compliance posture**
 - **PCI DSS SAQ-A** — achieved by never touching card data. Any future change that would route a PAN through our servers is an architecture-level decision requiring sign-off.
 - **GDPR / CCPA** — export and deletion endpoints; deletion anonymises rather than destroys where financial records must be retained, and that retention is disclosed.
-- **1099-K reporting** for US sellers — the earnings ledger already holds everything needed; the report is a query, not a data-model change.
+- **1099-K reporting** for US sellers — out of scope while the pilot runs in Stripe test mode (Decision 12, settled). The earnings ledger already holds everything the report needs, so it becomes a query rather than a data-model change when live money starts.
+- **Seller identity verification (KYC)** — likewise deferred by Decision 12. When the marketplace goes live, Stripe Connect onboarding enters the seller application flow between approval and store setup; the application record already carries the legal name, business type, tax ID and address it needs.
 - **Sales tax** — Phase 1 uses a flat rate per shipping state stored on the order (Decision 3). The `tax_source` column records which method produced the figure, so a provider integration later is distinguishable in history.
 
 ## 9.4 Infrastructure security

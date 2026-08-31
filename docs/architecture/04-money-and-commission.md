@@ -43,6 +43,7 @@ FULFILMENT               placed → processing → packed → shipped → delive
   │
 COMPLETION (delivered)
   └─ EarningPosted: seller_ledger_entries += (+seller_earning_minor)
+                    available_from = delivered_at + 7 days   (clearing window)
                     platform revenue is recognised from the sub-order row
   │
 REFUND (any time after capture)
@@ -52,13 +53,26 @@ REFUND (any time after capture)
   └─ the original rows are untouched; the reversal is its own row
 ```
 
-### The completion trigger — open decision
+### The completion trigger — decided 31 Aug 2026
 
 The spec says *"Order marked complete → order total split"*. The prototype's seller dashboard shows an **available balance** that a seller can withdraw, and the PDF asks explicitly: *"When does seller earning become available — after payment, shipment, delivery, or a hold period?"*
 
-**Recommendation:** post the earning to the ledger at **Delivered**, then make it withdrawable after a **7-day clearing window** (a `available_from` timestamp on the ledger entry). This protects the platform from refund-after-payout, which is the single most expensive marketplace failure mode. Balance is then displayed as three numbers the prototype already has room for: *clearing*, *available*, *held by an open request*.
+**Decision 5, settled:** the earning posts to the ledger at **Delivered**, and becomes withdrawable after a **7-day clearing window**. This protects the platform from refund-after-payout, the single most expensive marketplace failure mode.
 
-This is Decision 5 in [13](13-roadmap-and-decisions.md) and needs Finance to own it.
+Implementation:
+
+- `seller_ledger_entries` carries `available_from timestamptz` — `delivered_at + 7 days` on an `earning` row, `now()` on reversals and adjustments.
+- The seller's balance renders as **three figures**, which the prototype's stat-card strip already has room for:
+
+  | Figure | Definition |
+  |---|---|
+  | **Clearing** | `Σ amount WHERE available_from > now()` — earned, not yet withdrawable |
+  | **Available** | `Σ amount WHERE available_from <= now()` − held by the open request |
+  | **Held** | the amount of the seller's one open payout request |
+
+- Payout validation reads **available only**. A request above it is rejected server-side with the actual figure named in the error, not a generic message.
+- The earnings statement shows the clearing date on every earning row, so a seller sees when money lands rather than guessing.
+- The window is a platform setting (`payout.clearing_days`, default 7), so it can be shortened for trusted sellers later without a migration.
 
 ## 4.3 Rounding — specified, not left to the language
 
@@ -97,7 +111,7 @@ An append-only journal. Every row is an event, with a running balance written at
 **Balance derivation:**
 ```
 available = Σ(entries where available_from <= now) − held_by_open_requests
-clearing  = Σ(entries where available_from >  now)
+clearing  = Σ(entries where available_from >  now)      -- Decision 5: +7 days
 held      = the amount of the seller's one open payout request
 ```
 
@@ -119,7 +133,8 @@ The commission settings screen is described in the prototype as *"the single mos
 ## 4.6 Payouts
 
 ```
-Seller: available balance ≥ $50 (platform minimum, configurable)
+Seller: AVAILABLE balance ≥ $50 (platform minimum, configurable)
+        — clearing money is not requestable
   → Request payout (amount ≤ available; "withdraw full balance" shortcut)
   → amount is HELD: excluded from available, one open request at a time
     (enforced by a partial unique index, not just a UI check)

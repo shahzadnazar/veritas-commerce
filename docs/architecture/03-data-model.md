@@ -177,6 +177,8 @@ seller_ledger_entries
   amount_minor,                       -- signed: + credit, − debit
   balance_after_minor,                -- running balance, written at insert
   sub_order_id, refund_id, payout_id, -- whichever applies
+  available_from,                     -- earning: delivered_at + clearing days
+                                      -- everything else: created_at
   note, created_at                    -- APPEND ONLY
 
 payout_requests id, public_id, reference(PO-####), seller_id,
@@ -188,7 +190,7 @@ seller_bank_accounts id, seller_id, label, last4, holder_name,
                      details(encrypted), verified_at
 ```
 
-**Balance is never a column on `sellers`.** It is `SUM(amount_minor)` over the ledger, materialised into `seller_balances (seller_id, available_minor, held_minor, updated_at)` as a **cache** that a nightly reconciliation job recomputes and alerts on mismatch. Reads use the cache; correctness lives in the ledger.
+**Balance is never a column on `sellers`.** It is `SUM(amount_minor)` over the ledger, materialised into `seller_balances (seller_id, clearing_minor, available_minor, held_minor, updated_at)` as a **cache** that a nightly reconciliation job recomputes and alerts on mismatch. Reads use the cache; correctness lives in the ledger.
 
 ### Media, notifications, settings
 
@@ -229,6 +231,7 @@ CREATE INDEX ON order_status_events (sub_order_id, created_at);
 
 -- money
 CREATE INDEX ON seller_ledger_entries (seller_id, created_at DESC);
+CREATE INDEX ON seller_ledger_entries (seller_id, available_from);  -- balance split
 CREATE INDEX ON payout_requests (status, requested_at)
   WHERE status = 'requested';
 CREATE UNIQUE INDEX ON payout_requests (seller_id)
@@ -248,7 +251,7 @@ That partial unique index on `payout_requests` is worth calling out: the prototy
 
 1. `sub_orders.commission_amount_minor + sub_orders.seller_earning_minor = sub_orders.order_total_minor` for every snapshotted row.
 2. `sub_orders.commission_amount_minor = round(order_total_minor × commission_rate_snapshot / 100)` using banker's-rounding-free `intdiv` semantics, deterministic across languages.
-3. For every seller: `SUM(seller_ledger_entries.amount_minor) = seller_balances.available_minor + seller_balances.held_minor`.
+3. For every seller: `SUM(seller_ledger_entries.amount_minor) = seller_balances.clearing_minor + seller_balances.available_minor + seller_balances.held_minor`.
 4. Every `seller_ledger_entries.balance_after_minor` equals the running sum up to that row, ordered by `id`.
 5. No row in an append-only table has `updated_at > created_at`.
 6. Every status value present in the database has a mapping in `statusTone()` (the Phase 6 finding-1 test).
