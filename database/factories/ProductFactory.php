@@ -23,11 +23,18 @@ final class ProductFactory extends Factory
         return [
             'category_id' => Category::factory(),
             'title' => $title,
-            'slug' => Str::slug($title).'-'.$this->faker->unique()->numberBetween(1, 999999),
+            // Derived from the title the caller ends up with, not the one
+            // generated here. A state overriding `title` was otherwise
+            // leaving the slug and the duplicate-detection key describing
+            // a different product.
+            'slug' => fn (array $attributes): string => Str::slug((string) $attributes['title'])
+                .'-'.$this->faker->unique()->numberBetween(1, 999999),
             'description' => $this->faker->paragraph(),
             'status' => ProductStatus::Published->value,
             'published_at' => now(),
-            'normalised_title' => CatalogueText::normalise($title),
+            'normalised_title' => fn (array $attributes): string => CatalogueText::normalise(
+                (string) $attributes['title'],
+            ),
         ];
     }
 

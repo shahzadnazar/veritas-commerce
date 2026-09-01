@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Modules\Catalog\Events\ProductApproved;
 use App\Modules\Catalog\Events\ProductChangesRequested;
+use App\Modules\Catalog\Events\ProductEdited;
 use App\Modules\Catalog\Events\ProductPublished;
 use App\Modules\Catalog\Events\ProductRejected;
 use App\Modules\Catalog\Events\ProductSuspended;
@@ -69,6 +70,7 @@ final class AppServiceProvider extends ServiceProvider
         // back the decision that caused it.
         Event::listen([
             ProductApproved::class,
+            ProductEdited::class,
             ProductPublished::class,
             ProductSuspended::class,
         ], [KeepSearchIndexCurrent::class, 'productChanged']);

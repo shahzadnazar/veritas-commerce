@@ -75,6 +75,11 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:catalog.view')->name('products.index');
                 Route::get('products/{product}', [CatalogueProductController::class, 'show'])
                     ->middleware('admin.can:catalog.view')->name('products.show');
+                // The authorised half of canonical ownership: a seller
+                // cannot change a product other sellers list against, so
+                // the catalogue team can.
+                Route::patch('products/{product}', [CatalogueProductController::class, 'update'])
+                    ->middleware('admin.can:catalog.product.review')->name('products.update');
                 Route::post('products/{product}/approve', [CatalogueProductController::class, 'approve'])
                     ->middleware('admin.can:catalog.product.approve')->name('products.approve');
                 Route::post('products/{product}/reject', [CatalogueProductController::class, 'reject'])

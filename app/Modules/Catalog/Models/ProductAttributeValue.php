@@ -90,6 +90,31 @@ final class ProductAttributeValue extends Model
      * component: a specification table, a filter chip and a variant label
      * must all render "256 GB" the same way.
      */
+    /**
+     * The value as it was entered, for putting back in a form field.
+     *
+     * Not display(): a unit appended to a number is for reading, and
+     * feeding it back into an input would grow one every time the seller
+     * saved.
+     */
+    public function raw(): string
+    {
+        $attribute = $this->attribute;
+
+        if ($attribute === null) {
+            return '';
+        }
+
+        return match ($attribute->data_type) {
+            AttributeType::Text => (string) $this->value_text,
+            AttributeType::Integer => (string) $this->value_int,
+            AttributeType::Decimal => rtrim(rtrim((string) $this->value_decimal, '0'), '.'),
+            AttributeType::Boolean => $this->value_boolean ? '1' : '0',
+            AttributeType::Date => (string) $this->value_date?->toDateString(),
+            AttributeType::Select, AttributeType::MultiSelect => (string) $this->option?->value,
+        };
+    }
+
     public function display(): string
     {
         $attribute = $this->attribute;

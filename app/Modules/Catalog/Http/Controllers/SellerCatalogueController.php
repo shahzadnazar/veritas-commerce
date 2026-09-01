@@ -6,6 +6,8 @@ namespace App\Modules\Catalog\Http\Controllers;
 
 use App\Modules\Catalog\Actions\ProposeProduct;
 use App\Modules\Catalog\Actions\ResolveBrand;
+use App\Modules\Catalog\Actions\TransitionProduct;
+use App\Modules\Catalog\Actions\UpdateCanonicalProduct;
 use App\Modules\Catalog\Data\DuplicateMatch;
 use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Catalog\Exceptions\AttributeValidationFailed;
@@ -37,6 +39,8 @@ final class SellerCatalogueController
     public function __construct(
         private readonly FindDuplicateProduct $findDuplicate,
         private readonly ProposeProduct $propose,
+        private readonly UpdateCanonicalProduct $update,
+        private readonly TransitionProduct $transition,
         private readonly ResolveBrand $brands,
     ) {}
 
@@ -125,36 +129,59 @@ final class SellerCatalogueController
 
         return Inertia::render('Catalogue/Propose', [
             'likelyDuplicates' => $likelyDuplicates,
-            'categories' => Category::query()->where('is_visible', true)->orderBy('path')->get()
-                ->map(fn (Category $item): array => [
-                    'id' => $item->id,
-                    'name' => str_repeat('— ', $item->depth).$item->name,
-                ])
-                ->all(),
+            'editing' => null,
+            'categories' => $this->categoryOptions(),
             'selectedCategoryId' => $category?->id,
             // The specification schema is the category's, so the form can
             // only be built once one is chosen.
-            'attributes' => $category === null ? [] : $category->effectiveAttributes()
-                ->map(fn (Attribute $attribute): array => [
-                    'code' => $attribute->code,
-                    'name' => $attribute->name,
-                    'type' => $attribute->data_type->value,
-                    'unit' => $attribute->unit,
-                    'required' => $attribute->isRequiredByLoadedCategories(),
-                    'options' => $attribute->options
-                        ->map(fn (AttributeOption $option): array => [
-                            'value' => $option->value,
-                            'label' => $option->label,
-                        ])
-                        ->all(),
-                ])
-                ->values()
-                ->all(),
-            'brands' => Brand::query()->where('is_active', true)->orderBy('name')->limit(200)->get()
-                ->map(fn (Brand $brand): array => ['id' => $brand->id, 'name' => $brand->name])
-                ->all(),
-            'prefill' => ['title' => $request->string('title')->toString()],
+            'attributes' => $this->attributeFields($category),
+            'brands' => $this->brandOptions(),
+            'prefill' => ['title' => $title],
         ]);
+    }
+
+    /** @return array<int, array{id: int, name: string}> */
+    private function categoryOptions(): array
+    {
+        return Category::query()->where('is_visible', true)->orderBy('path')->get()
+            ->map(fn (Category $item): array => [
+                'id' => $item->id,
+                'name' => str_repeat('— ', $item->depth).$item->name,
+            ])
+            ->all();
+    }
+
+    /** @return array<int, array{id: int, name: string}> */
+    private function brandOptions(): array
+    {
+        return Brand::query()->where('is_active', true)->orderBy('name')->limit(200)->get()
+            ->map(fn (Brand $brand): array => ['id' => $brand->id, 'name' => $brand->name])
+            ->all();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function attributeFields(?Category $category): array
+    {
+        if ($category === null) {
+            return [];
+        }
+
+        return $category->effectiveAttributes()
+            ->map(fn (Attribute $attribute): array => [
+                'code' => $attribute->code,
+                'name' => $attribute->name,
+                'type' => $attribute->data_type->value,
+                'unit' => $attribute->unit,
+                'required' => $attribute->isRequiredByLoadedCategories(),
+                'options' => $attribute->options
+                    ->map(fn (AttributeOption $option): array => [
+                        'value' => $option->value,
+                        'label' => $option->label,
+                    ])
+                    ->all(),
+            ])
+            ->values()
+            ->all();
     }
 
     public function store(Request $request): RedirectResponse
@@ -209,6 +236,134 @@ final class SellerCatalogueController
         return redirect()
             ->route('seller.products')
             ->with('success', "“{$product->title}” is with the catalogue team.");
+    }
+
+    /**
+     * Correcting a proposal a moderator sent back.
+     *
+     * Scoped twice: to proposals this seller made, and to the states in
+     * which a proposal is still theirs. An approved product is part of the
+     * shared catalogue, and a seller editing it would silently change what
+     * every other seller listing against it appears to be selling.
+     */
+    public function edit(Request $request, string $publicId): Response
+    {
+        $product = $this->ownProposal($publicId);
+        $category = $product->category;
+
+        return Inertia::render('Catalogue/Propose', [
+            'likelyDuplicates' => [],
+            'editing' => [
+                'publicId' => $product->public_id,
+                'status' => $product->status->value,
+                'moderationReason' => $product->moderation_reason,
+            ],
+            'categories' => $this->categoryOptions(),
+            'selectedCategoryId' => $product->category_id,
+            'attributes' => $this->attributeFields($category),
+            'brands' => $this->brandOptions(),
+            'prefill' => [
+                'title' => $product->title,
+                'description' => (string) $product->description,
+                'brand_id' => $product->brand_id === null ? '' : (string) $product->brand_id,
+                'gtin' => (string) $product->gtin,
+                'upc' => (string) $product->upc,
+                'ean' => (string) $product->ean,
+                'isbn' => (string) $product->isbn,
+                'mpn' => (string) $product->mpn,
+                'model_number' => (string) $product->model_number,
+                'specifications' => $this->currentSpecifications($product),
+            ],
+        ]);
+    }
+
+    public function update(Request $request, string $publicId): RedirectResponse
+    {
+        abort_unless(CurrentSeller::can(SellerPermission::CatalogManage), 403);
+
+        $product = $this->ownProposal($publicId);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'min:3', 'max:200'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'brand_id' => ['nullable', 'integer', 'exists:brands,id'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'gtin' => ['nullable', 'string', 'max:14'],
+            'upc' => ['nullable', 'string', 'max:12'],
+            'ean' => ['nullable', 'string', 'max:13'],
+            'isbn' => ['nullable', 'string', 'max:17'],
+            'mpn' => ['nullable', 'string', 'max:120'],
+            'model_number' => ['nullable', 'string', 'max:120'],
+            'specifications' => ['array'],
+        ]);
+
+        try {
+            ($this->update)(
+                $product,
+                $validated,
+                $validated['specifications'] ?? [],
+                'seller',
+                $this->sellerId(),
+            );
+        } catch (AttributeValidationFailed $failed) {
+            throw ValidationException::withMessages(
+                array_combine(
+                    array_map(static fn (string $code): string => 'specifications.'.$code, array_keys($failed->errors)),
+                    array_values($failed->errors),
+                ),
+            );
+        }
+
+        /*
+         * A correction goes back into the queue.
+         *
+         * changes_requested means a moderator is waiting for exactly this,
+         * so the seller should not have to find a second button to say
+         * they are done. A draft stays a draft.
+         */
+        if ($product->refresh()->status === ProductStatus::ChangesRequested) {
+            ($this->transition)($product, ProductStatus::PendingReview, 'seller', $this->sellerId());
+        }
+
+        return redirect()
+            ->route('seller.products')
+            ->with('success', 'Your corrections are back with the catalogue team.');
+    }
+
+    /**
+     * A proposal this seller made and may still change.
+     *
+     * A product belonging to another seller does not resolve, and neither
+     * does one that has already been accepted — so a crafted id reaches a
+     * 404, not somebody else's catalogue entry.
+     */
+    private function ownProposal(string $publicId): Product
+    {
+        $product = Product::query()
+            ->with(['category', 'attributeValues.attribute'])
+            ->where('public_id', $publicId)
+            ->where('created_by_seller_account_id', $this->sellerId())
+            ->firstOrFail();
+
+        abort_unless($product->status->isEditableByProposer(), 403);
+
+        return $product;
+    }
+
+    /** @return array<string, string> attribute code => current value */
+    private function currentSpecifications(Product $product): array
+    {
+        $values = [];
+
+        foreach ($product->attributeValues as $value) {
+            if ($value->product_variant_id !== null || $value->attribute === null) {
+                continue;
+            }
+
+            $values[$value->attribute->code] = (string) $value->raw();
+        }
+
+        return $values;
     }
 
     private function sellerId(): int

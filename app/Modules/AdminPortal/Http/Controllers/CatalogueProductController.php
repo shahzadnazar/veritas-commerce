@@ -8,7 +8,9 @@ use App\Modules\AdminPortal\Http\Requests\DecisionRequest;
 use App\Modules\AdminPortal\Queries\ProductModerationQueue;
 use App\Modules\Catalog\Actions\ApproveProduct;
 use App\Modules\Catalog\Actions\DecideProduct;
+use App\Modules\Catalog\Actions\UpdateCanonicalProduct;
 use App\Modules\Catalog\Enums\ProductStatus;
+use App\Modules\Catalog\Exceptions\AttributeValidationFailed;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductAttributeValue;
@@ -21,6 +23,7 @@ use App\Modules\Media\Contracts\ObjectStore;
 use App\Modules\Media\Enums\Visibility;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,6 +40,7 @@ final class CatalogueProductController
         private readonly ProductModerationQueue $queue,
         private readonly ApproveProduct $approve,
         private readonly DecideProduct $decide,
+        private readonly UpdateCanonicalProduct $update,
         private readonly ObjectStore $objects,
     ) {}
 
@@ -142,6 +146,56 @@ final class CatalogueProductController
                 ->all(),
             'can' => $this->capabilities($request),
         ]);
+    }
+
+    /**
+     * Editing the canonical record itself.
+     *
+     * This is the authorised half of §9: a seller cannot change a product
+     * three other sellers list against, so somebody has to be able to, and
+     * it is whoever holds the review permission — recorded, with the old
+     * values kept.
+     */
+    public function update(Request $request, string $publicId): RedirectResponse
+    {
+        $this->authorize($request, AdminPermission::CatalogueProductReview);
+
+        $product = $this->find($publicId);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'min:3', 'max:200'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'brand_id' => ['nullable', 'integer', 'exists:brands,id'],
+            'gtin' => ['nullable', 'string', 'max:14'],
+            'upc' => ['nullable', 'string', 'max:12'],
+            'ean' => ['nullable', 'string', 'max:13'],
+            'isbn' => ['nullable', 'string', 'max:17'],
+            'mpn' => ['nullable', 'string', 'max:120'],
+            'model_number' => ['nullable', 'string', 'max:120'],
+            'seo_title' => ['nullable', 'string', 'max:180'],
+            'seo_description' => ['nullable', 'string', 'max:320'],
+            'specifications' => ['nullable', 'array'],
+        ]);
+
+        try {
+            ($this->update)(
+                $product,
+                $validated,
+                $validated['specifications'] ?? null,
+                'admin',
+                $this->admin($request)->id,
+            );
+        } catch (AttributeValidationFailed $failed) {
+            throw ValidationException::withMessages(
+                array_combine(
+                    array_map(static fn (string $code): string => 'specifications.'.$code, array_keys($failed->errors)),
+                    array_values($failed->errors),
+                ),
+            );
+        }
+
+        return back()->with('success', 'Catalogue record updated.');
     }
 
     public function approve(Request $request, string $publicId): RedirectResponse

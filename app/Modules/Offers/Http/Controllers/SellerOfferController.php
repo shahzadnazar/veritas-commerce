@@ -159,9 +159,14 @@ final class SellerOfferController
         $user = $request->user('web');
         abort_if($user === null, 403);
 
+        // Resolved before the try: a ModelNotFoundException is a
+        // RuntimeException, and catching it below would turn somebody
+        // else's offer id into a validation message instead of a 404.
+        $offer = $this->ownOffer($publicId);
+
         try {
             ($this->transition)(
-                $this->ownOffer($publicId),
+                $offer,
                 OfferStatus::from($validated['status']),
                 'seller',
                 $user->getAuthIdentifier(),

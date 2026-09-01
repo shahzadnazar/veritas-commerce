@@ -6,12 +6,16 @@ namespace Tests\Feature\Catalogue;
 
 use App\Modules\Catalog\Actions\SaveAttributeValues;
 use App\Modules\Catalog\Actions\SaveCategory;
+use App\Modules\Catalog\Actions\TransitionProduct;
 use App\Modules\Catalog\Enums\AttributeType;
+use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Catalog\Exceptions\AttributeValidationFailed;
 use App\Modules\Catalog\Models\Attribute;
 use App\Modules\Catalog\Models\AttributeOption;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Identity\Enums\AdminRole;
+use App\Modules\Identity\Models\AdminUser;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -280,6 +284,51 @@ final class CategorySchemaTest extends TestCase
         $this->assertFalse(AttributeType::MultiSelect->canDefineVariants());
         $this->assertFalse(AttributeType::Boolean->canDefineVariants());
         $this->assertFalse(AttributeType::Decimal->canDefineVariants());
+    }
+
+    #[Test]
+    public function a_product_cannot_be_published_into_a_category_customers_cannot_browse(): void
+    {
+        $hidden = Category::factory()->create(['name' => 'Retired lines', 'is_visible' => false]);
+        $product = Product::factory()
+            ->status(ProductStatus::Approved)
+            ->create(['category_id' => $hidden->id]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('cannot browse');
+
+        app(TransitionProduct::class)($product, ProductStatus::Published, 'admin', $this->admin()->id);
+    }
+
+    #[Test]
+    public function a_hidden_category_can_still_hold_an_approved_product(): void
+    {
+        // Accepting a product into the catalogue and putting it on the
+        // storefront are different decisions, and only the second one
+        // needs somewhere for a customer to arrive from.
+        $hidden = Category::factory()->create(['is_visible' => false]);
+        $product = Product::factory()
+            ->status(ProductStatus::PendingReview)
+            ->create(['category_id' => $hidden->id]);
+
+        $approved = app(TransitionProduct::class)($product, ProductStatus::Approved, 'admin', $this->admin()->id);
+
+        $this->assertSame(ProductStatus::Approved, $approved->status);
+    }
+
+    #[Test]
+    public function a_hidden_category_has_no_public_page(): void
+    {
+        $hidden = Category::factory()->create(['name' => 'Retired lines', 'is_visible' => false]);
+        $visible = Category::factory()->create(['name' => 'Kettles', 'is_visible' => true]);
+
+        $this->get('/categories/'.$hidden->slug)->assertNotFound();
+        $this->get('/categories/'.$visible->slug)->assertOk();
+    }
+
+    private function admin(): AdminUser
+    {
+        return $this->makeAdmin(AdminRole::CatalogModerator);
     }
 
     /** @return array{category: Category, attribute: Attribute} */

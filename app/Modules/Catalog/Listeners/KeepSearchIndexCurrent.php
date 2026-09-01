@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Catalog\Listeners;
 
 use App\Modules\Catalog\Events\ProductApproved;
+use App\Modules\Catalog\Events\ProductEdited;
 use App\Modules\Catalog\Events\ProductPublished;
 use App\Modules\Catalog\Events\ProductSuspended;
 use App\Modules\Offers\Events\OfferActivated;
@@ -23,7 +24,7 @@ use App\Modules\Search\Jobs\ReindexProduct;
  */
 final class KeepSearchIndexCurrent
 {
-    public function productChanged(ProductApproved|ProductPublished|ProductSuspended $event): void
+    public function productChanged(ProductApproved|ProductEdited|ProductPublished|ProductSuspended $event): void
     {
         ReindexProduct::dispatch($event->productId);
     }

@@ -48,6 +48,21 @@ final class TransitionProduct
             throw new RuntimeException("Moving a product to {$to->value} requires a written reason.");
         }
 
+        /*
+         * A hidden category has no public page, so a product published
+         * into one would be reachable by its own address and by nothing
+         * else — no breadcrumb, no category listing, no way for a customer
+         * to arrive. Hiding a category is how the platform retires a part
+         * of the taxonomy; letting new products publish into it makes the
+         * retirement a lie. Approving into one is fine: that is a
+         * catalogue decision, not a storefront one.
+         */
+        if ($to === ProductStatus::Published && $product->category?->is_visible !== true) {
+            throw new RuntimeException(
+                'That product sits in a category customers cannot browse, so it cannot go on the storefront.'
+            );
+        }
+
         return DB::transaction(function () use ($product, $from, $to, $actorType, $actorId, $reason): Product {
             $product->status = $to;
 

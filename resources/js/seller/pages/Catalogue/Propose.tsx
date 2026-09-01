@@ -21,7 +21,20 @@ interface ProposeProps extends SharedPageProps {
     selectedCategoryId: number | null;
     attributes: AttributeField[];
     brands: { id: number; name: string }[];
-    prefill: { title: string };
+    /** Set when correcting a proposal instead of making a new one. */
+    editing: { publicId: string; status: string; moderationReason: string | null } | null;
+    prefill: {
+        title: string;
+        description?: string;
+        brand_id?: string;
+        gtin?: string;
+        upc?: string;
+        ean?: string;
+        isbn?: string;
+        mpn?: string;
+        model_number?: string;
+        specifications?: Record<string, string>;
+    };
     errors: Record<string, string>;
 }
 
@@ -35,6 +48,7 @@ interface ProposeProps extends SharedPageProps {
 export default function Propose() {
     const {
         likelyDuplicates,
+        editing,
         categories,
         selectedCategoryId,
         attributes,
@@ -60,20 +74,20 @@ export default function Propose() {
     }>({
         title: prefill.title,
         category_id: selectedCategoryId ? String(selectedCategoryId) : '',
-        brand_id: '',
+        brand_id: prefill.brand_id ?? '',
         new_brand: '',
-        description: '',
-        gtin: '',
-        upc: '',
-        ean: '',
-        isbn: '',
-        mpn: '',
-        model_number: '',
-        specifications: {},
+        description: prefill.description ?? '',
+        gtin: prefill.gtin ?? '',
+        upc: prefill.upc ?? '',
+        ean: prefill.ean ?? '',
+        isbn: prefill.isbn ?? '',
+        mpn: prefill.mpn ?? '',
+        model_number: prefill.model_number ?? '',
+        specifications: prefill.specifications ?? {},
     });
 
     return (
-        <SellerLayout title="Propose a product">
+        <SellerLayout title={editing ? 'Correct your proposal' : 'Propose a product'}>
             <FlashBanner success={flash.success} error={flash.error} />
 
             <p className="mb-8 max-w-[62ch] text-[14px] text-[var(--vc-neutral-700)]">
@@ -81,6 +95,15 @@ export default function Propose() {
                 marketplace catalogue — other sellers can list against it, and your listing appears
                 alongside theirs on one page.
             </p>
+
+            {editing?.moderationReason ? (
+                <div className="mb-8 max-w-[62ch] border-2 border-[var(--vc-accent)] p-4">
+                    <p className="mb-1 text-[11px] tracking-[0.08em] text-[var(--vc-accent-800)] uppercase">
+                        What the catalogue team asked for
+                    </p>
+                    <p>{editing.moderationReason}</p>
+                </div>
+            ) : null}
 
             {likelyDuplicates.length > 0 ? (
                 <div className="mb-8 max-w-[62ch] border-2 border-[var(--vc-accent)] p-4">
@@ -114,7 +137,11 @@ export default function Propose() {
                 className="grid max-w-[900px] gap-10 md:grid-cols-2"
                 onSubmit={(event) => {
                     event.preventDefault();
-                    form.post('/seller/products');
+                    if (editing) {
+                        form.patch(`/seller/products/${editing.publicId}`);
+                    } else {
+                        form.post('/seller/products');
+                    }
                 }}
             >
                 <section className="flex flex-col gap-4">
@@ -325,7 +352,7 @@ export default function Propose() {
                         loading={form.processing}
                         loadingLabel="Submitting…"
                     >
-                        Send to the catalogue team
+                        {editing ? 'Send the corrections back' : 'Send to the catalogue team'}
                     </Button>
                 </div>
             </form>

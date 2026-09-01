@@ -56,6 +56,13 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             ->middleware('seller.can:catalog.manage')->name('products.create');
         Route::post('products', [SellerCatalogueController::class, 'store'])
             ->middleware('seller.can:catalog.manage')->name('products.store');
+        // Correcting a proposal a moderator sent back. Scoped to this
+        // seller's own proposals and to the states in which one is still
+        // theirs — an accepted product belongs to the catalogue.
+        Route::get('products/{product}/edit', [SellerCatalogueController::class, 'edit'])
+            ->middleware('seller.can:catalog.manage')->name('products.edit');
+        Route::patch('products/{product}', [SellerCatalogueController::class, 'update'])
+            ->middleware('seller.can:catalog.manage')->name('products.update');
 
         Route::get('offers', [SellerOfferController::class, 'index'])
             ->middleware('seller.can:catalog.view')->name('offers');

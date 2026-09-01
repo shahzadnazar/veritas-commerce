@@ -54,6 +54,21 @@ jobs:
 
             - run: composer install --no-interaction --prefer-dist --no-progress
 
+            # The suite renders the product page through the real SSR
+            # bundle in a node process, so the bundle has to exist here as
+            # well as in the frontend job. Skipping the test instead would
+            # mean a green suite that quietly stopped checking the markup a
+            # crawler actually receives.
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Build the SSR bundle
+              run: npm run build:ssr
+
             - name: Prepare environment
               run: |
                   cp .env.example .env
@@ -162,6 +177,37 @@ jobs:
                   test "$(curl -s -o /dev/null -w '%{redirect_url}' http://127.0.0.1:8000/seller)" = "http://127.0.0.1:8000/login"
                   # An unknown store is a 404, not a shell.
                   test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/stores/nothing-here)" = "404"
+
+            # The catalogue is the point of M2, so the built image has to
+            # serve a real product page — not just the shell. A published
+            # product is created through the same models the application
+            # uses, then fetched the way a crawler would.
+            - name: A canonical product page is served with its SEO markup
+              run: |
+                  slug=$(docker compose exec -T app php artisan tinker --execute '
+                      $category = \Database\Factories\CategoryFactory::new()->create(["name" => "Kettles"]);
+                      $product = \Database\Factories\ProductFactory::new()->create([
+                          "title" => "Aeris Cordless Kettle", "category_id" => $category->id,
+                      ]);
+                      $seller = \Database\Factories\SellerAccountFactory::new()->create();
+                      $store = \Database\Factories\StoreFactory::new()->create([
+                          "seller_account_id" => $seller->id, "is_open" => true,
+                      ]);
+                      \Database\Factories\OfferFactory::new()->create([
+                          "seller_account_id" => $seller->id, "store_id" => $store->id,
+                          "product_id" => $product->id, "product_variant_id" => null,
+                      ]);
+                      echo $product->slug;
+                  ' | tr -d '\r\n')
+
+                  body=$(curl -fsS "http://127.0.0.1:8000/products/${slug}")
+                  echo "$body" | grep -q 'rel="canonical"'
+                  echo "$body" | grep -q 'application/ld+json'
+                  # Truthfulness, not presence: nothing may claim a rating
+                  # the database cannot support.
+                  ! echo "$body" | grep -q 'aggregateRating'
+                  # An unpublished product has no page at all.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/products/not-a-real-product)" = "404"
 
             - name: Security headers are set
               run: |
