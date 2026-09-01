@@ -57,6 +57,15 @@ enum AdminPermission: string
 
     // Commerce
     case ViewOrders = 'orders.view';
+    /*
+     * The finance half of an order.
+     *
+     * Support answers "where is my parcel" from the operational data and
+     * has no business knowing what the platform took from the seller on
+     * that line. Splitting the two is the difference between a role model
+     * and an is_admin flag.
+     */
+    case ViewOrdersSensitive = 'orders.view_sensitive';
     case IssueRefunds = 'orders.refund';
     case ViewPayments = 'payments.view';
 

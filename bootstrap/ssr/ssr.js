@@ -1,6 +1,6 @@
 import { Head, Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import createServer from "@inertiajs/react/server";
 import ReactDOMServer from "react-dom/server";
 //#region \0rolldown/runtime.js
@@ -45,7 +45,8 @@ function Wordmark({ name, size = 18 }) {
 * place a storefront page gets one.
 */
 function StorefrontLayout({ title, children }) {
-	const { platform } = usePage().props;
+	const { platform, cart } = usePage().props;
+	const cartCount = cart?.count ?? 0;
 	return /* @__PURE__ */ jsxs("div", {
 		"data-density": "comfortable",
 		className: "min-h-screen bg-[var(--vc-bg)]",
@@ -68,12 +69,27 @@ function StorefrontLayout({ title, children }) {
 								children: ["Sell on ", platform.name.split(" ")[0]]
 							}),
 							/* @__PURE__ */ jsx(Link, {
-								href: "/orders",
+								href: "/account/orders",
 								children: "Orders"
 							}),
-							/* @__PURE__ */ jsx(Link, {
+							/* @__PURE__ */ jsxs(Link, {
 								href: "/cart",
-								children: "Cart"
+								children: [
+									"Cart",
+									cartCount > 0 ? /* @__PURE__ */ jsxs("span", {
+										className: "ml-1 vc-tabular",
+										"aria-hidden": "true",
+										children: [
+											"(",
+											cartCount,
+											")"
+										]
+									}) : null,
+									/* @__PURE__ */ jsx("span", {
+										className: "sr-only",
+										children: cartCount === 0 ? ", empty" : `, ${cartCount} ${cartCount === 1 ? "item" : "items"}`
+									})
+								]
 							})
 						]
 					})]
@@ -102,6 +118,47 @@ function StorefrontLayout({ title, children }) {
 				})
 			})
 		]
+	});
+}
+//#endregion
+//#region resources/js/design-system/patterns/States.tsx
+/**
+* Page states are specified per screen, not generically.
+*
+* Empty never dead-ends: it names the action that resolves it. Error states
+* say what was NOT changed, because "something went wrong" leaves a person
+* wondering whether they were charged.
+*/
+function EmptyState({ title, body, actions }) {
+	return /* @__PURE__ */ jsxs("div", {
+		className: "border-2 border-[var(--vc-divider)] px-6 py-12",
+		children: [
+			/* @__PURE__ */ jsx("h3", {
+				className: "mb-2 text-[20px]",
+				children: title
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "mb-5 max-w-[52ch] text-[var(--vc-neutral-700)]",
+				children: body
+			}),
+			actions ? /* @__PURE__ */ jsx("div", {
+				className: "flex flex-wrap gap-2",
+				children: actions
+			}) : null
+		]
+	});
+}
+function CardGridSkeleton({ count = 8 }) {
+	return /* @__PURE__ */ jsx("div", {
+		"aria-busy": "true",
+		className: "grid gap-[var(--vc-grid-gap)] [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]",
+		children: Array.from({ length: count }).map((_, index) => /* @__PURE__ */ jsxs("div", {
+			className: "bg-[var(--vc-surface)]",
+			children: [/* @__PURE__ */ jsx("div", { className: "aspect-square animate-pulse bg-[var(--vc-neutral-300)]" }), /* @__PURE__ */ jsxs("div", {
+				className: "p-3",
+				children: [/* @__PURE__ */ jsx("div", { className: "mb-2 h-[12px] w-1/2 bg-[var(--vc-neutral-300)]" }), /* @__PURE__ */ jsx("div", { className: "h-[14px] w-4/5 bg-[var(--vc-neutral-300)]" })]
+			})]
+		}, index))
 	});
 }
 //#endregion
@@ -137,6 +194,863 @@ function Button({ variant = "secondary", block = false, loading = false, loading
 			className
 		].join(" "),
 		children: loading ? loadingLabel ?? children : children
+	});
+}
+//#endregion
+//#region resources/js/design-system/generated/statuses.ts
+var STATUS_PRESENTATION = {
+	"seller_application": {
+		"draft": {
+			"tone": "inactive",
+			"label": "Draft"
+		},
+		"submitted": {
+			"tone": "pending",
+			"label": "Submitted"
+		},
+		"under_review": {
+			"tone": "pending",
+			"label": "Under review"
+		},
+		"changes_requested": {
+			"tone": "pending",
+			"label": "Changes requested"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		}
+	},
+	"seller": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"suspended": {
+			"tone": "critical",
+			"label": "Suspended"
+		},
+		"closed": {
+			"tone": "inactive",
+			"label": "Closed"
+		}
+	},
+	"seller_invitation": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"accepted": {
+			"tone": "neutral",
+			"label": "Accepted"
+		},
+		"revoked": {
+			"tone": "critical",
+			"label": "Revoked"
+		},
+		"expired": {
+			"tone": "inactive",
+			"label": "Expired"
+		}
+	},
+	"product": {
+		"draft": {
+			"tone": "inactive",
+			"label": "Draft"
+		},
+		"pending_review": {
+			"tone": "pending",
+			"label": "Pending review"
+		},
+		"changes_requested": {
+			"tone": "pending",
+			"label": "Changes requested"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"published": {
+			"tone": "neutral",
+			"label": "Published"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"suspended": {
+			"tone": "critical",
+			"label": "Suspended"
+		},
+		"archived": {
+			"tone": "inactive",
+			"label": "Archived"
+		}
+	},
+	"cart": {
+		"active": {
+			"tone": "pending",
+			"label": "Active"
+		},
+		"converted": {
+			"tone": "neutral",
+			"label": "Converted"
+		},
+		"merged": {
+			"tone": "inactive",
+			"label": "Merged"
+		},
+		"abandoned": {
+			"tone": "inactive",
+			"label": "Abandoned"
+		}
+	},
+	"checkout": {
+		"reserved": {
+			"tone": "pending",
+			"label": "Awaiting payment"
+		},
+		"completed": {
+			"tone": "neutral",
+			"label": "Completed"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
+		},
+		"expired": {
+			"tone": "inactive",
+			"label": "Expired"
+		}
+	},
+	"offer": {
+		"draft": {
+			"tone": "inactive",
+			"label": "Draft"
+		},
+		"pending_review": {
+			"tone": "pending",
+			"label": "Pending review"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"published": {
+			"tone": "neutral",
+			"label": "Published"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"suspended": {
+			"tone": "critical",
+			"label": "Suspended"
+		},
+		"archived": {
+			"tone": "inactive",
+			"label": "Archived"
+		}
+	},
+	"marketplace_order": {
+		"pending_payment": {
+			"tone": "pending",
+			"label": "Pending payment"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"partially_shipped": {
+			"tone": "pending",
+			"label": "Partially shipped"
+		},
+		"shipped": {
+			"tone": "pending",
+			"label": "Shipped"
+		},
+		"partially_delivered": {
+			"tone": "pending",
+			"label": "Partially delivered"
+		},
+		"delivered": {
+			"tone": "neutral",
+			"label": "Delivered"
+		},
+		"completed": {
+			"tone": "neutral",
+			"label": "Completed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		},
+		"partially_refunded": {
+			"tone": "critical",
+			"label": "Partially refunded"
+		},
+		"refunded": {
+			"tone": "critical",
+			"label": "Refunded"
+		}
+	},
+	"seller_order": {
+		"pending_payment": {
+			"tone": "pending",
+			"label": "Pending payment"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"confirmed": {
+			"tone": "pending",
+			"label": "Confirmed"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"packed": {
+			"tone": "pending",
+			"label": "Packed"
+		},
+		"shipped": {
+			"tone": "pending",
+			"label": "Shipped"
+		},
+		"delivered": {
+			"tone": "neutral",
+			"label": "Delivered"
+		},
+		"completed": {
+			"tone": "neutral",
+			"label": "Completed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		},
+		"partially_refunded": {
+			"tone": "critical",
+			"label": "Partially refunded"
+		},
+		"refunded": {
+			"tone": "critical",
+			"label": "Refunded"
+		},
+		"disputed": {
+			"tone": "critical",
+			"label": "Disputed"
+		}
+	},
+	"payment": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"authorized": {
+			"tone": "neutral",
+			"label": "Authorized"
+		},
+		"captured": {
+			"tone": "neutral",
+			"label": "Captured"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
+		},
+		"refunded": {
+			"tone": "critical",
+			"label": "Refunded"
+		},
+		"partially_refunded": {
+			"tone": "critical",
+			"label": "Partially refunded"
+		}
+	},
+	"payout": {
+		"requested": {
+			"tone": "pending",
+			"label": "Requested"
+		},
+		"under_review": {
+			"tone": "pending",
+			"label": "Under review"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		}
+	},
+	"ledger_entry_status": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"clearing": {
+			"tone": "pending",
+			"label": "Clearing"
+		},
+		"available": {
+			"tone": "neutral",
+			"label": "Available"
+		},
+		"reserved_for_payout": {
+			"tone": "pending",
+			"label": "Reserved for payout"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"reversed": {
+			"tone": "critical",
+			"label": "Reversed"
+		}
+	},
+	"ledger_entry_type": {
+		"sale_earning": {
+			"tone": "neutral",
+			"label": "Sale earning"
+		},
+		"commission": {
+			"tone": "inactive",
+			"label": "Commission"
+		},
+		"refund_reversal": {
+			"tone": "inactive",
+			"label": "Refund reversal"
+		},
+		"adjustment": {
+			"tone": "critical",
+			"label": "Adjustment"
+		},
+		"payout_reservation": {
+			"tone": "pending",
+			"label": "Payout reservation"
+		},
+		"payout": {
+			"tone": "inactive",
+			"label": "Payout"
+		},
+		"reversal": {
+			"tone": "neutral",
+			"label": "Reversal"
+		}
+	},
+	"inventory_movement_reason": {
+		"opening_stock": {
+			"tone": "neutral",
+			"label": "Opening stock"
+		},
+		"restock_received": {
+			"tone": "neutral",
+			"label": "Restock received"
+		},
+		"count_correction": {
+			"tone": "pending",
+			"label": "Count correction"
+		},
+		"damaged": {
+			"tone": "critical",
+			"label": "Damaged"
+		},
+		"lost": {
+			"tone": "critical",
+			"label": "Lost"
+		},
+		"returned_to_supplier": {
+			"tone": "critical",
+			"label": "Returned to supplier"
+		},
+		"manual_edit": {
+			"tone": "pending",
+			"label": "Manual edit"
+		},
+		"other": {
+			"tone": "pending",
+			"label": "Other"
+		},
+		"admin_adjustment": {
+			"tone": "critical",
+			"label": "Platform adjustment"
+		},
+		"order_reservation": {
+			"tone": "pending",
+			"label": "Reserved for an order"
+		},
+		"reservation_release": {
+			"tone": "neutral",
+			"label": "Reservation released"
+		},
+		"reservation_expired": {
+			"tone": "pending",
+			"label": "Reservation expired"
+		},
+		"sale_completed": {
+			"tone": "inactive",
+			"label": "Sale completed"
+		},
+		"order_cancelled": {
+			"tone": "neutral",
+			"label": "Order cancelled"
+		},
+		"refund_restock": {
+			"tone": "neutral",
+			"label": "Refund restock"
+		}
+	},
+	"inventory_reservation": {
+		"held": {
+			"tone": "pending",
+			"label": "Held"
+		},
+		"consumed": {
+			"tone": "neutral",
+			"label": "Consumed"
+		},
+		"released": {
+			"tone": "inactive",
+			"label": "Released"
+		},
+		"expired": {
+			"tone": "critical",
+			"label": "Expired"
+		}
+	},
+	"stock": {
+		"in_stock": {
+			"tone": "neutral",
+			"label": "In stock"
+		},
+		"low_stock": {
+			"tone": "pending",
+			"label": "Low stock"
+		},
+		"out_of_stock": {
+			"tone": "critical",
+			"label": "Out of stock"
+		}
+	}
+};
+//#endregion
+//#region resources/js/design-system/statusTone.ts
+/**
+* The single status → tone lookup for the whole product.
+*
+* Phase 6 of the design review found this mapping duplicated three times,
+* once per application, and warned that the first status added after
+* handoff would only reach one of them. There is now one source: the PHP
+* enums, exported to `generated/statuses.ts` by `php artisan statuses:export`
+* and verified in CI by StatusPresentationTest.
+*
+* Never write a per-screen lookup table. Never add a fifth tone — the
+* system is mono, so status is carried by fill weight and label, not hue.
+*/
+function statusPresentation(domain, value) {
+	const found = STATUS_PRESENTATION[domain]?.[value];
+	if (found) return found;
+	return {
+		tone: "inactive",
+		label: value
+	};
+}
+//#endregion
+//#region resources/js/design-system/primitives/StatusBadge.tsx
+/**
+* Four semantic fills, no hue.
+*
+* Critical is an accent tint with deep accent text (the base accent is
+* chrome-only below 18px — it clears 3:1, not 4.5:1). Pending is a dashed
+* outline with no fill. Neutral is ink on surface: in a mono system, done
+* is quiet. Inactive drops to 45%.
+*/
+var TONE_CLASSES = {
+	neutral: "bg-[var(--vc-surface)] text-[var(--vc-text)]",
+	pending: "border border-dashed border-[var(--vc-neutral-400)] text-[var(--vc-neutral-700)]",
+	critical: "bg-[var(--vc-accent-100)] text-[var(--vc-accent-800)]",
+	inactive: "bg-[var(--vc-surface)] text-[var(--vc-text)] opacity-45"
+};
+function StatusBadge({ domain, value, className = "" }) {
+	const { tone, label } = statusPresentation(domain, value);
+	return /* @__PURE__ */ jsx("span", {
+		"data-tone": tone,
+		className: `inline-block px-2 py-[3px] text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap ${TONE_CLASSES[tone]} ${className}`,
+		children: label
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Account/Orders/Index.tsx
+var Index_exports$3 = /* @__PURE__ */ __exportAll({ default: () => OrdersIndex });
+/**
+* A customer's orders.
+*
+* Cards rather than a table, at every width. A purchase history read on a
+* phone is the common case, and a financial table that scrolls sideways is
+* not a mobile design — it is a desktop table with a scrollbar bolted on.
+*/
+function OrdersIndex() {
+	const { orders } = usePage().props;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: "Your orders",
+		children: [
+			/* @__PURE__ */ jsx("h1", {
+				className: "mb-8 text-[42px]",
+				children: "Your orders"
+			}),
+			orders.data.length === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+				title: "No orders yet",
+				body: "When you buy something, it will appear here with everything you need to track it.",
+				actions: /* @__PURE__ */ jsx(Link, {
+					href: "/search",
+					children: /* @__PURE__ */ jsx(Button, {
+						variant: "primary",
+						children: "Browse the marketplace"
+					})
+				})
+			}) : /* @__PURE__ */ jsx("ul", {
+				className: "border-t-2 border-[var(--vc-text)]",
+				children: orders.data.map((order) => /* @__PURE__ */ jsxs("li", {
+					className: "flex flex-col gap-3 border-b border-[var(--vc-divider)] py-5 sm:flex-row sm:items-center sm:justify-between",
+					children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+						className: "text-[18px]",
+						children: /* @__PURE__ */ jsx(Link, {
+							href: `/account/orders/${order.reference}`,
+							children: order.reference
+						})
+					}), /* @__PURE__ */ jsxs("p", {
+						className: "text-[13px] text-[var(--vc-neutral-700)]",
+						children: [
+							order.placedAt ? /* @__PURE__ */ jsx("time", {
+								dateTime: order.placedAt,
+								children: new Date(order.placedAt).toLocaleDateString()
+							}) : "Not yet placed",
+							" · ",
+							order.sellerOrderCount,
+							" ",
+							order.sellerOrderCount === 1 ? "seller" : "sellers"
+						]
+					})] }), /* @__PURE__ */ jsxs("div", {
+						className: "flex items-center gap-4",
+						children: [/* @__PURE__ */ jsx(StatusBadge, {
+							domain: "marketplace_order",
+							value: order.status
+						}), /* @__PURE__ */ jsx("span", {
+							className: "vc-tabular text-[16px] font-semibold",
+							children: order.grandTotal
+						})]
+					})]
+				}, order.reference))
+			}),
+			orders.lastPage > 1 ? /* @__PURE__ */ jsxs("nav", {
+				"aria-label": "Pagination",
+				className: "mt-8 flex gap-4 text-[14px]",
+				children: [
+					orders.currentPage > 1 ? /* @__PURE__ */ jsx(Link, {
+						href: `/account/orders?page=${orders.currentPage - 1}`,
+						children: "Previous"
+					}) : null,
+					/* @__PURE__ */ jsxs("span", {
+						"aria-current": "page",
+						children: [
+							"Page ",
+							orders.currentPage,
+							" of ",
+							orders.lastPage
+						]
+					}),
+					orders.currentPage < orders.lastPage ? /* @__PURE__ */ jsx(Link, {
+						href: `/account/orders?page=${orders.currentPage + 1}`,
+						children: "Next"
+					}) : null
+				]
+			}) : null
+		]
+	});
+}
+//#endregion
+//#region resources/js/design-system/patterns/OrderPieces.tsx
+/**
+* The small parts every order screen repeats: a destination, a totals
+* block, a money row.
+*
+* Shared so the customer's receipt, the seller's packing view and the
+* admin's inspection screen cannot drift into three different renderings
+* of the same three numbers.
+*/
+/**
+* An address exactly as it was recorded.
+*
+* `state` is optional throughout — most of the world has none, and a line
+* that printed an empty one would look like missing data rather than a
+* country that does not use the field.
+*/
+function AddressBlock({ address, title }) {
+	const region = [
+		address.city,
+		address.state,
+		address.postcode
+	].filter(Boolean).join(", ");
+	return /* @__PURE__ */ jsxs("div", { children: [title ? /* @__PURE__ */ jsx("h3", {
+		className: "mb-2 text-[11px] font-semibold tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+		children: title
+	}) : null, /* @__PURE__ */ jsxs("address", {
+		className: "text-[14px] not-italic",
+		children: [
+			/* @__PURE__ */ jsx("span", {
+				className: "block font-semibold",
+				children: address.name
+			}),
+			/* @__PURE__ */ jsx("span", {
+				className: "block",
+				children: address.line1
+			}),
+			address.line2 ? /* @__PURE__ */ jsx("span", {
+				className: "block",
+				children: address.line2
+			}) : null,
+			/* @__PURE__ */ jsx("span", {
+				className: "block",
+				children: region
+			}),
+			/* @__PURE__ */ jsx("span", {
+				className: "block",
+				children: address.country
+			}),
+			address.phone ? /* @__PURE__ */ jsx("span", {
+				className: "block",
+				children: address.phone
+			}) : null
+		]
+	})] });
+}
+function MoneyRow({ label, value, note, strong = false }) {
+	return /* @__PURE__ */ jsxs("div", {
+		className: ["flex items-baseline justify-between gap-6 py-[6px]", strong ? "border-t-2 border-[var(--vc-text)] pt-3 text-[18px] font-semibold" : ""].join(" "),
+		children: [/* @__PURE__ */ jsxs("span", { children: [label, note ? /* @__PURE__ */ jsx("span", {
+			className: "block text-[12px] font-normal text-[var(--vc-neutral-600)]",
+			children: note
+		}) : null] }), /* @__PURE__ */ jsx("span", {
+			className: "vc-tabular whitespace-nowrap",
+			children: value
+		})]
+	});
+}
+/**
+* The totals block.
+*
+* Every figure is the server's. Nothing here adds anything up — if these
+* four numbers disagree, the bug is in the order, not in the page, and a
+* React-side sum would hide it.
+*/
+function OrderTotals({ itemsTotal, shippingTotal, taxTotal, grandTotal, shippingNote, taxNote }) {
+	return /* @__PURE__ */ jsxs("div", {
+		className: "flex flex-col",
+		children: [
+			/* @__PURE__ */ jsx(MoneyRow, {
+				label: "Items",
+				value: itemsTotal.formatted
+			}),
+			/* @__PURE__ */ jsx(MoneyRow, {
+				label: shippingTotal.minor === 0 ? "Delivery" : "Delivery",
+				value: shippingTotal.minor === 0 ? "Included" : shippingTotal.formatted,
+				...shippingNote ? { note: shippingNote } : {}
+			}),
+			/* @__PURE__ */ jsx(MoneyRow, {
+				label: "Tax",
+				value: taxTotal.minor === 0 ? "Not calculated" : taxTotal.formatted,
+				...taxNote ? { note: taxNote } : {}
+			}),
+			/* @__PURE__ */ jsx(MoneyRow, {
+				label: "Total",
+				value: grandTotal.formatted,
+				strong: true
+			})
+		]
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Account/Orders/Show.tsx
+var Show_exports$3 = /* @__PURE__ */ __exportAll({ default: () => OrderShow });
+/**
+* One order, entirely from its own snapshots.
+*
+* Every title, price, store name and address on this page is the copy the
+* order took when it was placed — not a lookup against the catalogue as it
+* is today. A seller who renames their shop or reprices a listing next
+* month must not be able to change what this receipt says, and the way to
+* be certain of that is for the page to have no route to those tables.
+*
+* The parent/child shape is shown rather than flattened: a customer who
+* bought from three sellers has three parcels arriving at three times, and
+* a single merged list would mislead them about that.
+*/
+function OrderShow() {
+	const { order } = usePage().props;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: `Order ${order.reference}`,
+		children: [
+			/* @__PURE__ */ jsx("p", {
+				className: "mb-2 text-[13px]",
+				children: /* @__PURE__ */ jsx(Link, {
+					href: "/account/orders",
+					className: "underline underline-offset-4",
+					children: "All orders"
+				})
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "mb-8 flex flex-wrap items-baseline gap-x-4 gap-y-2",
+				children: [/* @__PURE__ */ jsx("h1", {
+					className: "text-[42px]",
+					children: order.reference
+				}), /* @__PURE__ */ jsx(StatusBadge, {
+					domain: "marketplace_order",
+					value: order.status
+				})]
+			}),
+			/* @__PURE__ */ jsxs("p", {
+				className: "mb-10 text-[14px] text-[var(--vc-neutral-700)]",
+				children: [
+					order.placedAt ? /* @__PURE__ */ jsxs(Fragment, { children: [
+						"Placed",
+						" ",
+						/* @__PURE__ */ jsx("time", {
+							dateTime: order.placedAt,
+							children: new Date(order.placedAt).toLocaleString()
+						})
+					] }) : "Not yet placed",
+					" · ",
+					order.sellerOrders.length,
+					" ",
+					order.sellerOrders.length === 1 ? "seller" : "sellers"
+				]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "grid gap-14 lg:grid-cols-[1fr_320px]",
+				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+					className: "mb-4 text-[22px]",
+					children: "Items"
+				}), order.sellerOrders.map((sellerOrder) => /* @__PURE__ */ jsxs("section", {
+					"aria-labelledby": `so-${sellerOrder.reference}`,
+					className: "mb-10",
+					children: [
+						/* @__PURE__ */ jsxs("div", {
+							className: "mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1",
+							children: [
+								/* @__PURE__ */ jsx("h3", {
+									id: `so-${sellerOrder.reference}`,
+									className: "text-[18px]",
+									children: sellerOrder.storeName ?? "Seller"
+								}),
+								/* @__PURE__ */ jsx("span", {
+									className: "vc-tabular text-[12px] text-[var(--vc-neutral-600)]",
+									children: sellerOrder.reference
+								}),
+								/* @__PURE__ */ jsx(StatusBadge, {
+									domain: "seller_order",
+									value: sellerOrder.status
+								})
+							]
+						}),
+						/* @__PURE__ */ jsx("ul", {
+							className: "border-t border-[var(--vc-divider)]",
+							children: sellerOrder.items.map((item) => /* @__PURE__ */ jsxs("li", {
+								className: "flex flex-col gap-1 border-b border-[var(--vc-divider)] py-3 text-[14px] sm:flex-row sm:justify-between sm:gap-4",
+								children: [/* @__PURE__ */ jsxs("span", { children: [
+									item.brand ? /* @__PURE__ */ jsx("span", {
+										className: "block text-[11px] tracking-[0.06em] text-[var(--vc-neutral-600)] uppercase",
+										children: item.brand
+									}) : null,
+									item.productSlug ? /* @__PURE__ */ jsx(Link, {
+										href: `/products/${item.productSlug}`,
+										children: item.productTitle
+									}) : item.productTitle,
+									item.variantName ? /* @__PURE__ */ jsx("span", {
+										className: "block text-[13px] text-[var(--vc-neutral-700)]",
+										children: item.variantName
+									}) : null,
+									/* @__PURE__ */ jsxs("span", {
+										className: "block text-[12px] text-[var(--vc-neutral-600)]",
+										children: [
+											item.quantity,
+											" × ",
+											item.unitPrice.formatted
+										]
+									})
+								] }), /* @__PURE__ */ jsx("span", {
+									className: "vc-tabular whitespace-nowrap sm:text-right",
+									children: item.lineTotal.formatted
+								})]
+							}, item.publicId))
+						}),
+						/* @__PURE__ */ jsxs("p", {
+							className: "pt-2 text-right text-[13px] vc-tabular",
+							children: ["Seller subtotal ", sellerOrder.itemsTotal.formatted]
+						})
+					]
+				}, sellerOrder.reference))] }), /* @__PURE__ */ jsxs("aside", {
+					className: "flex flex-col gap-8",
+					children: [
+						/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+							className: "mb-3 text-[20px]",
+							children: "Total"
+						}), /* @__PURE__ */ jsx(OrderTotals, {
+							itemsTotal: order.itemsTotal,
+							shippingTotal: order.shippingTotal,
+							taxTotal: order.taxTotal,
+							grandTotal: order.grandTotal,
+							taxNote: "Tax was not calculated for this order."
+						})] }),
+						/* @__PURE__ */ jsx(AddressBlock, {
+							address: order.shippingAddress,
+							title: "Delivered to"
+						}),
+						/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h3", {
+							className: "mb-2 text-[11px] font-semibold tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+							children: "Payment"
+						}), /* @__PURE__ */ jsx(StatusBadge, {
+							domain: "marketplace_order",
+							value: order.status
+						})] })
+					]
+				})]
+			})
+		]
 	});
 }
 //#endregion
@@ -753,527 +1667,400 @@ function VerifyEmail() {
 	});
 }
 //#endregion
-//#region resources/js/design-system/patterns/States.tsx
+//#region resources/js/design-system/patterns/IssueNotice.tsx
+function IssueNotice({ messages, heading, live = "status" }) {
+	if (messages.length === 0) return null;
+	const blocking = messages.some((message) => message.blocking);
+	return /* @__PURE__ */ jsxs("section", {
+		role: live,
+		"aria-live": live === "alert" ? "assertive" : "polite",
+		className: ["mb-8 px-5 py-4", blocking ? "border-2 border-[var(--vc-accent)]" : "border-2 border-[var(--vc-neutral-400)]"].join(" "),
+		children: [/* @__PURE__ */ jsx("h2", {
+			className: "mb-3 text-[16px]",
+			children: heading
+		}), /* @__PURE__ */ jsx("ul", {
+			className: "flex flex-col gap-3",
+			children: messages.map((message, index) => /* @__PURE__ */ jsxs("li", {
+				className: "text-[14px]",
+				children: [
+					/* @__PURE__ */ jsx("span", {
+						className: "font-semibold",
+						children: message.title
+					}),
+					/* @__PURE__ */ jsx("span", {
+						className: "sr-only",
+						children: message.blocking ? " — must be resolved before checkout" : " — for your information"
+					}),
+					/* @__PURE__ */ jsx("span", {
+						"aria-hidden": "true",
+						className: "text-[var(--vc-neutral-600)]",
+						children: message.blocking ? " · action needed" : " · for information"
+					}),
+					/* @__PURE__ */ jsx("p", {
+						className: "text-[var(--vc-neutral-700)]",
+						children: message.detail
+					})
+				]
+			}, `${message.code}-${index}`))
+		})]
+	});
+}
 /**
-* Page states are specified per screen, not generically.
+* A single line's issues, shown inline against the line they belong to.
 *
-* Empty never dead-ends: it names the action that resolves it. Error states
-* say what was NOT changed, because "something went wrong" leaves a person
-* wondering whether they were charged.
+* Short form: the notice at the top of the page carries the explanation,
+* this is the marker that says which row it was about.
 */
-function EmptyState({ title, body, actions }) {
+function LineIssues({ issues }) {
+	if (issues.length === 0) return null;
+	return /* @__PURE__ */ jsx("ul", {
+		className: "mt-2 flex flex-col gap-1",
+		children: issues.map((issue, index) => /* @__PURE__ */ jsxs("li", {
+			className: ["text-[12px]", issue.blocking ? "font-semibold text-[var(--vc-accent-800)]" : "text-[var(--vc-neutral-700)]"].join(" "),
+			children: [issue.blocking ? "▲ " : "• ", issue.label]
+		}, `${issue.code}-${index}`))
+	});
+}
+//#endregion
+//#region resources/js/design-system/patterns/QuantityStepper.tsx
+/**
+* A quantity control that never pretends to know the inventory.
+*
+* The number here is a request. It is sent to the server, the server locks
+* the row and decides, and whatever comes back is the truth — so this
+* component holds no optimistic count and reconciles to the prop whenever
+* it changes. A stepper that quietly kept its own idea of "3" after the
+* server said 2 would be the most expensive kind of lie a shop can tell.
+*
+* `max` disables the increment early as a courtesy. It is not the control:
+* a customer who edits the field, or whose stock moved a second ago, is
+* refused by the action.
+*
+* Keyboard: the two buttons are buttons and the field is a number input,
+* so tab, arrows and typing all work without any handler of ours.
+*/
+function QuantityStepper({ value, max, disabled = false, busy = false, label, onChange }) {
+	const [draft, setDraft] = useState(String(value));
+	const [settled, setSettled] = useState(value);
+	if (value !== settled) {
+		setSettled(value);
+		setDraft(String(value));
+	}
+	const commit = (next) => {
+		if (!Number.isFinite(next) || next === value) {
+			setDraft(String(value));
+			return;
+		}
+		onChange(Math.max(0, Math.trunc(next)));
+	};
 	return /* @__PURE__ */ jsxs("div", {
-		className: "border-2 border-[var(--vc-divider)] px-6 py-12",
+		className: "inline-flex items-stretch border-2 border-[var(--vc-text)]",
 		children: [
-			/* @__PURE__ */ jsx("h3", {
-				className: "mb-2 text-[20px]",
-				children: title
+			/* @__PURE__ */ jsx("button", {
+				type: "button",
+				className: "px-3 text-[16px] leading-none disabled:opacity-45",
+				disabled: disabled || busy || value <= 1,
+				"aria-label": `Decrease quantity of ${label}`,
+				onClick: () => commit(value - 1),
+				children: "−"
 			}),
-			/* @__PURE__ */ jsx("p", {
-				className: "mb-5 max-w-[52ch] text-[var(--vc-neutral-700)]",
-				children: body
+			/* @__PURE__ */ jsx("input", {
+				type: "number",
+				inputMode: "numeric",
+				min: 1,
+				max: Math.max(max, 1),
+				value: draft,
+				disabled: disabled || busy,
+				"aria-label": `Quantity of ${label}`,
+				"aria-busy": busy || void 0,
+				className: "vc-tabular w-[3.5rem] border-x-2 border-[var(--vc-text)] bg-transparent py-2 text-center text-[14px] disabled:opacity-45",
+				onChange: (event) => setDraft(event.target.value),
+				onBlur: () => commit(Number(draft)),
+				onKeyDown: (event) => {
+					if (event.key === "Enter") {
+						event.preventDefault();
+						commit(Number(draft));
+					}
+				}
 			}),
-			actions ? /* @__PURE__ */ jsx("div", {
-				className: "flex flex-wrap gap-2",
-				children: actions
-			}) : null
+			/* @__PURE__ */ jsx("button", {
+				type: "button",
+				className: "px-3 text-[16px] leading-none disabled:opacity-45",
+				disabled: disabled || busy || value >= max,
+				"aria-label": `Increase quantity of ${label}`,
+				onClick: () => commit(value + 1),
+				children: "+"
+			})
 		]
 	});
 }
-function CardGridSkeleton({ count = 8 }) {
-	return /* @__PURE__ */ jsx("div", {
-		"aria-busy": "true",
-		className: "grid gap-[var(--vc-grid-gap)] [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]",
-		children: Array.from({ length: count }).map((_, index) => /* @__PURE__ */ jsxs("div", {
-			className: "bg-[var(--vc-surface)]",
-			children: [/* @__PURE__ */ jsx("div", { className: "aspect-square animate-pulse bg-[var(--vc-neutral-300)]" }), /* @__PURE__ */ jsxs("div", {
-				className: "p-3",
-				children: [/* @__PURE__ */ jsx("div", { className: "mb-2 h-[12px] w-1/2 bg-[var(--vc-neutral-300)]" }), /* @__PURE__ */ jsx("div", { className: "h-[14px] w-4/5 bg-[var(--vc-neutral-300)]" })]
-			})]
-		}, index))
-	});
-}
 //#endregion
-//#region resources/js/design-system/generated/statuses.ts
-var STATUS_PRESENTATION = {
-	"seller_application": {
-		"draft": {
-			"tone": "inactive",
-			"label": "Draft"
-		},
-		"submitted": {
-			"tone": "pending",
-			"label": "Submitted"
-		},
-		"under_review": {
-			"tone": "pending",
-			"label": "Under review"
-		},
-		"changes_requested": {
-			"tone": "pending",
-			"label": "Changes requested"
-		},
-		"approved": {
-			"tone": "neutral",
-			"label": "Approved"
-		},
-		"rejected": {
-			"tone": "critical",
-			"label": "Rejected"
-		}
-	},
-	"seller": {
-		"pending": {
-			"tone": "pending",
-			"label": "Pending"
-		},
-		"approved": {
-			"tone": "neutral",
-			"label": "Approved"
-		},
-		"suspended": {
-			"tone": "critical",
-			"label": "Suspended"
-		},
-		"closed": {
-			"tone": "inactive",
-			"label": "Closed"
-		}
-	},
-	"seller_invitation": {
-		"pending": {
-			"tone": "pending",
-			"label": "Pending"
-		},
-		"accepted": {
-			"tone": "neutral",
-			"label": "Accepted"
-		},
-		"revoked": {
-			"tone": "critical",
-			"label": "Revoked"
-		},
-		"expired": {
-			"tone": "inactive",
-			"label": "Expired"
-		}
-	},
-	"product": {
-		"draft": {
-			"tone": "inactive",
-			"label": "Draft"
-		},
-		"pending_review": {
-			"tone": "pending",
-			"label": "Pending review"
-		},
-		"changes_requested": {
-			"tone": "pending",
-			"label": "Changes requested"
-		},
-		"approved": {
-			"tone": "neutral",
-			"label": "Approved"
-		},
-		"published": {
-			"tone": "neutral",
-			"label": "Published"
-		},
-		"rejected": {
-			"tone": "critical",
-			"label": "Rejected"
-		},
-		"suspended": {
-			"tone": "critical",
-			"label": "Suspended"
-		},
-		"archived": {
-			"tone": "inactive",
-			"label": "Archived"
-		}
-	},
-	"offer": {
-		"draft": {
-			"tone": "inactive",
-			"label": "Draft"
-		},
-		"pending_review": {
-			"tone": "pending",
-			"label": "Pending review"
-		},
-		"approved": {
-			"tone": "neutral",
-			"label": "Approved"
-		},
-		"published": {
-			"tone": "neutral",
-			"label": "Published"
-		},
-		"rejected": {
-			"tone": "critical",
-			"label": "Rejected"
-		},
-		"suspended": {
-			"tone": "critical",
-			"label": "Suspended"
-		},
-		"archived": {
-			"tone": "inactive",
-			"label": "Archived"
-		}
-	},
-	"marketplace_order": {
-		"pending_payment": {
-			"tone": "pending",
-			"label": "Pending payment"
-		},
-		"paid": {
-			"tone": "neutral",
-			"label": "Paid"
-		},
-		"processing": {
-			"tone": "pending",
-			"label": "Processing"
-		},
-		"partially_shipped": {
-			"tone": "pending",
-			"label": "Partially shipped"
-		},
-		"shipped": {
-			"tone": "pending",
-			"label": "Shipped"
-		},
-		"partially_delivered": {
-			"tone": "pending",
-			"label": "Partially delivered"
-		},
-		"delivered": {
-			"tone": "neutral",
-			"label": "Delivered"
-		},
-		"completed": {
-			"tone": "neutral",
-			"label": "Completed"
-		},
-		"cancelled": {
-			"tone": "inactive",
-			"label": "Cancelled"
-		},
-		"partially_refunded": {
-			"tone": "critical",
-			"label": "Partially refunded"
-		},
-		"refunded": {
-			"tone": "critical",
-			"label": "Refunded"
-		}
-	},
-	"seller_order": {
-		"pending_payment": {
-			"tone": "pending",
-			"label": "Pending payment"
-		},
-		"paid": {
-			"tone": "neutral",
-			"label": "Paid"
-		},
-		"confirmed": {
-			"tone": "pending",
-			"label": "Confirmed"
-		},
-		"processing": {
-			"tone": "pending",
-			"label": "Processing"
-		},
-		"packed": {
-			"tone": "pending",
-			"label": "Packed"
-		},
-		"shipped": {
-			"tone": "pending",
-			"label": "Shipped"
-		},
-		"delivered": {
-			"tone": "neutral",
-			"label": "Delivered"
-		},
-		"completed": {
-			"tone": "neutral",
-			"label": "Completed"
-		},
-		"cancelled": {
-			"tone": "inactive",
-			"label": "Cancelled"
-		},
-		"partially_refunded": {
-			"tone": "critical",
-			"label": "Partially refunded"
-		},
-		"refunded": {
-			"tone": "critical",
-			"label": "Refunded"
-		},
-		"disputed": {
-			"tone": "critical",
-			"label": "Disputed"
-		}
-	},
-	"payment": {
-		"pending": {
-			"tone": "pending",
-			"label": "Pending"
-		},
-		"authorized": {
-			"tone": "neutral",
-			"label": "Authorized"
-		},
-		"captured": {
-			"tone": "neutral",
-			"label": "Captured"
-		},
-		"failed": {
-			"tone": "critical",
-			"label": "Failed"
-		},
-		"refunded": {
-			"tone": "critical",
-			"label": "Refunded"
-		},
-		"partially_refunded": {
-			"tone": "critical",
-			"label": "Partially refunded"
-		}
-	},
-	"payout": {
-		"requested": {
-			"tone": "pending",
-			"label": "Requested"
-		},
-		"under_review": {
-			"tone": "pending",
-			"label": "Under review"
-		},
-		"approved": {
-			"tone": "neutral",
-			"label": "Approved"
-		},
-		"rejected": {
-			"tone": "critical",
-			"label": "Rejected"
-		},
-		"processing": {
-			"tone": "pending",
-			"label": "Processing"
-		},
-		"paid": {
-			"tone": "neutral",
-			"label": "Paid"
-		},
-		"failed": {
-			"tone": "critical",
-			"label": "Failed"
-		},
-		"cancelled": {
-			"tone": "inactive",
-			"label": "Cancelled"
-		}
-	},
-	"ledger_entry_status": {
-		"pending": {
-			"tone": "pending",
-			"label": "Pending"
-		},
-		"clearing": {
-			"tone": "pending",
-			"label": "Clearing"
-		},
-		"available": {
-			"tone": "neutral",
-			"label": "Available"
-		},
-		"reserved_for_payout": {
-			"tone": "pending",
-			"label": "Reserved for payout"
-		},
-		"paid": {
-			"tone": "neutral",
-			"label": "Paid"
-		},
-		"reversed": {
-			"tone": "critical",
-			"label": "Reversed"
-		}
-	},
-	"ledger_entry_type": {
-		"sale_earning": {
-			"tone": "neutral",
-			"label": "Sale earning"
-		},
-		"commission": {
-			"tone": "inactive",
-			"label": "Commission"
-		},
-		"refund_reversal": {
-			"tone": "inactive",
-			"label": "Refund reversal"
-		},
-		"adjustment": {
-			"tone": "critical",
-			"label": "Adjustment"
-		},
-		"payout_reservation": {
-			"tone": "pending",
-			"label": "Payout reservation"
-		},
-		"payout": {
-			"tone": "inactive",
-			"label": "Payout"
-		},
-		"reversal": {
-			"tone": "neutral",
-			"label": "Reversal"
-		}
-	},
-	"inventory_movement_reason": {
-		"opening_stock": {
-			"tone": "neutral",
-			"label": "Opening stock"
-		},
-		"restock_received": {
-			"tone": "neutral",
-			"label": "Restock received"
-		},
-		"count_correction": {
-			"tone": "pending",
-			"label": "Count correction"
-		},
-		"damaged": {
-			"tone": "critical",
-			"label": "Damaged"
-		},
-		"lost": {
-			"tone": "critical",
-			"label": "Lost"
-		},
-		"returned_to_supplier": {
-			"tone": "critical",
-			"label": "Returned to supplier"
-		},
-		"manual_edit": {
-			"tone": "pending",
-			"label": "Manual edit"
-		},
-		"other": {
-			"tone": "pending",
-			"label": "Other"
-		},
-		"admin_adjustment": {
-			"tone": "critical",
-			"label": "Platform adjustment"
-		},
-		"order_reservation": {
-			"tone": "pending",
-			"label": "Reserved for an order"
-		},
-		"reservation_release": {
-			"tone": "neutral",
-			"label": "Reservation released"
-		},
-		"reservation_expired": {
-			"tone": "pending",
-			"label": "Reservation expired"
-		},
-		"sale_completed": {
-			"tone": "inactive",
-			"label": "Sale completed"
-		},
-		"order_cancelled": {
-			"tone": "neutral",
-			"label": "Order cancelled"
-		},
-		"refund_restock": {
-			"tone": "neutral",
-			"label": "Refund restock"
-		}
-	},
-	"inventory_reservation": {
-		"held": {
-			"tone": "pending",
-			"label": "Held"
-		},
-		"consumed": {
-			"tone": "neutral",
-			"label": "Consumed"
-		},
-		"released": {
-			"tone": "inactive",
-			"label": "Released"
-		},
-		"expired": {
-			"tone": "critical",
-			"label": "Expired"
-		}
-	},
-	"stock": {
-		"in_stock": {
-			"tone": "neutral",
-			"label": "In stock"
-		},
-		"low_stock": {
-			"tone": "pending",
-			"label": "Low stock"
-		},
-		"out_of_stock": {
-			"tone": "critical",
-			"label": "Out of stock"
-		}
-	}
-};
-//#endregion
-//#region resources/js/design-system/statusTone.ts
+//#region resources/js/storefront/pages/Cart/Index.tsx
+var Index_exports$2 = /* @__PURE__ */ __exportAll({ default: () => CartIndex });
 /**
-* The single status → tone lookup for the whole product.
+* The basket.
 *
-* Phase 6 of the design review found this mapping duplicated three times,
-* once per application, and warned that the first status added after
-* handoff would only reach one of them. There is now one source: the PHP
-* enums, exported to `generated/statuses.ts` by `php artisan statuses:export`
-* and verified in CI by StatusPresentationTest.
+* Every number on this page came from the server, which rebuilt it from
+* the live offers a moment ago. React does not add up a subtotal here and
+* does not decide whether a line can be bought — both are facts about
+* inventory, and a page that computed them would be guessing at data it
+* cannot see.
 *
-* Never write a per-screen lookup table. Never add a fifth tone — the
-* system is mono, so status is carried by fill weight and label, not hue.
+* Grouped by seller because that is what the customer is actually doing:
+* buying from two or three businesses at once, which will become two or
+* three orders and two or three parcels. Showing that now is more honest
+* than revealing it on the confirmation screen.
 */
-function statusPresentation(domain, value) {
-	const found = STATUS_PRESENTATION[domain]?.[value];
-	if (found) return found;
-	return {
-		tone: "inactive",
-		label: value
+function CartIndex() {
+	const page = usePage().props;
+	const cart = page.cartView;
+	const [pending, setPending] = useState(null);
+	const submit = (line, quantity) => {
+		setPending(line);
+		router.patch(`/cart/${encodeURIComponent(line)}`, { quantity }, {
+			preserveScroll: true,
+			onFinish: () => setPending(null)
+		});
 	};
-}
-//#endregion
-//#region resources/js/design-system/primitives/StatusBadge.tsx
-/**
-* Four semantic fills, no hue.
-*
-* Critical is an accent tint with deep accent text (the base accent is
-* chrome-only below 18px — it clears 3:1, not 4.5:1). Pending is a dashed
-* outline with no fill. Neutral is ink on surface: in a mono system, done
-* is quiet. Inactive drops to 45%.
-*/
-var TONE_CLASSES = {
-	neutral: "bg-[var(--vc-surface)] text-[var(--vc-text)]",
-	pending: "border border-dashed border-[var(--vc-neutral-400)] text-[var(--vc-neutral-700)]",
-	critical: "bg-[var(--vc-accent-100)] text-[var(--vc-accent-800)]",
-	inactive: "bg-[var(--vc-surface)] text-[var(--vc-text)] opacity-45"
-};
-function StatusBadge({ domain, value, className = "" }) {
-	const { tone, label } = statusPresentation(domain, value);
-	return /* @__PURE__ */ jsx("span", {
-		"data-tone": tone,
-		className: `inline-block px-2 py-[3px] text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap ${TONE_CLASSES[tone]} ${className}`,
-		children: label
+	const remove = (line) => {
+		setPending(line);
+		router.delete(`/cart/${encodeURIComponent(line)}`, {
+			preserveScroll: true,
+			onFinish: () => setPending(null)
+		});
+	};
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: "Your basket",
+		children: [
+			/* @__PURE__ */ jsx("h1", {
+				className: "mb-8 text-[42px]",
+				children: "Your basket"
+			}),
+			page.mergeNotices.length > 0 ? /* @__PURE__ */ jsx(IssueNotice, {
+				live: "alert",
+				heading: "Your basket changed when you signed in",
+				messages: page.mergeNotices.map(toMessage)
+			}) : null,
+			page.errors.quantity ? /* @__PURE__ */ jsx("p", {
+				role: "alert",
+				className: "mb-8 border-2 border-[var(--vc-accent)] px-4 py-3 text-[14px]",
+				children: page.errors.quantity
+			}) : null,
+			cart.itemCount === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+				title: "Nothing in your basket yet",
+				body: "Browse the marketplace and add something from a seller you like the look of.",
+				actions: /* @__PURE__ */ jsx(Link, {
+					href: "/search",
+					children: /* @__PURE__ */ jsx(Button, {
+						variant: "primary",
+						children: "Browse the marketplace"
+					})
+				})
+			}) : /* @__PURE__ */ jsxs("div", {
+				className: "grid gap-14 lg:grid-cols-[1fr_320px]",
+				children: [/* @__PURE__ */ jsx("div", { children: cart.groups.map((group) => /* @__PURE__ */ jsxs("section", {
+					className: "mb-10",
+					children: [
+						/* @__PURE__ */ jsx("h2", {
+							className: "mb-1 text-[20px]",
+							children: /* @__PURE__ */ jsx(Link, {
+								href: `/stores/${group.storeSlug}`,
+								children: group.storeName
+							})
+						}),
+						/* @__PURE__ */ jsxs("p", {
+							className: "mb-4 text-[13px] text-[var(--vc-neutral-600)]",
+							children: [
+								"Sold and delivered by ",
+								group.storeName,
+								" · ",
+								group.subtotal
+							]
+						}),
+						/* @__PURE__ */ jsx("ul", {
+							className: "border-t-2 border-[var(--vc-text)]",
+							children: group.lines.map((line) => /* @__PURE__ */ jsx(CartRow, {
+								line,
+								busy: pending === line.lineIdentity,
+								onQuantity: (quantity) => submit(line.lineIdentity, quantity),
+								onRemove: () => remove(line.lineIdentity)
+							}, line.lineIdentity))
+						})
+					]
+				}, group.sellerAccountId)) }), /* @__PURE__ */ jsxs("aside", {
+					className: "lg:sticky lg:top-8 lg:self-start",
+					children: [
+						/* @__PURE__ */ jsx("h2", {
+							className: "mb-4 text-[20px]",
+							children: "Summary"
+						}),
+						/* @__PURE__ */ jsxs("div", {
+							className: "flex items-baseline justify-between border-t-2 border-[var(--vc-text)] pt-3 text-[18px] font-semibold",
+							children: [/* @__PURE__ */ jsx("span", { children: "Subtotal" }), /* @__PURE__ */ jsx("span", {
+								className: "vc-tabular",
+								children: cart.subtotal
+							})]
+						}),
+						/* @__PURE__ */ jsxs("p", {
+							className: "mt-1 mb-5 text-[12px] text-[var(--vc-neutral-600)]",
+							children: [
+								cart.quantityCount,
+								" ",
+								cart.quantityCount === 1 ? "item" : "items",
+								" ",
+								"across ",
+								cart.groups.length,
+								" ",
+								cart.groups.length === 1 ? "seller" : "sellers",
+								". Delivery and tax are shown at checkout."
+							]
+						}),
+						cart.hasBlockingIssues ? /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx(Button, {
+							variant: "primary",
+							block: true,
+							disabled: true,
+							children: "Continue to checkout"
+						}), /* @__PURE__ */ jsx("p", {
+							role: "status",
+							className: "mt-2 text-[12px] text-[var(--vc-accent-800)]",
+							children: "Resolve the items marked above before continuing."
+						})] }) : /* @__PURE__ */ jsx(Link, {
+							href: "/checkout",
+							className: "block",
+							children: /* @__PURE__ */ jsx(Button, {
+								variant: "primary",
+								block: true,
+								children: "Continue to checkout"
+							})
+						})
+					]
+				})]
+			})
+		]
 	});
+}
+/**
+* One line.
+*
+* Stacks on a phone and lays out in columns from `sm` up — a financial
+* table forced to scroll sideways on a 375px screen is not a mobile
+* solution, it is a desktop table with a scrollbar.
+*/
+function CartRow({ line, busy, onQuantity, onRemove }) {
+	return /* @__PURE__ */ jsxs("li", {
+		className: "flex flex-col gap-4 border-b border-[var(--vc-divider)] py-5 sm:flex-row sm:items-start",
+		children: [
+			/* @__PURE__ */ jsx("div", {
+				className: "h-[88px] w-[88px] shrink-0 bg-[var(--vc-surface)]",
+				children: line.imageUrl ? /* @__PURE__ */ jsx("img", {
+					src: line.imageUrl,
+					alt: "",
+					className: "h-full w-full object-cover",
+					loading: "lazy"
+				}) : null
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "min-w-0 flex-1",
+				children: [
+					line.brand ? /* @__PURE__ */ jsx("p", {
+						className: "text-[12px] tracking-[0.06em] text-[var(--vc-neutral-600)] uppercase",
+						children: line.brand
+					}) : null,
+					/* @__PURE__ */ jsx("h3", {
+						className: "text-[16px]",
+						children: /* @__PURE__ */ jsx(Link, {
+							href: `/products/${line.productSlug}`,
+							children: line.productTitle
+						})
+					}),
+					line.variantName ? /* @__PURE__ */ jsx("p", {
+						className: "text-[13px] text-[var(--vc-neutral-700)]",
+						children: line.variantName
+					}) : null,
+					/* @__PURE__ */ jsxs("p", {
+						className: "mt-1 text-[13px] text-[var(--vc-neutral-700)]",
+						children: [
+							"Sold by ",
+							/* @__PURE__ */ jsx(Link, {
+								href: `/stores/${line.storeSlug}`,
+								children: line.storeName
+							}),
+							/* @__PURE__ */ jsxs("span", {
+								className: "text-[var(--vc-neutral-600)]",
+								children: [
+									" · ",
+									line.unitPrice,
+									" each"
+								]
+							})
+						]
+					}),
+					/* @__PURE__ */ jsx("p", {
+						className: "mt-1 text-[12px] text-[var(--vc-neutral-600)]",
+						children: line.available <= 0 ? "Out of stock" : `${line.available} available from this seller`
+					}),
+					/* @__PURE__ */ jsx(LineIssues, { issues: line.issues })
+				]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "flex items-center gap-4 sm:flex-col sm:items-end sm:gap-2",
+				children: [
+					/* @__PURE__ */ jsx(QuantityStepper, {
+						value: line.quantity,
+						max: line.maxQuantity,
+						busy,
+						disabled: line.available <= 0,
+						label: line.productTitle,
+						onChange: onQuantity
+					}),
+					/* @__PURE__ */ jsx("span", {
+						className: "vc-tabular text-[16px] font-semibold sm:mt-1",
+						children: line.lineTotal
+					}),
+					/* @__PURE__ */ jsxs("button", {
+						type: "button",
+						onClick: onRemove,
+						disabled: busy,
+						className: "text-[13px] underline underline-offset-4 disabled:opacity-45",
+						children: ["Remove", /* @__PURE__ */ jsxs("span", {
+							className: "sr-only",
+							children: [
+								" ",
+								line.productTitle,
+								" from your basket"
+							]
+						})]
+					})
+				]
+			})
+		]
+	});
+}
+/**
+* A raw issue, rendered as a sentence.
+*
+* The cart page's merge notices arrive as codes rather than as prose,
+* because they were stored in the session before there was a page to
+* write them for. Everything else on the checkout side gets its sentence
+* from the server.
+*/
+function toMessage(issue) {
+	const detail = {
+		PRICE_CHANGED: "The price of this item changed since you added it.",
+		OUT_OF_STOCK: "This item had sold out, so it was not added to your basket.",
+		QUANTITY_REDUCED: issue.available === void 0 ? "The quantity was reduced to what the seller has available." : `Quantity updated because only ${issue.available} ${issue.available === 1 ? "item is" : "items are"} currently available.`,
+		OFFER_UNAVAILABLE: "This offer is no longer available and was removed from your basket.",
+		SELLER_UNAVAILABLE: "The seller is not trading at the moment, so this item was removed from your basket.",
+		PRODUCT_UNAVAILABLE: "This product has been withdrawn, so it was removed from your basket.",
+		VARIANT_UNAVAILABLE: "The option you chose is no longer offered, so it was removed.",
+		CURRENCY_MISMATCH: "This item is priced in a different currency and was removed."
+	};
+	return {
+		code: issue.code,
+		blocking: issue.blocking,
+		title: issue.label,
+		detail: detail[issue.code]
+	};
 }
 //#endregion
 //#region resources/js/design-system/patterns/ProductCard.tsx
@@ -1715,6 +2502,530 @@ function Show$2() {
 						lastPage: results.lastPage
 					})
 				] })]
+			})
+		]
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Checkout/Index.tsx
+var Index_exports$1 = /* @__PURE__ */ __exportAll({ default: () => CheckoutIndex });
+/**
+* Review, then hand off to payment.
+*
+* Nothing priced on this page is posted back. The form carries an address,
+* an email and an idempotency key; the server rebuilds the quote from the
+* live offers when the button is pressed and refuses if it does not match
+* what the customer was shown. That is why there is no hidden total field
+* here — there is nowhere for a tampered price to enter.
+*
+* The button says "Continue to payment" because that is what it does. M4
+* produces an order awaiting payment; nothing has been charged and no card
+* details have been asked for, and a button labelled "Pay now" would be
+* claiming otherwise.
+*/
+function CheckoutIndex() {
+	const page = usePage().props;
+	const quote = page.quote;
+	const cart = quote.cart;
+	const errorSummary = useRef(null);
+	const [useSaved, setUseSaved] = useState(page.addresses.length > 0);
+	const defaultAddress = page.addresses.find((address) => address.isDefault) ?? page.addresses[0];
+	const form = useForm({
+		idempotency_key: newKey(),
+		saved_address: defaultAddress?.publicId ?? "",
+		email: page.contact.email ?? "",
+		name: defaultAddress?.name ?? page.contact.name ?? "",
+		line1: "",
+		line2: "",
+		city: "",
+		state: "",
+		postcode: "",
+		country: "GB",
+		phone: "",
+		save_address: false
+	});
+	const errorCount = Object.keys(form.errors).length;
+	useEffect(() => {
+		if (errorCount > 0) errorSummary.current?.focus();
+	}, [errorCount]);
+	const blocking = quote.issues.filter((issue) => issue.blocking);
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: "Checkout",
+		children: [
+			/* @__PURE__ */ jsx("h1", {
+				className: "mb-2 text-[42px]",
+				children: "Checkout"
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "mb-8 text-[var(--vc-neutral-700)]",
+				children: "Nothing is charged at this step. You will be taken to payment once your order is prepared."
+			}),
+			page.issueMessages.length > 0 ? /* @__PURE__ */ jsx(IssueNotice, {
+				live: blocking.length > 0 ? "alert" : "status",
+				heading: blocking.length > 0 ? "Some items need attention before you can continue" : "Your basket changed since you added these items",
+				messages: page.issueMessages
+			}) : null,
+			errorCount > 0 ? /* @__PURE__ */ jsxs("div", {
+				ref: errorSummary,
+				tabIndex: -1,
+				role: "alert",
+				className: "mb-8 border-2 border-[var(--vc-accent)] px-5 py-4",
+				children: [/* @__PURE__ */ jsx("h2", {
+					className: "mb-2 text-[16px]",
+					children: "We could not complete this checkout"
+				}), /* @__PURE__ */ jsx("ul", {
+					className: "flex flex-col gap-1 text-[14px]",
+					children: Object.entries(form.errors).map(([field, message]) => /* @__PURE__ */ jsx("li", { children: message }, field))
+				})]
+			}) : null,
+			/* @__PURE__ */ jsxs("form", {
+				className: "grid gap-14 lg:grid-cols-[1fr_360px]",
+				onSubmit: (event) => {
+					event.preventDefault();
+					form.post("/checkout", { preserveScroll: true });
+				},
+				children: [/* @__PURE__ */ jsxs("div", {
+					className: "flex flex-col gap-10",
+					children: [
+						/* @__PURE__ */ jsxs("section", {
+							"aria-labelledby": "contact-heading",
+							children: [/* @__PURE__ */ jsx("h2", {
+								id: "contact-heading",
+								className: "mb-4 text-[22px]",
+								children: "Contact"
+							}), /* @__PURE__ */ jsx(Field, {
+								label: "Email",
+								error: form.errors.email,
+								hint: "Your receipt and delivery updates go here.",
+								children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+									id,
+									type: "email",
+									autoComplete: "email",
+									"aria-describedby": describedBy,
+									invalid,
+									value: form.data.email,
+									onChange: (event) => form.setData("email", event.target.value)
+								})
+							})]
+						}),
+						/* @__PURE__ */ jsxs("section", {
+							"aria-labelledby": "address-heading",
+							children: [
+								/* @__PURE__ */ jsx("h2", {
+									id: "address-heading",
+									className: "mb-4 text-[22px]",
+									children: "Delivery address"
+								}),
+								page.addresses.length > 0 ? /* @__PURE__ */ jsxs("div", {
+									className: "mb-4 flex flex-col gap-2",
+									children: [/* @__PURE__ */ jsxs("label", {
+										className: "flex items-center gap-2 text-[14px]",
+										children: [/* @__PURE__ */ jsx("input", {
+											type: "radio",
+											name: "address-mode",
+											checked: useSaved,
+											onChange: () => setUseSaved(true)
+										}), "Use a saved address"]
+									}), /* @__PURE__ */ jsxs("label", {
+										className: "flex items-center gap-2 text-[14px]",
+										children: [/* @__PURE__ */ jsx("input", {
+											type: "radio",
+											name: "address-mode",
+											checked: !useSaved,
+											onChange: () => {
+												setUseSaved(false);
+												form.setData("saved_address", "");
+											}
+										}), "Enter a new address"]
+									})]
+								}) : null,
+								useSaved && page.addresses.length > 0 ? /* @__PURE__ */ jsx(Field, {
+									label: "Saved address",
+									error: form.errors.saved_address,
+									children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Select, {
+										id,
+										"aria-describedby": describedBy,
+										invalid,
+										value: form.data.saved_address,
+										onChange: (event) => form.setData("saved_address", event.target.value),
+										children: page.addresses.map((address) => /* @__PURE__ */ jsx("option", {
+											value: address.publicId,
+											children: [
+												address.label,
+												address.name,
+												address.line1,
+												address.city,
+												address.postcode
+											].filter(Boolean).join(" · ")
+										}, address.publicId))
+									})
+								}) : /* @__PURE__ */ jsxs("div", {
+									className: "flex flex-col gap-4",
+									children: [/* @__PURE__ */ jsx(AddressFields, {
+										data: form.data,
+										errors: form.errors,
+										set: form.setData
+									}), !page.contact.isGuest ? /* @__PURE__ */ jsxs("label", {
+										className: "flex items-center gap-2 text-[14px]",
+										children: [/* @__PURE__ */ jsx("input", {
+											type: "checkbox",
+											checked: form.data.save_address,
+											onChange: (event) => form.setData("save_address", event.target.checked)
+										}), "Save this address for next time"]
+									}) : null]
+								})
+							]
+						}),
+						/* @__PURE__ */ jsxs("section", {
+							"aria-labelledby": "review-heading",
+							children: [
+								/* @__PURE__ */ jsx("h2", {
+									id: "review-heading",
+									className: "mb-1 text-[22px]",
+									children: "Your order"
+								}),
+								/* @__PURE__ */ jsx("p", {
+									className: "mb-4 text-[13px] text-[var(--vc-neutral-600)]",
+									children: cart.groups.length === 1 ? "One seller, one delivery." : `${cart.groups.length} sellers, so ${cart.groups.length} separate deliveries.`
+								}),
+								cart.groups.map((group) => /* @__PURE__ */ jsxs("div", {
+									className: "mb-6",
+									children: [
+										/* @__PURE__ */ jsx("h3", {
+											className: "mb-2 text-[16px]",
+											children: group.storeName
+										}),
+										/* @__PURE__ */ jsx("ul", {
+											className: "border-t border-[var(--vc-divider)]",
+											children: group.lines.map((line) => /* @__PURE__ */ jsxs("li", {
+												className: "flex justify-between gap-4 border-b border-[var(--vc-divider)] py-3 text-[14px]",
+												children: [/* @__PURE__ */ jsxs("span", { children: [
+													line.productTitle,
+													line.variantName ? ` — ${line.variantName}` : "",
+													/* @__PURE__ */ jsxs("span", {
+														className: "block text-[12px] text-[var(--vc-neutral-600)]",
+														children: [
+															line.quantity,
+															" × ",
+															line.unitPrice
+														]
+													})
+												] }), /* @__PURE__ */ jsx("span", {
+													className: "vc-tabular whitespace-nowrap",
+													children: line.lineTotal
+												})]
+											}, line.lineIdentity))
+										}),
+										/* @__PURE__ */ jsxs("p", {
+											className: "pt-2 text-right text-[13px] vc-tabular",
+											children: ["Seller subtotal ", group.subtotal]
+										})
+									]
+								}, group.sellerAccountId))
+							]
+						})
+					]
+				}), /* @__PURE__ */ jsxs("aside", {
+					className: "lg:sticky lg:top-8 lg:self-start",
+					children: [
+						/* @__PURE__ */ jsx("h2", {
+							className: "mb-4 text-[20px]",
+							children: "Total"
+						}),
+						/* @__PURE__ */ jsx(MoneyRow, {
+							label: "Items",
+							value: quote.itemsTotal
+						}),
+						/* @__PURE__ */ jsx(MoneyRow, {
+							label: "Delivery",
+							value: quote.shippingTotalMinor === 0 ? "Included" : quote.shippingTotal,
+							note: page.shippingPolicy.note
+						}),
+						/* @__PURE__ */ jsx(MoneyRow, {
+							label: "Tax",
+							value: quote.taxTotalMinor === 0 ? "Not calculated" : quote.taxTotal,
+							note: page.shippingPolicy.taxNote
+						}),
+						/* @__PURE__ */ jsx(MoneyRow, {
+							label: "Total",
+							value: quote.grandTotal,
+							strong: true
+						}),
+						/* @__PURE__ */ jsx("div", {
+							className: "mt-6",
+							children: /* @__PURE__ */ jsx(Button, {
+								type: "submit",
+								variant: "primary",
+								block: true,
+								loading: form.processing,
+								loadingLabel: "Preparing your order…",
+								disabled: !quote.buyable,
+								children: "Continue to payment"
+							})
+						}),
+						!quote.buyable ? /* @__PURE__ */ jsx("p", {
+							role: "status",
+							className: "mt-2 text-[12px] text-[var(--vc-accent-800)]",
+							children: "Resolve the items above before continuing."
+						}) : null,
+						/* @__PURE__ */ jsxs("p", {
+							className: "mt-3 text-[12px] text-[var(--vc-neutral-600)]",
+							children: [
+								"No payment is taken at this step.",
+								" ",
+								/* @__PURE__ */ jsx(Link, {
+									href: "/cart",
+									className: "underline underline-offset-4",
+									children: "Back to basket"
+								})
+							]
+						})
+					]
+				})]
+			})
+		]
+	});
+}
+/**
+* The address form.
+*
+* Takes the three things it needs rather than the whole form object, so
+* it is typed end to end and a renamed field is a compile error rather
+* than a field that silently stops saving.
+*/
+function AddressFields({ data, errors, set }) {
+	return /* @__PURE__ */ jsxs(Fragment, { children: [
+		/* @__PURE__ */ jsx(Field, {
+			label: "Full name",
+			error: errors.name,
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "name",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.name,
+				onChange: (event) => set("name", event.target.value)
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "Address line 1",
+			error: errors.line1,
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "address-line1",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.line1,
+				onChange: (event) => set("line1", event.target.value)
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "Address line 2",
+			error: errors.line2,
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "address-line2",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.line2,
+				onChange: (event) => set("line2", event.target.value)
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "Town or city",
+			error: errors.city,
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "address-level2",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.city,
+				onChange: (event) => set("city", event.target.value)
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "State or province (optional)",
+			error: errors.state,
+			hint: "Leave blank if your country does not use one.",
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "address-level1",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.state,
+				onChange: (event) => set("state", event.target.value)
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "Postcode or ZIP",
+			error: errors.postcode,
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "postal-code",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.postcode,
+				onChange: (event) => set("postcode", event.target.value)
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "Country",
+			error: errors.country,
+			hint: "Two-letter country code.",
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "country",
+				maxLength: 2,
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.country,
+				onChange: (event) => set("country", event.target.value.toUpperCase())
+			})
+		}),
+		/* @__PURE__ */ jsx(Field, {
+			label: "Phone (optional)",
+			error: errors.phone,
+			children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+				id,
+				autoComplete: "tel",
+				"aria-describedby": describedBy,
+				invalid,
+				value: data.phone,
+				onChange: (event) => set("phone", event.target.value)
+			})
+		})
+	] });
+}
+function newKey() {
+	if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID().replace(/-/g, "");
+	return `k${Date.now()}${Math.random().toString(36).slice(2, 10)}`;
+}
+//#endregion
+//#region resources/js/storefront/pages/Checkout/PaymentPending.tsx
+var PaymentPending_exports = /* @__PURE__ */ __exportAll({ default: () => PaymentPending });
+/**
+* The M4 handoff.
+*
+* Deliberately NOT a confirmation page. The order exists, the totals are
+* final and the stock is held — and no money has moved. Saying "thank you
+* for your order" here would be a claim the platform cannot support, and
+* the customer would find out it was untrue at the least convenient
+* possible moment.
+*
+* M5 attaches a provider to this boundary. Until then the page's only job
+* is to be exact about where the purchase stands.
+*/
+function PaymentPending() {
+	const { order, paymentStatus } = usePage().props;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: `Order ${order.reference}`,
+		children: [
+			/* @__PURE__ */ jsxs("p", {
+				className: "mb-2 text-[13px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+				children: ["Order ", order.reference]
+			}),
+			/* @__PURE__ */ jsx("h1", {
+				className: "mb-3 text-[42px]",
+				children: "Awaiting payment"
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				role: "status",
+				className: "mb-10 border-2 border-[var(--vc-text)] px-5 py-4",
+				children: [
+					/* @__PURE__ */ jsx("p", {
+						className: "text-[16px] font-semibold",
+						children: paymentStatus.headline
+					}),
+					/* @__PURE__ */ jsx("p", {
+						className: "mt-1 text-[14px] text-[var(--vc-neutral-700)]",
+						children: paymentStatus.detail
+					}),
+					order.paymentExpiresAt ? /* @__PURE__ */ jsxs("p", {
+						className: "mt-2 text-[13px]",
+						children: [
+							"Held until",
+							" ",
+							/* @__PURE__ */ jsx("time", {
+								dateTime: order.paymentExpiresAt,
+								className: "font-semibold",
+								children: new Date(order.paymentExpiresAt).toLocaleString()
+							}),
+							"."
+						]
+					}) : null
+				]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "grid gap-14 lg:grid-cols-[1fr_320px]",
+				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+					className: "mb-4 text-[22px]",
+					children: "What you ordered"
+				}), order.sellerOrders.map((sellerOrder) => /* @__PURE__ */ jsxs("section", {
+					className: "mb-8",
+					children: [/* @__PURE__ */ jsxs("div", {
+						className: "mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1",
+						children: [
+							/* @__PURE__ */ jsx("h3", {
+								className: "text-[16px]",
+								children: sellerOrder.storeName ?? "Seller"
+							}),
+							/* @__PURE__ */ jsx("span", {
+								className: "vc-tabular text-[12px] text-[var(--vc-neutral-600)]",
+								children: sellerOrder.reference
+							}),
+							/* @__PURE__ */ jsx(StatusBadge, {
+								domain: "seller_order",
+								value: sellerOrder.status
+							})
+						]
+					}), /* @__PURE__ */ jsx("ul", {
+						className: "border-t border-[var(--vc-divider)]",
+						children: sellerOrder.items.map((item) => /* @__PURE__ */ jsxs("li", {
+							className: "flex justify-between gap-4 border-b border-[var(--vc-divider)] py-3 text-[14px]",
+							children: [/* @__PURE__ */ jsxs("span", { children: [
+								item.productTitle,
+								item.variantName ? ` — ${item.variantName}` : "",
+								/* @__PURE__ */ jsxs("span", {
+									className: "block text-[12px] text-[var(--vc-neutral-600)]",
+									children: [
+										item.quantity,
+										" × ",
+										item.unitPrice.formatted
+									]
+								})
+							] }), /* @__PURE__ */ jsx("span", {
+								className: "vc-tabular whitespace-nowrap",
+								children: item.lineTotal.formatted
+							})]
+						}, item.publicId))
+					})]
+				}, sellerOrder.reference))] }), /* @__PURE__ */ jsxs("aside", {
+					className: "flex flex-col gap-8",
+					children: [
+						/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+							className: "mb-3 text-[20px]",
+							children: "Total"
+						}), /* @__PURE__ */ jsx(OrderTotals, {
+							itemsTotal: order.itemsTotal,
+							shippingTotal: order.shippingTotal,
+							taxTotal: order.taxTotal,
+							grandTotal: order.grandTotal,
+							taxNote: "Tax is not calculated at this stage."
+						})] }),
+						/* @__PURE__ */ jsx(AddressBlock, {
+							address: order.shippingAddress,
+							title: "Delivering to"
+						}),
+						/* @__PURE__ */ jsx("p", {
+							className: "text-[13px] text-[var(--vc-neutral-700)]",
+							children: /* @__PURE__ */ jsx(Link, {
+								href: "/account/orders",
+								className: "underline underline-offset-4",
+								children: "See all your orders"
+							})
+						})
+					]
+				})]
 			})
 		]
 	});
@@ -2276,13 +3587,18 @@ createServer((page) => createInertiaApp({
 	render: ReactDOMServer.renderToString,
 	resolve: (name) => {
 		return (/* @__PURE__ */ Object.assign({
+			"./pages/Account/Orders/Index.tsx": Index_exports$3,
+			"./pages/Account/Orders/Show.tsx": Show_exports$3,
 			"./pages/Account/Profile.tsx": Profile_exports,
 			"./pages/Auth/ForgotPassword.tsx": ForgotPassword_exports,
 			"./pages/Auth/Login.tsx": Login_exports,
 			"./pages/Auth/Register.tsx": Register_exports,
 			"./pages/Auth/ResetPassword.tsx": ResetPassword_exports,
 			"./pages/Auth/VerifyEmail.tsx": VerifyEmail_exports,
+			"./pages/Cart/Index.tsx": Index_exports$2,
 			"./pages/Category/Show.tsx": Show_exports$2,
+			"./pages/Checkout/Index.tsx": Index_exports$1,
+			"./pages/Checkout/PaymentPending.tsx": PaymentPending_exports,
 			"./pages/Home.tsx": Home_exports,
 			"./pages/Product/Show.tsx": Show_exports$1,
 			"./pages/Search/Index.tsx": Index_exports,

@@ -39,6 +39,7 @@ enum AdminRole: string
                 AdminPermission::ReviewOffers,
                 AdminPermission::ManageTaxonomy,
                 AdminPermission::ViewOrders,
+                AdminPermission::ViewOrdersSensitive,
                 AdminPermission::ViewPayments,
                 AdminPermission::ManageOperationalSettings,
                 AdminPermission::ViewQueues,
@@ -96,6 +97,7 @@ enum AdminRole: string
             self::FinanceAdmin => [
                 AdminPermission::ViewDashboard,
                 AdminPermission::ViewOrders,
+                AdminPermission::ViewOrdersSensitive,
                 AdminPermission::IssueRefunds,
                 AdminPermission::ViewPayments,
                 AdminPermission::ManageCommission,

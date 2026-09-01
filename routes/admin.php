@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
 use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
+use App\Modules\AdminPortal\Http\Controllers\AdminOrderController;
 use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
@@ -116,6 +117,19 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
              * their business, so it is a separate permission and always
              * carries a written reason.
              */
+            /*
+             * Orders. `orders.view` opens the screen; the finance columns
+             * on it need `orders.view_sensitive` as well, which the
+             * controller checks — support can answer a delivery question
+             * without seeing what the platform took from each seller.
+             */
+            Route::prefix('orders')->name('orders.')->group(function (): void {
+                Route::get('/', [AdminOrderController::class, 'index'])
+                    ->middleware('admin.can:orders.view')->name('index');
+                Route::get('{reference}', [AdminOrderController::class, 'show'])
+                    ->middleware('admin.can:orders.view')->name('show');
+            });
+
             Route::prefix('inventory')->name('inventory.')->group(function (): void {
                 Route::get('/', [InventoryOversightController::class, 'index'])
                     ->middleware('admin.can:inventory.view')->name('index');

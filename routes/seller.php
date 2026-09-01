@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Catalog\Http\Controllers\SellerCatalogueController;
 use App\Modules\Inventory\Http\Controllers\SellerInventoryController;
 use App\Modules\Offers\Http\Controllers\SellerOfferController;
+use App\Modules\Orders\Http\Controllers\SellerOrderController;
 use App\Modules\Sellers\Http\Controllers\SellerApplicationController;
 use App\Modules\Sellers\Http\Controllers\SellerDashboardController;
 use App\Modules\Sellers\Http\Controllers\SellerDocumentController;
@@ -91,6 +92,16 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             ->middleware('seller.can:inventory.manage')->name('inventory.opening');
         Route::patch('inventory/{offer}/threshold', [SellerInventoryController::class, 'threshold'])
             ->middleware('seller.can:inventory.manage')->name('inventory.threshold');
+
+        /*
+         * Orders, scoped by the model's own tenant scope as well as by
+         * the permission. A seller sees their half of a marketplace order
+         * and never another seller's.
+         */
+        Route::get('orders', [SellerOrderController::class, 'index'])
+            ->middleware('seller.can:orders.view')->name('orders');
+        Route::get('orders/{reference}', [SellerOrderController::class, 'show'])
+            ->middleware('seller.can:orders.view')->name('orders.show');
 
         Route::get('team', [SellerTeamController::class, 'index'])
             ->middleware('seller.can:members.view')->name('team');
