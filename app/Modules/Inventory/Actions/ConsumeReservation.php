@@ -28,7 +28,33 @@ final class ConsumeReservation
 
     public function __invoke(string $reference, ?int $sellerOrderId = null): int
     {
-        return DB::transaction(function () use ($reference, $sellerOrderId): int {
+        return $this->consume($reference, static fn (): ?int => $sellerOrderId);
+    }
+
+    /**
+     * The same sale, attributed line by line.
+     *
+     * A multi-seller order's holds all share one reference but belong to
+     * different seller orders, and a movement filed against the wrong one
+     * would misattribute the sale in every report downstream of it. The
+     * caller supplies the map because it is the only thing that knows it.
+     *
+     * @param  array<int, int>  $sellerOrderIdByOfferId
+     */
+    public function attributed(string $reference, array $sellerOrderIdByOfferId): int
+    {
+        return $this->consume(
+            $reference,
+            static fn (int $offerId): ?int => $sellerOrderIdByOfferId[$offerId] ?? null,
+        );
+    }
+
+    /**
+     * @param  callable(int): ?int  $sellerOrderIdFor
+     */
+    private function consume(string $reference, callable $sellerOrderIdFor): int
+    {
+        return DB::transaction(function () use ($reference, $sellerOrderIdFor): int {
             $reservations = InventoryReservation::query()
                 ->where('reference', $reference)
                 ->where('status', ReservationStatus::Held->value)
@@ -48,7 +74,7 @@ final class ConsumeReservation
                     onHandChange: -$reservation->quantity,
                     reservedChange: -$reservation->quantity,
                     actorType: 'system',
-                    sellerOrderId: $sellerOrderId,
+                    sellerOrderId: $sellerOrderIdFor((int) $reservation->offer_id),
                 );
 
                 $reservation->forceFill([

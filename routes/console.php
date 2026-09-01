@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Modules\Checkout\Jobs\ExpireCheckoutAttempts;
 use App\Modules\Inventory\Jobs\ExpireReservations;
+use App\Modules\Orders\Jobs\ExpireUnpaidOrders;
 use App\Modules\Sellers\Console\PruneExpiredSellerInvitations;
 use Illuminate\Support\Facades\Schedule;
 
@@ -21,6 +23,18 @@ Schedule::command(PruneExpiredSellerInvitations::class)->hourly();
  * at the scheduler level.
  */
 Schedule::job(new ExpireReservations)->everyMinute()->withoutOverlapping();
+
+/*
+ * And the rows behind those holds are closed too.
+ *
+ * Releasing an expired hold without closing what held it would leave an
+ * order in pending_payment that nobody can fulfil, and an attempt in
+ * Reserved whose idempotency key would replay into stock that is gone.
+ * Both sweeps are idempotent and safe to interleave with the reservation
+ * sweep in any order.
+ */
+Schedule::job(new ExpireUnpaidOrders)->everyMinute()->withoutOverlapping();
+Schedule::job(new ExpireCheckoutAttempts)->everyMinute()->withoutOverlapping();
 
 // The stored `reserved` column is only safe because something checks it.
 Schedule::command('inventory:reconcile')->dailyAt('03:15');
