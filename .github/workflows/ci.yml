@@ -194,21 +194,13 @@ jobs:
             # uses, then fetched the way a crawler would.
             - name: A canonical product page is served with its SEO markup
               run: |
-                  slug=$(docker compose exec -T app php artisan tinker --execute '
-                      $category = \Database\Factories\CategoryFactory::new()->create(["name" => "Kettles"]);
-                      $product = \Database\Factories\ProductFactory::new()->create([
-                          "title" => "Aeris Cordless Kettle", "category_id" => $category->id,
-                      ]);
-                      $seller = \Database\Factories\SellerAccountFactory::new()->create();
-                      $store = \Database\Factories\StoreFactory::new()->create([
-                          "seller_account_id" => $seller->id, "is_open" => true,
-                      ]);
-                      \Database\Factories\OfferFactory::new()->create([
-                          "seller_account_id" => $seller->id, "store_id" => $store->id,
-                          "product_id" => $product->id, "product_variant_id" => null,
-                      ]);
-                      echo $product->slug;
-                  ' | tr -d '\r\n')
+                  # Written to a file first, deliberately. Piping the seed
+                  # straight into `tr` discarded its exit status, so a
+                  # seeding failure surfaced as a confusing curl error
+                  # three steps later instead of a failed step.
+                  docker compose exec -T app php artisan veritas:seed-demo-catalogue --offers=2 > seeded.txt
+                  slug=$(grep '^product=' seeded.txt | cut -d= -f2 | tr -d '\r')
+                  test -n "$slug"
 
                   body=$(curl -fsS "http://127.0.0.1:8000/products/${slug}")
 
@@ -238,6 +230,24 @@ jobs:
                   # The portals are never a search result; the storefront is.
                   curl -sD - -o /dev/null http://127.0.0.1:8000/admin/login | grep -qi 'X-Robots-Tag: noindex'
                   ! curl -sD - -o /dev/null http://127.0.0.1:8000/ | grep -qi 'X-Robots-Tag'
+
+            # The product page above proves SSR works by its output; this
+            # says which process produced it, so a regression that quietly
+            # fell back to client rendering is named rather than guessed at.
+            - name: The SSR process is up and answering
+              run: |
+                  docker compose ps ssr | grep -qi 'up'
+                  docker compose exec -T ssr node -e "
+                    fetch('http://127.0.0.1:13714/health')
+                      .then(r => { console.log('ssr health', r.status); process.exit(0); })
+                      .catch(() => { console.log('ssr not listening'); process.exit(1); });
+                  "
+
+            - name: PostgreSQL answers from inside the application container
+              run: |
+                  docker compose exec -T app php artisan tinker --execute \
+                      'echo "postgres reachable: ".\Illuminate\Support\Facades\DB::connection()->getPdo()->query("select 1")->fetchColumn();' \
+                      | grep -q 'postgres reachable: 1'
 
             - name: Redis answers and the application can reach it
               run: |

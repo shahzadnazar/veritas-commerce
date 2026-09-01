@@ -1,0 +1,89 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\Product;
+use App\Modules\Offers\Models\Offer;
+use App\Modules\Sellers\Models\SellerAccount;
+use App\Modules\Stores\Models\Store;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * A small, known catalogue for smoke-testing a running deployment.
+ *
+ * The CI Docker job used to build this with a `tinker --execute` heredoc
+ * whose output was piped through `tr`, which discarded the exit status —
+ * a seeding failure became a confusing curl error three steps later
+ * instead of a failed step. A command exits properly, can be tested, and
+ * prints exactly the slugs the smoke needs.
+ *
+ * Refuses to run in production: it writes fictional sellers and offers.
+ */
+final class SeedDemoCatalogue extends Command
+{
+    protected $signature = 'veritas:seed-demo-catalogue
+        {--title=Aeris Cordless Kettle : Title for the published product}
+        {--offers=1 : How many sellers list it}';
+
+    protected $description = 'Create one published product with eligible offers, for smoke tests';
+
+    public function handle(): int
+    {
+        if (app()->environment('production')) {
+            $this->error('This writes fictional sellers and offers; it will not run in production.');
+
+            return self::FAILURE;
+        }
+
+        $title = (string) $this->option('title');
+        $offers = max(1, (int) $this->option('offers'));
+
+        /** @var array{product: Product, category: Category, store: Store} $seeded */
+        $seeded = DB::transaction(function () use ($title, $offers): array {
+            $category = Category::factory()->createOne(['name' => 'Kettles', 'is_visible' => true]);
+
+            $product = Product::factory()->createOne([
+                'title' => $title,
+                'category_id' => $category->id,
+            ]);
+
+            $firstStore = null;
+
+            foreach (range(1, $offers) as $index) {
+                $seller = SellerAccount::factory()->createOne();
+                $store = Store::factory()->createOne([
+                    'seller_account_id' => $seller->id,
+                    'is_open' => true,
+                ]);
+
+                Offer::factory()->createOne([
+                    'seller_account_id' => $seller->id,
+                    'store_id' => $store->id,
+                    'product_id' => $product->id,
+                    'product_variant_id' => null,
+                    // Ascending, so the cheapest is predictable and a
+                    // smoke test can assert which price is displayed.
+                    'price_minor' => 9_900 + ($index - 1) * 1_000,
+                ]);
+
+                $firstStore ??= $store;
+            }
+
+            // Returned rather than read back through relations: these are
+            // the rows just written, so there is nothing to re-resolve and
+            // no nullable relation to defend against.
+            return ['product' => $product, 'category' => $category, 'store' => $firstStore];
+        });
+
+        // One line each, machine-readable: the smoke script reads these.
+        $this->line('product='.$seeded['product']->slug);
+        $this->line('category='.$seeded['category']->slug);
+        $this->line('store='.$seeded['store']->slug);
+
+        return self::SUCCESS;
+    }
+}
