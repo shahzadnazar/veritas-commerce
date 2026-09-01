@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Inventory;
 
+use App\Modules\Inventory\Actions\AdjustInventory;
 use App\Modules\Inventory\Models\InventoryBalance;
 use App\Modules\Inventory\Models\InventoryLocation;
 use App\Modules\Offers\Models\Offer;
@@ -47,8 +48,21 @@ trait StocksOffers
         $balance = InventoryBalance::query()->create([
             'offer_id' => $offer->id,
             'inventory_location_id' => $location->id,
-            'on_hand' => $onHand,
+            'on_hand' => 0,
         ]);
+
+        /*
+         * Stock arrives the way the application makes it arrive.
+         *
+         * Writing `on_hand` straight onto the row was quicker and built a
+         * state the application can never produce: a balance with no
+         * movement explaining it, which `inventory:reconcile` correctly
+         * rejects. A fixture that cannot reconcile is a fixture testing
+         * something other than the system.
+         */
+        if ($onHand > 0) {
+            app(AdjustInventory::class)->openingStock($offer, $onHand, 'seller', 1);
+        }
 
         // Read back: `reserved` has a database default and `available` is
         // generated, so a freshly created model knows neither until it

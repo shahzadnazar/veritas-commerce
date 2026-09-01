@@ -240,9 +240,10 @@ final class InventoryLedgerTest extends TestCase
         $this->runArtisan('inventory:reconcile')->assertFailed()->run();
         $this->runArtisan('inventory:reconcile', ['--fix' => true])->assertFailed()->run();
 
-        // --fix repairs from the reservation rows, which are the truth.
+        // --fix repairs from the reservation rows, which are the truth,
+        // and the ledger agrees again afterwards.
         $this->assertSame(4, $balance->refresh()->reserved);
-        $this->runArtisan('inventory:reconcile')->assertFailed()->run();
+        $this->runArtisan('inventory:reconcile')->assertSuccessful()->run();
     }
 
     #[Test]

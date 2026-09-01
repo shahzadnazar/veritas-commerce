@@ -13,6 +13,10 @@ use App\Modules\Catalog\Events\ProductSuspended;
 use App\Modules\Catalog\Listeners\KeepSearchIndexCurrent;
 use App\Modules\Catalog\Listeners\NotifyProposingSeller;
 use App\Modules\Catalog\Queries\BuildIndexableProduct;
+use App\Modules\Inventory\Events\InventoryDepleted;
+use App\Modules\Inventory\Events\InventoryLow;
+use App\Modules\Inventory\Events\InventoryRestored;
+use App\Modules\Inventory\Listeners\NotifySellerOfStockLevel;
 use App\Modules\Media\Contracts\ObjectStore;
 use App\Modules\Media\Stores\FilesystemObjectStore;
 use App\Modules\Offers\Events\OfferActivated;
@@ -64,6 +68,17 @@ final class AppServiceProvider extends ServiceProvider
         // Domain events are wired here rather than discovered, so the set
         // of listeners is readable in one place.
         Event::listen(SellerApproved::class, NotifyApprovedSeller::class);
+
+        /*
+         * Stock thresholds. The listener holds the durable de-duplication,
+         * not the dispatcher: stock crosses the same line repeatedly as
+         * holds are taken and released.
+         */
+        Event::listen([
+            InventoryLow::class,
+            InventoryDepleted::class,
+            InventoryRestored::class,
+        ], [NotifySellerOfStockLevel::class, 'handle']);
 
         // Catalogue side effects. Both are queued at the job level rather
         // than the listener, so a failure to index or to mail never rolls

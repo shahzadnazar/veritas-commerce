@@ -39,6 +39,27 @@ enum StockState: string implements HasStatusTone
         return $threshold > 0 && $available <= $threshold ? self::LowStock : self::InStock;
     }
 
+    /**
+     * How bad this is, for deciding whether a change is worth an email.
+     *
+     * A seller told "you have sold out" does not need "you are running
+     * low" when a cancelled hold puts two units back — that is an
+     * improvement, and improvements are not news.
+     */
+    public function severity(): int
+    {
+        return match ($this) {
+            self::InStock => 0,
+            self::LowStock => 1,
+            self::OutOfStock => 2,
+        };
+    }
+
+    public function isWorseThan(self $other): bool
+    {
+        return $this->severity() > $other->severity();
+    }
+
     public function isBuyable(): bool
     {
         return $this !== self::OutOfStock;

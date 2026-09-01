@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace App\Modules\Inventory\Actions;
 
 use App\Modules\Inventory\Enums\InventoryMovementReason;
+use App\Modules\Inventory\Enums\StockState;
+use App\Modules\Inventory\Events\InventoryAdjusted;
+use App\Modules\Inventory\Events\InventoryDepleted;
+use App\Modules\Inventory\Events\InventoryLow;
+use App\Modules\Inventory\Events\InventoryRestored;
 use App\Modules\Inventory\Exceptions\InvalidStockOperation;
 use App\Modules\Inventory\Models\InventoryBalance;
 use App\Modules\Inventory\Models\InventoryMovement;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 /**
  * The only way either stock quantity changes.
@@ -24,6 +30,12 @@ use Illuminate\Support\Facades\DB;
  * concurrent writers serialise instead of both deciding from the same
  * stale numbers. The database's CHECK constraints are the backstop: even a
  * caller that skipped this action cannot leave the row invalid.
+ *
+ * It is also where the rest of the system finds out. Every path that
+ * changes stock — a seller's correction, a hold, a release, a sale —
+ * arrives here, so announcing from here is the only way to be sure the
+ * search index and the seller's notifications cannot miss one. Events go
+ * out after commit, so nothing reacts to a state a rollback removed.
  */
 final class RecordMovement
 {
@@ -78,7 +90,11 @@ final class RecordMovement
                 );
             }
 
+            $before = $locked->state();
+
             $locked->forceFill(['on_hand' => $onHand, 'reserved' => $reserved])->save();
+
+            $this->announce($locked, $before);
 
             return InventoryMovement::query()->create([
                 'offer_id' => $locked->offer_id,
@@ -94,6 +110,51 @@ final class RecordMovement
                 'seller_order_id' => $sellerOrderId,
                 'created_at' => now(),
             ]);
+        });
+    }
+
+    /**
+     * Tells the rest of the system what just happened to availability.
+     *
+     * `InventoryAdjusted` fires for every movement, because anything that
+     * moves `available` changes what a customer would see and the index
+     * has to be rebuilt. The threshold events fire only on a crossing:
+     * one that fired while stock merely *is* low would mail the seller on
+     * every save.
+     */
+    private function announce(InventoryBalance $balance, StockState $before): void
+    {
+        $after = $balance->state();
+        $available = $balance->on_hand - $balance->reserved;
+        $offer = $balance->offer;
+
+        if ($offer === null) {
+            return;
+        }
+
+        $offerId = $offer->id;
+        $productId = $offer->product_id;
+        $sellerId = $offer->seller_account_id;
+
+        DB::afterCommit(function () use ($offerId, $productId, $sellerId, $before, $after, $available): void {
+            Event::dispatch(new InventoryAdjusted(
+                offerId: $offerId,
+                productId: $productId,
+                sellerAccountId: $sellerId,
+                from: $before,
+                to: $after,
+                available: $available,
+            ));
+
+            if ($before === $after) {
+                return;
+            }
+
+            Event::dispatch(match ($after) {
+                StockState::OutOfStock => new InventoryDepleted($offerId, $sellerId, $available),
+                StockState::LowStock => new InventoryLow($offerId, $sellerId, $available),
+                StockState::InStock => new InventoryRestored($offerId, $sellerId, $available),
+            });
         });
     }
 }
