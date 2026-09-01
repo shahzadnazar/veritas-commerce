@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Cart\Actions;
 
 use App\Modules\Cart\Enums\CartIssueCode;
+use App\Modules\Cart\Events\CartLineAdded;
 use App\Modules\Cart\Exceptions\CartOperationRefused;
 use App\Modules\Cart\Models\Cart;
 use App\Modules\Cart\Models\CartItem;
@@ -12,6 +13,7 @@ use App\Modules\Cart\Support\LineIdentity;
 use App\Modules\Offers\Models\Offer;
 use App\Modules\Offers\Queries\OfferEligibility;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 /**
  * Putting a seller's offer in a cart.
@@ -105,6 +107,7 @@ final class AddOfferToCart
                 ])->save();
 
                 $cart->touchActivity();
+                $this->announce($cart, $offer, $existing, $quantity, $wanted);
 
                 return $existing;
             }
@@ -119,9 +122,34 @@ final class AddOfferToCart
             ]);
 
             $cart->touchActivity();
+            $this->announce($cart, $offer, $item, $quantity, $quantity);
 
             return $item;
         });
+    }
+
+    /**
+     * The behavioural signal, dispatched after the row is committed.
+     *
+     * The action itself records no analytics — it announces what
+     * happened, and the Events module decides what is worth keeping. A
+     * cart add from a console command therefore works exactly as well as
+     * one from a request.
+     */
+    private function announce(Cart $cart, Offer $offer, CartItem $item, int $added, int $lineQuantity): void
+    {
+        $event = new CartLineAdded(
+            cartId: $cart->id,
+            lineIdentity: (string) $item->line_identity,
+            offerId: $offer->id,
+            productId: $offer->product_id,
+            sellerAccountId: $offer->seller_account_id,
+            quantity: $added,
+            unitPriceMinor: $offer->price_minor,
+            lineQuantity: $lineQuantity,
+        );
+
+        DB::afterCommit(static fn () => Event::dispatch($event));
     }
 
     /** What a customer could actually take right now. */

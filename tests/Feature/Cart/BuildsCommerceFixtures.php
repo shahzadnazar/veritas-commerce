@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Cart;
 
+use App\Modules\Cart\Models\Cart;
 use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Inventory\Actions\AdjustInventory;
@@ -54,6 +55,17 @@ trait BuildsCommerceFixtures
         $this->stock($offer, $stock);
 
         return ['offer' => $offer->refresh(), 'product' => $product, 'seller' => $seller, 'store' => $store];
+    }
+
+    /** An active cart owned by a customer, or by an anonymous browser. */
+    protected function cart(?int $userId = null, string $sessionToken = 'test-session'): Cart
+    {
+        return Cart::query()->create([
+            'user_id' => $userId,
+            'session_token' => $userId === null ? $sessionToken : null,
+            'status' => 'active',
+            'last_activity_at' => now(),
+        ]);
     }
 
     protected function stock(Offer $offer, int $quantity): InventoryBalance

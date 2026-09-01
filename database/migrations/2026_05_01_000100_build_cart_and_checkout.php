@@ -48,7 +48,19 @@ return new class extends Migration
             where user_id is not null and status = 'active'
         ");
 
-        // The same for an anonymous browser: one live cart per token.
+        /*
+         * The same for an anonymous browser: one live cart per token.
+         *
+         * M0's plain unique on session_token goes with it. It predates the
+         * cart having a lifecycle at all, and it makes one impossible: a
+         * browser whose cart has been merged or has aged out could never
+         * start another, because the retired row would hold its token
+         * forever. The partial index keeps the rule that actually matters
+         * — one LIVE cart per browser — and lets the history exist.
+         */
+        DB::statement('alter table carts drop constraint if exists carts_session_token_unique');
+        DB::statement('drop index if exists carts_session_token_unique');
+
         DB::statement("
             create unique index carts_one_active_per_session
             on carts (session_token)
@@ -258,6 +270,7 @@ return new class extends Migration
 
         DB::statement('alter table carts drop constraint if exists carts_have_an_owner');
         DB::statement('drop index if exists carts_one_active_per_session');
+        DB::statement('create unique index carts_session_token_unique on carts (session_token)');
         DB::statement('drop index if exists carts_one_active_per_user');
 
         Schema::table('carts', function (Blueprint $table): void {

@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Cart\Actions;
 
 use App\Modules\Cart\Enums\CartIssueCode;
+use App\Modules\Cart\Events\CartLineRemoved;
 use App\Modules\Cart\Exceptions\CartOperationRefused;
 use App\Modules\Cart\Models\Cart;
 use App\Modules\Cart\Models\CartItem;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 /**
  * Changing or removing a line.
@@ -35,6 +38,7 @@ final class UpdateCartLine
         return DB::transaction(function () use ($cart, $lineIdentity, $quantity): ?CartItem {
             /** @var CartItem|null $item */
             $item = CartItem::query()
+                ->with('offer')
                 ->where('cart_id', $cart->id)
                 ->where('line_identity', $lineIdentity)
                 ->lockForUpdate()
@@ -50,6 +54,7 @@ final class UpdateCartLine
             // Zero is how a quantity control removes something, which is
             // what a customer stepping down from one expects.
             if ($quantity === 0) {
+                $this->announceRemoval($cart, $item);
                 $item->delete();
                 $cart->touchActivity();
 
@@ -74,26 +79,65 @@ final class UpdateCartLine
     public function remove(Cart $cart, string $lineIdentity): bool
     {
         return DB::transaction(function () use ($cart, $lineIdentity): bool {
-            $deleted = CartItem::query()
+            /** @var CartItem|null $item */
+            $item = CartItem::query()
+                ->with('offer')
                 ->where('cart_id', $cart->id)
                 ->where('line_identity', $lineIdentity)
-                ->delete();
+                ->first();
 
-            if ($deleted > 0) {
-                $cart->touchActivity();
+            if ($item === null) {
+                return false;
             }
 
-            return $deleted > 0;
+            $this->announceRemoval($cart, $item);
+            $item->delete();
+            $cart->touchActivity();
+
+            return true;
         });
     }
 
     public function clear(Cart $cart): int
     {
         return DB::transaction(function () use ($cart): int {
-            $deleted = CartItem::query()->where('cart_id', $cart->id)->delete();
+            /** @var Collection<int, CartItem> $items */
+            // Eager loaded: emptying a twelve-line cart must not be
+            // twelve queries for twelve prices.
+            $items = CartItem::query()->with('offer')->where('cart_id', $cart->id)->get();
+
+            foreach ($items as $item) {
+                $this->announceRemoval($cart, $item);
+            }
+
+            CartItem::query()->where('cart_id', $cart->id)->delete();
             $cart->touchActivity();
 
-            return $deleted;
+            return $items->count();
         });
+    }
+
+    /**
+     * Emptying a cart is a removal per line, not one bulk event.
+     *
+     * A single "cart cleared" event would tell a ranking model that
+     * something was abandoned without telling it what — and what was
+     * abandoned is the entire signal.
+     */
+    private function announceRemoval(Cart $cart, CartItem $item): void
+    {
+        $offer = $item->offer;
+
+        $event = new CartLineRemoved(
+            cartId: $cart->id,
+            lineIdentity: (string) $item->line_identity,
+            offerId: (int) $item->offer_id,
+            productId: $offer?->product_id,
+            sellerAccountId: $offer?->seller_account_id,
+            quantity: (int) $item->quantity,
+            unitPriceMinor: $offer->price_minor ?? (int) $item->unit_price_at_add_minor,
+        );
+
+        DB::afterCommit(static fn () => Event::dispatch($event));
     }
 }

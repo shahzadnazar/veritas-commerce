@@ -393,14 +393,4 @@ final class CartDomainTest extends TestCase
         // the inventory.
         $this->assertSame($one, $eight, "One line took {$one} queries, eight took {$eight} — an N+1.");
     }
-
-    private function cart(?int $userId = null, string $sessionToken = 'test-session'): Cart
-    {
-        return Cart::query()->create([
-            'user_id' => $userId,
-            'session_token' => $userId === null ? $sessionToken : null,
-            'status' => 'active',
-            'last_activity_at' => now(),
-        ]);
-    }
 }

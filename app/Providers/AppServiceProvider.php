@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Cart\Events\CartLineAdded;
+use App\Modules\Cart\Events\CartLineRemoved;
+use App\Modules\Cart\Listeners\AdoptCartOnLogin;
 use App\Modules\Catalog\Events\ProductApproved;
 use App\Modules\Catalog\Events\ProductChangesRequested;
 use App\Modules\Catalog\Events\ProductEdited;
@@ -13,6 +16,7 @@ use App\Modules\Catalog\Events\ProductSuspended;
 use App\Modules\Catalog\Listeners\KeepSearchIndexCurrent;
 use App\Modules\Catalog\Listeners\NotifyProposingSeller;
 use App\Modules\Catalog\Queries\BuildIndexableProduct;
+use App\Modules\Events\Listeners\RecordCartActivity;
 use App\Modules\Inventory\Events\InventoryAdjusted;
 use App\Modules\Inventory\Events\InventoryDepleted;
 use App\Modules\Inventory\Events\InventoryLow;
@@ -30,6 +34,7 @@ use App\Modules\Search\Contracts\IndexableProductSource;
 use App\Modules\Search\Contracts\SearchIndex;
 use App\Modules\Sellers\Events\SellerApproved;
 use App\Modules\Sellers\Listeners\NotifyApprovedSeller;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
@@ -69,6 +74,19 @@ final class AppServiceProvider extends ServiceProvider
         // Domain events are wired here rather than discovered, so the set
         // of listeners is readable in one place.
         Event::listen(SellerApproved::class, NotifyApprovedSeller::class);
+
+        /*
+         * A shopper who filled a basket before signing in keeps it. Bound
+         * to the framework's own Login event so every sign-in path —
+         * registration, password reset, a remembered session — behaves the
+         * same way.
+         */
+        Event::listen(Login::class, [AdoptCartOnLogin::class, 'handle']);
+
+        // Cart intent, into the behavioural stream. The cart actions
+        // announce; only this listener knows analytics exist.
+        Event::listen(CartLineAdded::class, [RecordCartActivity::class, 'added']);
+        Event::listen(CartLineRemoved::class, [RecordCartActivity::class, 'removed']);
 
         /*
          * Stock thresholds. The listener holds the durable de-duplication,

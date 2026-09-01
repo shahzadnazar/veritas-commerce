@@ -36,6 +36,8 @@ final class RecordInteraction
         ?int $productId = null,
         ?int $sellerAccountId = null,
         array $payload = [],
+        ?int $offerId = null,
+        ?int $valueMinor = null,
     ): void {
         $productId ??= $subjectType === 'product' && $subjectPublicId !== null
             ? $this->productIdFor($subjectPublicId)
@@ -55,7 +57,9 @@ final class RecordInteraction
             // their behaviour before signing in to their behaviour after.
             anonymousSessionId: AnonymousSession::idFor($request),
             productId: $productId,
+            offerId: $offerId,
             sellerAccountId: $sellerAccountId,
+            valueMinor: $valueMinor,
             searchQuery: $query,
             resultPosition: isset($payload['position']) ? (int) $payload['position'] : null,
             context: isset($payload['context']) && is_string($payload['context']) ? $payload['context'] : null,
