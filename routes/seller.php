@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Modules\Catalog\Http\Controllers\SellerCatalogueController;
+use App\Modules\Offers\Http\Controllers\SellerOfferController;
 use App\Modules\Sellers\Http\Controllers\SellerApplicationController;
 use App\Modules\Sellers\Http\Controllers\SellerDashboardController;
 use App\Modules\Sellers\Http\Controllers\SellerDocumentController;
@@ -41,6 +43,30 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             ->middleware('seller.can:store.manage')->name('store');
         Route::post('store', [SellerStoreController::class, 'update'])
             ->middleware('seller.can:store.manage')->name('store.update');
+
+        /*
+         * The catalogue, search-first. Proposing a product is one screen
+         * deeper than searching for one on purpose: making "create new"
+         * the default is how a marketplace ends up with eleven entries for
+         * one kettle.
+         */
+        Route::get('products', [SellerCatalogueController::class, 'index'])
+            ->middleware('seller.can:catalog.view')->name('products');
+        Route::get('products/create', [SellerCatalogueController::class, 'create'])
+            ->middleware('seller.can:catalog.manage')->name('products.create');
+        Route::post('products', [SellerCatalogueController::class, 'store'])
+            ->middleware('seller.can:catalog.manage')->name('products.store');
+
+        Route::get('offers', [SellerOfferController::class, 'index'])
+            ->middleware('seller.can:catalog.view')->name('offers');
+        Route::get('offers/create/{product}', [SellerOfferController::class, 'create'])
+            ->middleware('seller.can:catalog.manage')->name('offers.create');
+        Route::post('offers/{product}', [SellerOfferController::class, 'store'])
+            ->middleware('seller.can:catalog.manage')->name('offers.store');
+        Route::patch('offers/{offer}', [SellerOfferController::class, 'update'])
+            ->middleware('seller.can:catalog.manage')->name('offers.update');
+        Route::post('offers/{offer}/status', [SellerOfferController::class, 'transition'])
+            ->middleware('seller.can:catalog.manage')->name('offers.status');
 
         Route::get('team', [SellerTeamController::class, 'index'])
             ->middleware('seller.can:members.view')->name('team');

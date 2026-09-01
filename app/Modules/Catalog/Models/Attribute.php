@@ -80,6 +80,22 @@ final class Attribute extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Whether the category assignments currently loaded make this
+     * attribute mandatory.
+     *
+     * Meaningful only after Category::effectiveAttributes() has loaded
+     * `categories` constrained to one lineage: a child category's own
+     * assignment is what makes an inherited attribute required, so any
+     * loaded pivot saying so is enough.
+     */
+    public function isRequiredByLoadedCategories(): bool
+    {
+        return $this->categories->contains(
+            static fn (Category $category): bool => (bool) $category->getAttribute('pivot')?->getAttribute('is_required'),
+        );
+    }
+
     /** Whether a given value is one this attribute permits. */
     public function permits(string $value): bool
     {

@@ -28,6 +28,22 @@ enum AdminPermission: string
     case ReviewOffers = 'offers.review';
     case ManageTaxonomy = 'taxonomy.manage';
 
+    /*
+     * Catalogue moderation, split so the roles can be too.
+     *
+     * Reviewing a proposal and publishing it to the storefront are
+     * different acts of trust, and neither implies the authority to
+     * restructure the taxonomy every seller lists against.
+     */
+    case CatalogueView = 'catalog.view';
+    case CatalogueProductReview = 'catalog.product.review';
+    case CatalogueProductApprove = 'catalog.product.approve';
+    case CatalogueProductReject = 'catalog.product.reject';
+    case CatalogueProductSuspend = 'catalog.product.suspend';
+    case CatalogueCategoryManage = 'catalog.category.manage';
+    case CatalogueAttributeManage = 'catalog.attribute.manage';
+    case CatalogueBrandManage = 'catalog.brand.manage';
+
     // Commerce
     case ViewOrders = 'orders.view';
     case IssueRefunds = 'orders.refund';

@@ -7,6 +7,8 @@ use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
 use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
+use App\Modules\AdminPortal\Http\Controllers\CatalogueProductController;
+use App\Modules\AdminPortal\Http\Controllers\CatalogueTaxonomyController;
 use App\Modules\AdminPortal\Http\Controllers\SellerAccountController;
 use App\Modules\AdminPortal\Http\Controllers\SellerApplicationController;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +62,41 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                 // ID, so it needs the same permission.
                 Route::get('documents/{document}', [ApplicationDocumentController::class, 'show'])
                     ->middleware('admin.can:seller.view_sensitive')->name('documents.show');
+            });
+
+            /*
+             * Catalogue moderation. Each route names the permission it
+             * needs; the controllers check the same one again, so neither
+             * alone is the only thing between a role and a decision that
+             * changes what the marketplace sells.
+             */
+            Route::prefix('catalogue')->name('catalogue.')->group(function (): void {
+                Route::get('products', [CatalogueProductController::class, 'index'])
+                    ->middleware('admin.can:catalog.view')->name('products.index');
+                Route::get('products/{product}', [CatalogueProductController::class, 'show'])
+                    ->middleware('admin.can:catalog.view')->name('products.show');
+                Route::post('products/{product}/approve', [CatalogueProductController::class, 'approve'])
+                    ->middleware('admin.can:catalog.product.approve')->name('products.approve');
+                Route::post('products/{product}/reject', [CatalogueProductController::class, 'reject'])
+                    ->middleware('admin.can:catalog.product.reject')->name('products.reject');
+                Route::post('products/{product}/request-changes', [CatalogueProductController::class, 'requestChanges'])
+                    ->middleware('admin.can:catalog.product.review')->name('products.request-changes');
+                Route::post('products/{product}/suspend', [CatalogueProductController::class, 'suspend'])
+                    ->middleware('admin.can:catalog.product.suspend')->name('products.suspend');
+
+                // The taxonomy every seller lists against.
+                Route::get('taxonomy', [CatalogueTaxonomyController::class, 'index'])
+                    ->middleware('admin.can:catalog.view')->name('taxonomy');
+                Route::post('categories', [CatalogueTaxonomyController::class, 'storeCategory'])
+                    ->middleware('admin.can:catalog.category.manage')->name('categories.store');
+                Route::patch('categories/{category}', [CatalogueTaxonomyController::class, 'updateCategory'])
+                    ->middleware('admin.can:catalog.category.manage')->name('categories.update');
+                Route::post('categories/{category}/attributes', [CatalogueTaxonomyController::class, 'attachAttribute'])
+                    ->middleware('admin.can:catalog.category.manage')->name('categories.attributes');
+                Route::post('attributes', [CatalogueTaxonomyController::class, 'storeAttribute'])
+                    ->middleware('admin.can:catalog.attribute.manage')->name('attributes.store');
+                Route::post('brands/{brand}/approve', [CatalogueTaxonomyController::class, 'approveBrand'])
+                    ->middleware('admin.can:catalog.brand.manage')->name('brands.approve');
             });
 
             // Staff accounts. Only the permission that lets someone

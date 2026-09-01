@@ -7,6 +7,8 @@ import type { SharedPageProps } from '../../shared/types';
 const NAV: NavItem[] = [
     { label: 'Dashboard', href: '/seller' },
     { label: 'Store', href: '/seller/store' },
+    { label: 'Products', href: '/seller/products' },
+    { label: 'Offers', href: '/seller/offers' },
     { label: 'Team', href: '/seller/team' },
 ];
 

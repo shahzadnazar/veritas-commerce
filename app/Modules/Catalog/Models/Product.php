@@ -6,6 +6,7 @@ namespace App\Modules\Catalog\Models;
 
 use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Offers\Models\Offer;
+use App\Modules\Sellers\Models\SellerAccount;
 use App\Support\HasPublicId;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,6 +57,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $merged_at
  * @property-read Category|null $category
  * @property-read Brand|null $brand
+ * @property-read SellerAccount|null $proposedBy
  * @property-read Collection<int, ProductVariant> $variants
  * @property-read Collection<int, Offer> $offers
  * @property-read Collection<int, ProductMedia> $media
@@ -117,6 +119,20 @@ final class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    /**
+     * The seller who proposed it, kept as provenance.
+     *
+     * Provenance, not ownership: once approved the canonical product
+     * belongs to the marketplace, and this says only where it came from.
+     * Null for a product the platform created itself.
+     *
+     * @return BelongsTo<SellerAccount, $this>
+     */
+    public function proposedBy(): BelongsTo
+    {
+        return $this->belongsTo(SellerAccount::class, 'created_by_seller_account_id');
     }
 
     /** @return HasMany<ProductVariant, $this> */

@@ -42,6 +42,14 @@ enum AdminRole: string
                 AdminPermission::ViewPayments,
                 AdminPermission::ManageOperationalSettings,
                 AdminPermission::ViewQueues,
+                // Can see the catalogue and move a proposal through
+                // review, but not restructure the taxonomy: that belongs
+                // to the people who moderate it every day.
+                AdminPermission::CatalogueView,
+                AdminPermission::CatalogueProductReview,
+                AdminPermission::CatalogueProductApprove,
+                AdminPermission::CatalogueProductReject,
+                AdminPermission::CatalogueProductSuspend,
             ],
 
             // Governs sellers. Deliberately holds no finance or catalogue
@@ -60,10 +68,22 @@ enum AdminRole: string
                 AdminPermission::ViewOrders,
             ],
 
+            // Moderates the catalogue: reviews proposals, decides them,
+            // and shapes the taxonomy everyone lists against. Holds no
+            // seller-governance or finance authority — approving a product
+            // and approving the business selling it are different jobs.
             self::CatalogModerator => [
                 AdminPermission::ViewDashboard,
                 AdminPermission::ReviewOffers,
                 AdminPermission::ManageTaxonomy,
+                AdminPermission::CatalogueView,
+                AdminPermission::CatalogueProductReview,
+                AdminPermission::CatalogueProductApprove,
+                AdminPermission::CatalogueProductReject,
+                AdminPermission::CatalogueProductSuspend,
+                AdminPermission::CatalogueCategoryManage,
+                AdminPermission::CatalogueAttributeManage,
+                AdminPermission::CatalogueBrandManage,
             ],
 
             self::FinanceAdmin => [
@@ -81,11 +101,15 @@ enum AdminRole: string
                 AdminPermission::SellerApplicationView,
                 AdminPermission::ViewOrders,
                 AdminPermission::ViewPayments,
+                // Reading a product to answer a customer's question is
+                // support's job; deciding one is not.
+                AdminPermission::CatalogueView,
             ],
 
             self::Analyst => [
                 AdminPermission::ViewDashboard,
                 AdminPermission::ViewOrders,
+                AdminPermission::CatalogueView,
             ],
         };
     }
