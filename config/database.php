@@ -34,6 +34,27 @@ return [
 
     'connections' => [
 
+        /*
+         * A second connection to the same database, for concurrency tests.
+         *
+         * Proving that two customers cannot both reserve the last unit
+         * requires two genuinely separate sessions: a single connection
+         * would serialise them by construction and the test would pass
+         * whether or not the locking worked.
+         */
+        'concurrent' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'veritas'),
+            'username' => env('DB_USERNAME', 'veritas'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),

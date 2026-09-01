@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Inventory\Actions\AdjustInventory;
 use App\Modules\Offers\Models\Offer;
 use App\Modules\Sellers\Models\SellerAccount;
 use App\Modules\Stores\Models\Store;
@@ -30,6 +31,11 @@ final class SeedDemoCatalogue extends Command
         {--offers=1 : How many sellers list it}';
 
     protected $description = 'Create one published product with eligible offers, for smoke tests';
+
+    public function __construct(private readonly AdjustInventory $stock)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -60,7 +66,7 @@ final class SeedDemoCatalogue extends Command
                     'is_open' => true,
                 ]);
 
-                Offer::factory()->createOne([
+                $offer = Offer::factory()->createOne([
                     'seller_account_id' => $seller->id,
                     'store_id' => $store->id,
                     'product_id' => $product->id,
@@ -69,6 +75,11 @@ final class SeedDemoCatalogue extends Command
                     // smoke test can assert which price is displayed.
                     'price_minor' => 9_900 + ($index - 1) * 1_000,
                 ]);
+
+                // Stocked through the ledger, so the smoke exercises the
+                // in-stock path — and so `inventory:reconcile` passes
+                // against what this leaves behind.
+                $this->stock->openingStock($offer, 25, 'system', 0);
 
                 $firstStore ??= $store;
             }

@@ -217,8 +217,66 @@ jobs:
                   ! echo "$body" | grep -q '"review"'
                   # A storefront page is indexable; the portals are not.
                   ! curl -sD - -o /dev/null "http://127.0.0.1:8000/products/${slug}" | grep -qi 'X-Robots-Tag'
+                  # Availability is the inventory ledger's answer, not an
+                  # assumption: the seeded product is stocked, so a claim
+                  # of OutOfStock here would mean the two have diverged.
+                  echo "$body" | grep -q '"availability":"https://schema.org/InStock"'
                   # An unpublished product has no page at all.
                   test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/products/not-a-real-product)" = "404"
+
+            # M3's discovery surfaces, on the built image.
+            - name: Search, category and store pages answer
+              run: |
+                  category=$(grep '^category=' seeded.txt | cut -d= -f2 | tr -d '\r')
+                  store=$(grep '^store=' seeded.txt | cut -d= -f2 | tr -d '\r')
+
+                  # The index is built by a queued job; the smoke runs it
+                  # directly so it does not race the worker.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'foreach (\App\Modules\Catalog\Models\Product::query()->pluck("id") as $id) { \App\Modules\Search\Jobs\ReindexProduct::dispatchSync((int) $id); }'
+
+                  curl -fsS -o /dev/null -w 'category %{http_code}\n' "http://127.0.0.1:8000/categories/${category}"
+                  curl -fsS -o /dev/null -w 'store %{http_code}\n' "http://127.0.0.1:8000/stores/${store}"
+
+                  search=$(curl -fsS 'http://127.0.0.1:8000/search?q=Aeris')
+                  echo "$search" | grep -q 'Aeris Cordless Kettle'
+
+                  # Typo tolerance, on the real trigram index.
+                  curl -fsS 'http://127.0.0.1:8000/search?q=Aeriss' | grep -q 'Aeris Cordless Kettle'
+
+                  # Autocomplete answers, and only with published rows.
+                  curl -fsS 'http://127.0.0.1:8000/search/suggestions?q=aer' | grep -q 'Aeris Cordless Kettle'
+
+                  # Search is never indexable — the header survives even a
+                  # misconfigured SSR process.
+                  curl -sD - -o /dev/null 'http://127.0.0.1:8000/search?q=Aeris' | grep -qi 'X-Robots-Tag: noindex'
+
+                  # A clean category page is the canonical thing; a faceted
+                  # one is not, or one category becomes six hundred pages.
+                  curl -fsS "http://127.0.0.1:8000/categories/${category}" | grep -q 'content="index, follow"'
+                  curl -fsS "http://127.0.0.1:8000/categories/${category}?in_stock=1" | grep -q 'content="noindex, follow"'
+
+            - name: Sitemaps list only what resolves
+              run: |
+                  slug=$(grep '^product=' seeded.txt | cut -d= -f2 | tr -d '\r')
+
+                  curl -fsS http://127.0.0.1:8000/sitemap.xml | grep -q 'products-sitemap.xml'
+                  curl -fsS http://127.0.0.1:8000/products-sitemap.xml | grep -q "/products/${slug}"
+                  curl -fsS http://127.0.0.1:8000/categories-sitemap.xml | grep -q '/categories/'
+                  curl -fsS http://127.0.0.1:8000/stores-sitemap.xml | grep -q '/stores/'
+
+                  # Nothing a crawler should not be asking for.
+                  ! curl -fsS http://127.0.0.1:8000/products-sitemap.xml | grep -q '/search'
+                  ! curl -fsS http://127.0.0.1:8000/products-sitemap.xml | grep -q '/admin'
+
+                  curl -fsS http://127.0.0.1:8000/robots.txt | grep -q 'Disallow: /search'
+                  curl -fsS http://127.0.0.1:8000/robots.txt | grep -q 'Sitemap: '
+
+            - name: The inventory ledger reconciles in the built image
+              run: |
+                  # The stored `reserved` column is only safe because
+                  # something checks it against the movements and the holds.
+                  docker compose exec -T app php artisan inventory:reconcile
 
             - name: Security headers are set
               run: |
