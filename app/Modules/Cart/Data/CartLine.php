@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cart\Data;
 
+use App\Modules\Cart\Actions\AddOfferToCart;
 use App\Support\Money;
 
 /**
@@ -44,6 +45,18 @@ final readonly class CartLine
         public ?string $imageUrl = null,
     ) {}
 
+    /**
+     * The largest quantity this line may hold right now.
+     *
+     * The lower of what the seller has and the per-line ceiling, so the
+     * control the customer sees cannot ask for a number the server would
+     * refuse. It is still only a courtesy: the refusal is the authority.
+     */
+    public function maxQuantity(): int
+    {
+        return min($this->available, AddOfferToCart::MAX_LINE_QUANTITY);
+    }
+
     public function hasBlockingIssue(): bool
     {
         foreach ($this->issues as $issue) {
@@ -74,6 +87,7 @@ final readonly class CartLine
             'lineTotal' => $this->lineTotal->format(),
             'lineTotalMinor' => $this->lineTotal->minor,
             'available' => $this->available,
+            'maxQuantity' => $this->maxQuantity(),
             'isBuyable' => $this->isBuyable,
             'imageUrl' => $this->imageUrl,
             'issues' => array_map(static fn (CartIssue $issue): array => $issue->toArray(), $this->issues),

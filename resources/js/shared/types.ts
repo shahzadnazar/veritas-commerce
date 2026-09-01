@@ -13,6 +13,8 @@ export interface SharedPageProps {
         seller: { publicId: string; storeName: string; role: string } | null;
         admin: { publicId: string; name: string; role: string } | null;
     };
+    /** Server-authoritative basket size for the header. Zero in the portals. */
+    cart?: { count: number };
     flash: { success?: string; error?: string };
     [key: string]: unknown;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Cart\Actions;
 
 use App\Modules\Cart\Enums\CartIssueCode;
+use App\Modules\Cart\Events\CartLineQuantityChanged;
 use App\Modules\Cart\Events\CartLineRemoved;
 use App\Modules\Cart\Exceptions\CartOperationRefused;
 use App\Modules\Cart\Models\Cart;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\Event;
  */
 final class UpdateCartLine
 {
-    private const MAX_LINE_QUANTITY = 99;
+    private const MAX_LINE_QUANTITY = AddOfferToCart::MAX_LINE_QUANTITY;
 
     /** @throws CartOperationRefused */
     public function setQuantity(Cart $cart, string $lineIdentity, int $quantity): ?CartItem
@@ -69,8 +70,14 @@ final class UpdateCartLine
                 throw CartOperationRefused::insufficientStock($available);
             }
 
+            $from = (int) $item->quantity;
+
             $item->forceFill(['quantity' => $quantity])->save();
             $cart->touchActivity();
+
+            if ($from !== $quantity) {
+                $this->announceChange($cart, $item, $from, $quantity);
+            }
 
             return $item;
         });
@@ -124,6 +131,24 @@ final class UpdateCartLine
      * something was abandoned without telling it what — and what was
      * abandoned is the entire signal.
      */
+    private function announceChange(Cart $cart, CartItem $item, int $from, int $to): void
+    {
+        $offer = $item->offer;
+
+        $event = new CartLineQuantityChanged(
+            cartId: $cart->id,
+            lineIdentity: (string) $item->line_identity,
+            offerId: (int) $item->offer_id,
+            productId: $offer?->product_id,
+            sellerAccountId: $offer?->seller_account_id,
+            from: $from,
+            to: $to,
+            unitPriceMinor: $offer->price_minor ?? (int) $item->unit_price_at_add_minor,
+        );
+
+        DB::afterCommit(static fn () => Event::dispatch($event));
+    }
+
     private function announceRemoval(Cart $cart, CartItem $item): void
     {
         $offer = $item->offer;

@@ -2,16 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Modules\Cart\Http\Controllers\CartController;
 use App\Modules\Catalog\Http\Controllers\HomeController;
 use App\Modules\Catalog\Http\Controllers\PublicCategoryController;
 use App\Modules\Catalog\Http\Controllers\PublicProductController;
 use App\Modules\Catalog\Http\Controllers\SearchController;
 use App\Modules\Catalog\Http\Controllers\SitemapController;
+use App\Modules\Checkout\Http\Controllers\CheckoutController;
+use App\Modules\Checkout\Http\Controllers\PaymentPendingController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
 use App\Modules\Identity\Http\Controllers\LoginController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
 use App\Modules\Identity\Http\Controllers\ProfileController;
 use App\Modules\Identity\Http\Controllers\RegisterController;
+use App\Modules\Orders\Http\Controllers\CustomerOrderController;
 use App\Modules\Stores\Http\Controllers\PublicStoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +62,28 @@ Route::post('/search/click', [SearchController::class, 'click'])
     ->middleware('throttle:120,1')->name('search.click');
 Route::get('/categories/{slug}', PublicCategoryController::class)->name('categories.show');
 
+/*
+ * The basket and the checkout.
+ *
+ * Open to anyone, signed in or not: a marketplace that made a shopper
+ * register before they could see what a purchase costs would lose most of
+ * them at that step. Ownership comes from the session throughout, so none
+ * of these routes takes an identifier that could point at somebody else's
+ * cart.
+ *
+ * All of them are noindex — see Indexability::privatePaths().
+ */
+Route::get('cart', [CartController::class, 'show'])->name('cart');
+Route::post('cart', [CartController::class, 'store'])->middleware('throttle:60,1')->name('cart.store');
+Route::patch('cart/{line}', [CartController::class, 'update'])->middleware('throttle:120,1')->name('cart.update');
+Route::delete('cart/{line}', [CartController::class, 'destroy'])->name('cart.destroy');
+
+Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout');
+// Throttled harder than the cart: this is the route that takes inventory
+// off the shelf, and a loop hitting it would hold a seller's whole stock.
+Route::post('checkout', [CheckoutController::class, 'store'])->middleware('throttle:20,1')->name('checkout.store');
+Route::get('checkout/{reference}/payment', PaymentPendingController::class)->name('checkout.payment');
+
 Route::middleware('guest')->group(function (): void {
     Route::get('register', [RegisterController::class, 'show'])->name('register');
     Route::post('register', [RegisterController::class, 'store']);
@@ -81,6 +107,15 @@ Route::middleware('auth')->group(function (): void {
     Route::post('verify-email/send', [EmailVerificationController::class, 'send'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
+
+    /*
+     * Order history. Scoped to the signed-in customer inside the
+     * controller as well as here: a reference is a lookup key, never an
+     * authorization, and a guessed one must 404 rather than 403.
+     */
+    Route::get('account/orders', [CustomerOrderController::class, 'index'])->name('account.orders');
+    Route::get('account/orders/{reference}', [CustomerOrderController::class, 'show'])
+        ->name('account.orders.show');
 
     Route::get('account', [ProfileController::class, 'show'])->name('account');
     Route::put('account', [ProfileController::class, 'update'])->name('account.update');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Modules\Cart\Queries\CountCart;
 use App\Modules\Identity\Models\AdminUser;
 use App\Modules\Identity\Models\User;
 use App\Modules\Sellers\Concerns\CurrentSeller;
@@ -79,6 +80,19 @@ final class HandleInertiaRequests extends Middleware
                     'name' => $admin->name,
                     'role' => $admin->role->value,
                 ],
+            ],
+
+            /*
+             * The header's cart count, from the database.
+             *
+             * Deferred behind a closure so the portals — which have no
+             * cart link — never pay for the query, and skipped entirely
+             * for a browser that has never had a cart.
+             */
+            'cart' => [
+                'count' => fn (): int => $request->is('admin', 'admin/*', 'seller', 'seller/*')
+                    ? 0
+                    : app(CountCart::class)($request),
             ],
 
             'flash' => [

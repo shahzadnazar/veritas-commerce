@@ -61,11 +61,17 @@ final readonly class CheckoutQuote
     {
         return [
             'cart' => $this->cart->toArray(),
+            // Formatted here so no currency logic has to exist in React,
+            // and in minor units so a test asserts on a number rather than
+            // on a string somebody may reformat.
+            'itemsTotal' => $this->itemsTotal->format(),
             'itemsTotalMinor' => $this->itemsTotal->minor,
+            'shippingTotal' => $this->shippingTotal->format(),
             'shippingTotalMinor' => $this->shippingTotal->minor,
+            'taxTotal' => $this->taxTotal->format(),
             'taxTotalMinor' => $this->taxTotal->minor,
+            'grandTotal' => $this->grandTotal->format(),
             'grandTotalMinor' => $this->grandTotal->minor,
-            'grandTotalFormatted' => $this->grandTotal->format(),
             'currency' => $this->currency,
             'buyable' => $this->isBuyable(),
             'issues' => array_map(static fn (CartIssue $i): array => $i->toArray(), $this->issues),

@@ -15,7 +15,8 @@ import { Wordmark } from './Wordmark';
  * place a storefront page gets one.
  */
 export function StorefrontLayout({ title, children }: { title?: string; children: ReactNode }) {
-    const { platform } = usePage<SharedPageProps>().props;
+    const { platform, cart } = usePage<SharedPageProps>().props;
+    const cartCount = cart?.count ?? 0;
 
     return (
         <div data-density="comfortable" className="min-h-screen bg-[var(--vc-bg)]">
@@ -32,8 +33,27 @@ export function StorefrontLayout({ title, children }: { title?: string; children
                         className="ml-auto flex items-center gap-5 text-[14px]"
                     >
                         <Link href="/sell">Sell on {platform.name.split(' ')[0]}</Link>
-                        <Link href="/orders">Orders</Link>
-                        <Link href="/cart">Cart</Link>
+                        <Link href="/account/orders">Orders</Link>
+                        {/*
+                         * The count comes from the server on every load —
+                         * never from anything the browser has been
+                         * keeping. A badge that said "3" over a basket
+                         * revalidation had emptied would be the interface
+                         * lying to the person using it.
+                         */}
+                        <Link href="/cart">
+                            Cart
+                            {cartCount > 0 ? (
+                                <span className="ml-1 vc-tabular" aria-hidden="true">
+                                    ({cartCount})
+                                </span>
+                            ) : null}
+                            <span className="sr-only">
+                                {cartCount === 0
+                                    ? ', empty'
+                                    : `, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+                            </span>
+                        </Link>
                     </nav>
                 </div>
             </header>

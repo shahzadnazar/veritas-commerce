@@ -64,6 +64,17 @@ final class SecurityHeaders
             $headers->set('X-Robots-Tag', Indexability::NOINDEX);
         }
 
+        /*
+         * Carts, checkouts and account pages, for the same reason and
+         * more urgently: these carry an address, an order total and a
+         * purchase history. A header reaches a crawler even when SSR is
+         * misconfigured, which is precisely the moment an accidental
+         * index would happen.
+         */
+        if ($request->is(...Indexability::privatePaths())) {
+            $headers->set('X-Robots-Tag', Indexability::PRIVATE);
+        }
+
         if ($request->secure()) {
             $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }

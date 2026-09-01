@@ -31,7 +31,8 @@ use Illuminate\Support\Facades\Event;
  */
 final class AddOfferToCart
 {
-    private const MAX_LINE_QUANTITY = 99;
+    /** Public so the HTTP layer validates against the same ceiling. */
+    public const MAX_LINE_QUANTITY = 99;
 
     public function __construct(private readonly OfferEligibility $eligibility) {}
 

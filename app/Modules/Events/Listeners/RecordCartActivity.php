@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Events\Listeners;
 
 use App\Modules\Cart\Events\CartLineAdded;
+use App\Modules\Cart\Events\CartLineQuantityChanged;
 use App\Modules\Cart\Events\CartLineRemoved;
 use App\Modules\Events\Actions\RecordInteraction;
 use App\Modules\Events\Enums\InteractionEventType;
@@ -37,6 +38,24 @@ final class RecordCartActivity
                 'context' => 'cart',
                 'quantity' => $event->quantity,
                 'line_quantity' => $event->lineQuantity,
+                'unit_price_minor' => $event->unitPriceMinor,
+            ],
+            offerId: $event->offerId,
+            valueMinor: $event->valueMinor(),
+        );
+    }
+
+    public function quantityChanged(CartLineQuantityChanged $event): void
+    {
+        $this->interactions->record(
+            request(),
+            InteractionEventType::CartQuantityChanged,
+            productId: $event->productId,
+            sellerAccountId: $event->sellerAccountId,
+            payload: [
+                'context' => 'cart',
+                'from' => $event->from,
+                'to' => $event->to,
                 'unit_price_minor' => $event->unitPriceMinor,
             ],
             offerId: $event->offerId,

@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class MergeCarts
 {
-    private const MAX_LINE_QUANTITY = 99;
+    private const MAX_LINE_QUANTITY = AddOfferToCart::MAX_LINE_QUANTITY;
 
     public function __construct(private readonly OfferEligibility $eligibility) {}
 

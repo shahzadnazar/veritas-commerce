@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Modules\Cart\Events\CartLineAdded;
+use App\Modules\Cart\Events\CartLineQuantityChanged;
 use App\Modules\Cart\Events\CartLineRemoved;
 use App\Modules\Cart\Listeners\AdoptCartOnLogin;
 use App\Modules\Catalog\Events\ProductApproved;
@@ -87,6 +88,7 @@ final class AppServiceProvider extends ServiceProvider
         // announce; only this listener knows analytics exist.
         Event::listen(CartLineAdded::class, [RecordCartActivity::class, 'added']);
         Event::listen(CartLineRemoved::class, [RecordCartActivity::class, 'removed']);
+        Event::listen(CartLineQuantityChanged::class, [RecordCartActivity::class, 'quantityChanged']);
 
         /*
          * Stock thresholds. The listener holds the durable de-duplication,

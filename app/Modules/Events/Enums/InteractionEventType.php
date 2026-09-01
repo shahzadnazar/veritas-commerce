@@ -22,7 +22,10 @@ enum InteractionEventType: string
     case CategoryViewed = 'category_viewed';
     case CartItemAdded = 'cart_item_added';
     case CartItemRemoved = 'cart_item_removed';
+    case CartQuantityChanged = 'cart_quantity_changed';
     case CheckoutStarted = 'checkout_started';
+    case CheckoutValidationFailed = 'checkout_validation_failed';
+    case CheckoutOrderCreated = 'checkout_order_created';
     case PurchaseCompleted = 'purchase_completed';
 
     /**
@@ -37,7 +40,13 @@ enum InteractionEventType: string
             self::SearchResultClicked => 2,
             self::CartItemAdded => 4,
             self::CartItemRemoved => -2,
+            self::CartQuantityChanged => 2,
             self::CheckoutStarted => 5,
+            // A checkout that could not proceed is not intent to abandon:
+            // the customer wanted the thing enough to reach the last
+            // page, and the marketplace failed them.
+            self::CheckoutValidationFailed => 3,
+            self::CheckoutOrderCreated => 8,
             self::PurchaseCompleted => 10,
             self::SearchPerformed => 0,
         };
@@ -59,7 +68,10 @@ enum InteractionEventType: string
             self::CategoryViewed => 'Category viewed',
             self::CartItemAdded => 'Added to cart',
             self::CartItemRemoved => 'Removed from cart',
+            self::CartQuantityChanged => 'Cart quantity changed',
             self::CheckoutStarted => 'Checkout started',
+            self::CheckoutValidationFailed => 'Checkout validation failed',
+            self::CheckoutOrderCreated => 'Order created',
             self::PurchaseCompleted => 'Purchase completed',
         };
     }

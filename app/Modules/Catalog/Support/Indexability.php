@@ -35,6 +35,35 @@ final class Indexability
     public const NOINDEX = 'noindex, follow';
 
     /**
+     * A page that belongs to one person.
+     *
+     * A cart, a checkout, an order, a portal screen. "nofollow" as well as
+     * "noindex" here, unlike a faceted listing: there is nothing on the
+     * other side of these links a crawler should be walking toward, and
+     * the pages themselves are meaningless — or unreachable — without the
+     * session that owns them.
+     */
+    public const PRIVATE = 'noindex, nofollow';
+
+    /**
+     * The transactional and account paths, as route patterns.
+     *
+     * Listed once, here, rather than remembered at each controller: a
+     * page that forgets its meta tag is a page a crawler indexes, and the
+     * one that would hurt most is the one holding somebody's address.
+     *
+     * @return array<int, string>
+     */
+    public static function privatePaths(): array
+    {
+        return [
+            'cart', 'cart/*',
+            'checkout', 'checkout/*',
+            'account', 'account/*',
+        ];
+    }
+
+    /**
      * A category or store listing.
      *
      * @return array{robots: string, canonical: string}
