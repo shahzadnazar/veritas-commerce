@@ -6,6 +6,7 @@ use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
 use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
 use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
+use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
 use App\Modules\AdminPortal\Http\Controllers\SellerAccountController;
 use App\Modules\AdminPortal\Http\Controllers\SellerApplicationController;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,11 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:seller.reject')->name('reject');
                 Route::post('{application}/request-changes', [SellerApplicationController::class, 'requestChanges'])
                     ->middleware('admin.can:seller.application.review')->name('request-changes');
+
+                // Paperwork carries the same class of information as a tax
+                // ID, so it needs the same permission.
+                Route::get('documents/{document}', [ApplicationDocumentController::class, 'show'])
+                    ->middleware('admin.can:seller.view_sensitive')->name('documents.show');
             });
 
             // Staff accounts. Only the permission that lets someone

@@ -3,6 +3,7 @@ import { OnboardingLayout } from '../layouts/OnboardingLayout';
 import { Button } from '../../design-system/primitives/Button';
 import { Field, Input, Textarea } from '../../design-system/primitives/Field';
 import { StatusBadge } from '../../design-system/primitives/StatusBadge';
+import { DocumentUploader } from '../../design-system/patterns/DocumentUploader';
 import { FlashBanner } from '../../design-system/patterns/States';
 import type { SharedPageProps } from '../../shared/types';
 
@@ -22,7 +23,24 @@ interface ApplicationValues {
     blurb: string | null;
 }
 
+interface ApplicationDocument {
+    publicId: string;
+    kind: string;
+    kindLabel: string;
+    name: string;
+    bytes: number;
+    uploadedAt: string;
+}
+
+interface DocumentKindOption {
+    value: string;
+    label: string;
+    required: boolean;
+}
+
 interface ApplyProps extends SharedPageProps {
+    documents: ApplicationDocument[];
+    documentKinds: DocumentKindOption[];
     application: {
         reference: string;
         status: string;
@@ -31,7 +49,6 @@ interface ApplyProps extends SharedPageProps {
         editable: boolean;
         values: ApplicationValues;
     } | null;
-    requiredDocuments: string[];
 }
 
 /**
@@ -42,7 +59,7 @@ interface ApplyProps extends SharedPageProps {
  * applicant fixes the one field that was wrong rather than starting over.
  */
 export default function Apply() {
-    const { application, requiredDocuments, flash } = usePage<ApplyProps>().props;
+    const { application, documents, documentKinds, flash } = usePage<ApplyProps>().props;
     const previous = application?.values;
 
     const form = useForm({
@@ -109,6 +126,20 @@ export default function Apply() {
                         </p>
                     ) : null}
                 </section>
+            ) : null}
+
+            {application !== null ? (
+                <div className="mb-10 max-w-[860px]">
+                    <DocumentUploader
+                        documents={documents}
+                        kinds={documentKinds}
+                        action="/seller/apply/documents"
+                        documentUrl={(publicId) => `/seller/apply/documents/${publicId}`}
+                        readOnly={
+                            application.status === 'approved' || application.status === 'rejected'
+                        }
+                    />
+                </div>
             ) : null}
 
             {editable ? (
@@ -366,22 +397,6 @@ export default function Apply() {
                                 />
                             )}
                         </Field>
-
-                        {requiredDocuments.length > 0 ? (
-                            <div className="border-2 border-[var(--vc-divider)] p-4">
-                                <p className="mb-2 text-[12px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase">
-                                    We will ask for
-                                </p>
-                                <ul className="list-disc pl-5 text-[13px] text-[var(--vc-neutral-700)]">
-                                    {requiredDocuments.map((document) => (
-                                        <li key={document}>{document}</li>
-                                    ))}
-                                </ul>
-                                <p className="mt-2 text-[12px] text-[var(--vc-neutral-600)]">
-                                    A reviewer will request these once your application is opened.
-                                </p>
-                            </div>
-                        ) : null}
 
                         <label className="flex items-start gap-2 text-[13px]">
                             <input

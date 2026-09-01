@@ -12,11 +12,13 @@ namespace Illuminate\Testing;
 /**
  * Inertia registers its assertion as a TestResponse macro.
  *
- * getContent() comes from the response the class wraps, which this
- * declaration does not carry — it is named here for the same reason as
- * the macro: it exists at runtime, and analysis should know it.
+ * TestResponse forwards everything it does not define to the response it
+ * wraps, which no analyser follows. The members used by the suite are
+ * named here for the same reason as the macro: they exist at runtime.
  *
  * @method self assertInertia(\Closure $callback)
  * @method string|false getContent()
+ * @method int getStatusCode()
+ * @method bool isRedirect(string|null $location = null)
  */
 class TestResponse {}

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Sellers\Http\Controllers;
 
 use App\Modules\Sellers\Actions\SubmitSellerApplication;
+use App\Modules\Sellers\Enums\DocumentKind;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Http\Requests\SubmitApplicationRequest;
 use App\Modules\Sellers\Models\SellerApplication;
+use App\Modules\Sellers\Models\SellerApplicationDocument;
 use App\Modules\Sellers\Notifications\SellerApplicationDecided;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +33,7 @@ final class SellerApplicationController
         abort_if($user === null, 403);
 
         $application = SellerApplication::query()
+            ->with('documents')
             ->where('user_id', $user->getAuthIdentifier())
             ->latest('id')
             ->first();
@@ -58,7 +61,17 @@ final class SellerApplicationController
                     'blurb' => $application->blurb,
                 ],
             ],
-            'requiredDocuments' => config('veritas.sellers.required_documents'),
+            'documents' => $application === null ? [] : $application->documents
+                ->map(fn (SellerApplicationDocument $document): array => [
+                    'publicId' => $document->public_id,
+                    'kind' => $document->kind,
+                    'kindLabel' => DocumentKind::tryFrom($document->kind)?->label() ?? $document->kind,
+                    'name' => $document->original_name,
+                    'bytes' => $document->bytes,
+                    'uploadedAt' => $document->uploaded_at->toDayDateTimeString(),
+                ])
+                ->all(),
+            'documentKinds' => DocumentKind::options(),
         ]);
     }
 

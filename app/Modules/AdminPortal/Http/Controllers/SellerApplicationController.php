@@ -13,8 +13,10 @@ use App\Modules\Sellers\Actions\ApproveSellerApplication;
 use App\Modules\Sellers\Actions\RejectSellerApplication;
 use App\Modules\Sellers\Actions\RequestApplicationChanges;
 use App\Modules\Sellers\Actions\TransitionSellerApplication;
+use App\Modules\Sellers\Enums\DocumentKind;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Models\SellerApplication;
+use App\Modules\Sellers\Models\SellerApplicationDocument;
 use App\Modules\Sellers\Models\SellerApplicationEvent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -122,11 +124,20 @@ final class SellerApplicationController
                 'submittedAt' => $application->submitted_at?->toDayDateTimeString(),
                 'reviewer' => $application->reviewer?->name,
             ],
-            'documents' => $application->documents->map(fn ($document): array => [
-                'kind' => $document->kind,
-                'originalName' => $document->original_name,
-                'uploadedAt' => $document->uploaded_at->toDateString(),
-            ])->all(),
+            'documents' => $application->documents
+                ->map(fn (SellerApplicationDocument $document): array => [
+                    'kind' => $document->kind,
+                    'kindLabel' => DocumentKind::tryFrom($document->kind)?->label() ?? $document->kind,
+                    'originalName' => $document->original_name,
+                    'bytes' => $document->bytes,
+                    'uploadedAt' => $document->uploaded_at->toDateString(),
+                    // Only offered to a reviewer cleared to read it; the
+                    // route checks the same permission again.
+                    'downloadUrl' => $canSeeSensitive
+                        ? route('admin.applications.documents.show', ['document' => $document->public_id])
+                        : null,
+                ])
+                ->all(),
             'history' => $application->events->sortBy('id')->values()->map(fn (SellerApplicationEvent $event): array => [
                 'fromStatus' => $event->from_status,
                 'toStatus' => $event->to_status,

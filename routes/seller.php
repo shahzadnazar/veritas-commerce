@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Sellers\Http\Controllers\SellerApplicationController;
 use App\Modules\Sellers\Http\Controllers\SellerDashboardController;
+use App\Modules\Sellers\Http\Controllers\SellerDocumentController;
 use App\Modules\Sellers\Http\Controllers\SellerInvitationController;
 use App\Modules\Sellers\Http\Controllers\SellerStoreController;
 use App\Modules\Sellers\Http\Controllers\SellerTeamController;
@@ -21,6 +22,14 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
     // is a member of anything — so they sit outside the membership gate.
     Route::get('apply', [SellerApplicationController::class, 'show'])->name('apply');
     Route::post('apply', [SellerApplicationController::class, 'store'])->name('apply.store');
+
+    // Verification paperwork belongs to the application, which belongs to
+    // the signed-in applicant — so these sit with `apply`, outside the
+    // membership gate, and resolve nothing from the request but the id of
+    // a document the applicant already owns.
+    Route::post('apply/documents', [SellerDocumentController::class, 'store'])->name('apply.documents.store');
+    Route::get('apply/documents/{document}', [SellerDocumentController::class, 'show'])->name('apply.documents.show');
+    Route::delete('apply/documents/{document}', [SellerDocumentController::class, 'destroy'])->name('apply.documents.destroy');
 
     Route::get('invitations/{invitation}', [SellerInvitationController::class, 'show'])->name('invitations.show');
     Route::post('invitations/{invitation}', [SellerInvitationController::class, 'accept'])->name('invitations.accept');

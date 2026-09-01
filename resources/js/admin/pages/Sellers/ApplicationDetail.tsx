@@ -36,7 +36,15 @@ interface ApplicationDetailProps extends SharedPageProps {
         submittedAt: string | null;
         reviewer: string | null;
     };
-    documents: { kind: string; originalName: string; uploadedAt: string | null }[];
+    documents: {
+        kind: string;
+        kindLabel: string;
+        originalName: string;
+        bytes: number;
+        uploadedAt: string | null;
+        /** Null unless this reviewer is cleared to open it. */
+        downloadUrl: string | null;
+    }[];
     history: HistoryEntry[];
     can: { review: boolean; approve: boolean; reject: boolean };
 }
@@ -151,14 +159,34 @@ export default function ApplicationDetail() {
                             No documents were required or supplied.
                         </p>
                     ) : (
-                        <ul>
+                        <ul className="border-t-2 border-[var(--vc-text)]">
                             {documents.map((document) => (
                                 <li
                                     key={document.originalName}
-                                    className="border-b border-[var(--vc-divider)] py-3"
+                                    className="flex flex-wrap items-center gap-3 border-b border-[var(--vc-divider)] py-3"
                                 >
-                                    <span className="font-semibold">{document.kind}</span> ·{' '}
-                                    {document.originalName} · {document.uploadedAt}
+                                    <span className="flex-1 text-[14px]">
+                                        <span className="block font-semibold">
+                                            {document.kindLabel}
+                                        </span>
+                                        <span className="block text-[12px] text-[var(--vc-neutral-600)]">
+                                            {document.originalName}
+                                            {document.uploadedAt ? ` · ${document.uploadedAt}` : ''}
+                                        </span>
+                                    </span>
+
+                                    {document.downloadUrl ? (
+                                        <a
+                                            href={document.downloadUrl}
+                                            className="text-[13px] underline underline-offset-4"
+                                        >
+                                            Download
+                                        </a>
+                                    ) : (
+                                        <span className="text-[12px] text-[var(--vc-neutral-600)]">
+                                            Your role cannot open verification documents
+                                        </span>
+                                    )}
                                 </li>
                             ))}
                         </ul>
