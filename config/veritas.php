@@ -46,6 +46,33 @@ return [
      * key names a provider, so local development uses a local disk and
      * production swaps the value.
      */
+    /*
+     * Object storage.
+     *
+     * Two logical disks rather than per-object ACLs: a public one fronted
+     * by a CDN, and a private one with no public route at all. Forgetting
+     * an ACL is a class of mistake this split removes — a document written
+     * to the private disk cannot accidentally become world-readable.
+     *
+     * Production points both at S3-compatible object storage (the
+     * architecture targets Cloudflare R2). Nothing outside config/ names a
+     * provider.
+     */
+    'storage' => [
+        'public_disk' => env('VERITAS_PUBLIC_DISK', 'media'),
+        'private_disk' => env('VERITAS_PRIVATE_DISK', 'documents'),
+
+        // Seller registration paperwork: a scan or a PDF, not an image
+        // gallery, so it gets its own type list and its own size budget.
+        'document_mimes' => ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
+        'max_document_kb' => (int) env('VERITAS_MAX_DOCUMENT_KB', 10240),
+
+        // How long a signed link to a private object stays valid. Short:
+        // it exists to hand one file to one authorised person, not to be
+        // pasted into a ticket.
+        'signed_url_seconds' => (int) env('VERITAS_SIGNED_URL_SECONDS', 120),
+    ],
+
     'media' => [
         'disk' => env('VERITAS_MEDIA_DISK', env('FILESYSTEM_DISK', 'local')),
         'max_upload_kb' => (int) env('VERITAS_MAX_UPLOAD_KB', 5120),

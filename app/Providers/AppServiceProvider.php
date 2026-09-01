@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Media\Contracts\ObjectStore;
+use App\Modules\Media\Stores\FilesystemObjectStore;
 use App\Modules\Payments\Contracts\PaymentGateway;
 use App\Modules\Payments\Gateways\FakePaymentGateway;
 use App\Modules\Sellers\Events\SellerApproved;
@@ -22,6 +24,11 @@ final class AppServiceProvider extends ServiceProvider
         // The domain depends on the port, never on a vendor SDK. M0 binds
         // the fake driver; the Stripe driver is registered here in M3
         // without a single change inside the modules.
+        // Storage is a port. The filesystem implementation covers both the
+        // local disk and S3-compatible object storage, chosen by
+        // configuration — swapping providers changes an env file, not code.
+        $this->app->bind(ObjectStore::class, FilesystemObjectStore::class);
+
         $this->app->bind(PaymentGateway::class, function (): PaymentGateway {
             return match (config('veritas.providers.payment')) {
                 default => new FakePaymentGateway,

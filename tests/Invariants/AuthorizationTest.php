@@ -239,16 +239,23 @@ final class AuthorizationTest extends TestCase
     }
 
     #[Test]
-    public function the_media_disk_can_address_its_own_files(): void
+    public function the_public_disk_can_address_its_files_and_the_private_one_cannot(): void
     {
-        // The other runtime check PHPStan reads as dead: a media disk whose
-        // driver cannot produce a URL would serve broken images.
-        $disk = (string) config('veritas.media.disk');
+        $public = (string) config('veritas.storage.public_disk');
+        $private = (string) config('veritas.storage.private_disk');
 
-        $this->assertContains(
-            config("filesystems.disks.{$disk}.driver"),
-            ['local', 's3'],
-            "The {$disk} disk must use a driver that can produce URLs.",
+        $this->assertNotSame($public, $private, 'Documents and product imagery must not share a disk.');
+
+        // A public disk with no URL serves broken images; a private disk
+        // with one is a leak waiting for someone to guess a key.
+        $this->assertNotNull(
+            config("filesystems.disks.{$public}.url"),
+            "The {$public} disk must be able to produce URLs.",
         );
+        $this->assertNull(
+            config("filesystems.disks.{$private}.url"),
+            "The {$private} disk must have no public URL at all.",
+        );
+        $this->assertSame('private', config("filesystems.disks.{$private}.visibility"));
     }
 }

@@ -23,17 +23,13 @@ parameters:
             - bootstrap/cache
             - storage
 
-    # The only two allowances in the strict configuration, both for the same
-    # reason and both scoped to a single line.
+    # The only allowance in the strict configuration, scoped to one line.
     #
-    # Laravel's PHPDoc over-claims what a container binding returns:
-    # Auth::guard() is typed to StatefulGuard although a guard may be
-    # configured with the token driver, and Storage::disk() to an adapter
-    # implementing Cloud although a filesystem driver need not produce URLs.
-    # Both call sites check what they got before using it. PHPStan reads the
-    # docblock as proof the check is dead; it is not — it is what turns a
-    # configuration mistake into a clear exception instead of a fatal error
-    # deep in a request.
+    # Laravel's PHPDoc over-claims what Auth::guard() returns: StatefulGuard,
+    # although a guard may be configured with the token driver. The call site
+    # checks what it got before using it. PHPStan reads the docblock as proof
+    # the check is dead; it is not — it is what turns a configuration mistake
+    # into a clear exception instead of a fatal error deep in a request.
     #
     # tests/Invariants/AuthorizationTest proves the guards really are
     # session-driven, so the runtime check and the build-time check agree.
@@ -42,9 +38,4 @@ parameters:
             identifier: instanceof.alwaysTrue
             path: app/Support/Guards.php
             message: '#Instanceof between Illuminate\\Contracts\\Auth\\StatefulGuard and Illuminate\\Contracts\\Auth\\StatefulGuard#'
-            count: 1
-        -
-            identifier: instanceof.alwaysTrue
-            path: app/Modules/Media/Actions/StoreUploadedImage.php
-            message: '#Instanceof between Illuminate\\Filesystem\\FilesystemAdapter and Illuminate\\Contracts\\Filesystem\\Cloud#'
             count: 1

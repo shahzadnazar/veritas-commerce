@@ -49,6 +49,50 @@ return [
             'report' => false,
         ],
 
+        /*
+         * The two disks the application actually uses.
+         *
+         * Both are driver-agnostic: VERITAS_STORAGE_DRIVER flips them from
+         * the local filesystem to S3-compatible object storage without a
+         * line of application code changing. In production both point at
+         * the same bucket family with different prefixes and different
+         * public exposure.
+         */
+        'media' => [
+            'driver' => env('VERITAS_STORAGE_DRIVER', 'local'),
+            'root' => storage_path('app/public/media'),
+            'url' => rtrim((string) env('VERITAS_MEDIA_URL', env('APP_URL', 'http://localhost').'/storage/media'), '/'),
+            'visibility' => 'public',
+            'key' => env('VERITAS_STORAGE_KEY'),
+            'secret' => env('VERITAS_STORAGE_SECRET'),
+            'region' => env('VERITAS_STORAGE_REGION', 'auto'),
+            'bucket' => env('VERITAS_MEDIA_BUCKET'),
+            'endpoint' => env('VERITAS_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => (bool) env('VERITAS_STORAGE_PATH_STYLE', false),
+            'throw' => true,
+            'report' => false,
+        ],
+
+        /*
+         * Seller paperwork. No 'url' and no public visibility, on purpose:
+         * there is nothing to hotlink and no route that serves it. Reads
+         * go through an authorisation check every time.
+         */
+        'documents' => [
+            'driver' => env('VERITAS_STORAGE_DRIVER', 'local'),
+            'root' => storage_path('app/private/documents'),
+            'visibility' => 'private',
+            'serve' => false,
+            'key' => env('VERITAS_STORAGE_KEY'),
+            'secret' => env('VERITAS_STORAGE_SECRET'),
+            'region' => env('VERITAS_STORAGE_REGION', 'auto'),
+            'bucket' => env('VERITAS_DOCUMENT_BUCKET'),
+            'endpoint' => env('VERITAS_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => (bool) env('VERITAS_STORAGE_PATH_STYLE', false),
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

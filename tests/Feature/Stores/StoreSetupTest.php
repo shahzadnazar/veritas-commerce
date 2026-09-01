@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Stores;
 
-use App\Modules\Media\Actions\StoreUploadedImage;
+use App\Modules\Media\Contracts\ObjectStore;
+use App\Modules\Media\Enums\Visibility;
+use App\Modules\Media\Exceptions\RejectedUpload;
 use App\Modules\Sellers\Enums\SellerRole;
 use App\Modules\Sellers\Enums\SellerStatus;
 use App\Modules\Stores\Models\Store;
@@ -13,7 +15,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
-use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -182,7 +183,7 @@ final class StoreSetupTest extends TestCase
     #[Test]
     public function an_uploaded_logo_is_stored_under_a_generated_path(): void
     {
-        Storage::fake(config('veritas.media.disk'));
+        Storage::fake(config('veritas.storage.public_disk'));
 
         ['store' => $store, 'user' => $owner] = $this->makeSeller();
 
@@ -196,13 +197,14 @@ final class StoreSetupTest extends TestCase
         // Nothing of the uploader's filename survives into the path.
         $this->assertStringNotContainsString('passwd', $stored);
         $this->assertStringNotContainsString('..', $stored);
-        $this->assertMatchesRegularExpression('#:stores/\d+/logo/[0-9A-Z]{26}\.(jpg|png|webp)$#', $stored);
+        // disk:key, with a generated lowercase ULID for the object.
+        $this->assertMatchesRegularExpression('#^media:stores/\d+/logo/[0-9a-z]{26}\.(jpg|png|webp)$#', $stored);
     }
 
     #[Test]
     public function a_renamed_executable_is_not_accepted_as_an_image(): void
     {
-        Storage::fake(config('veritas.media.disk'));
+        Storage::fake(config('veritas.storage.public_disk'));
 
         $path = tempnam(sys_get_temp_dir(), 'vc').'.jpg';
         file_put_contents($path, "#!/bin/sh\necho pwned\n");
@@ -211,10 +213,10 @@ final class StoreSetupTest extends TestCase
         // bytes say otherwise, and the bytes are what is trusted.
         $file = new UploadedFile($path, 'logo.jpg', 'image/jpeg', null, true);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(RejectedUpload::class);
 
         try {
-            app(StoreUploadedImage::class)->put($file, 'stores/1/logo');
+            app(ObjectStore::class)->put($file, 'stores/1/logo', Visibility::Public);
         } finally {
             @unlink($path);
         }

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Stores\Actions;
 
 use App\Modules\Audit\Actions\RecordAuditEvent;
-use App\Modules\Media\Actions\StoreUploadedImage;
+use App\Modules\Media\Contracts\ObjectStore;
+use App\Modules\Media\Enums\Visibility;
 use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Stores\Models\Store;
 use Illuminate\Http\UploadedFile;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\DB;
 final class UpdateStore
 {
     public function __construct(
-        private readonly StoreUploadedImage $media,
+        private readonly ObjectStore $objects,
         private readonly RecordAuditEvent $audit,
     ) {}
 
@@ -58,8 +59,15 @@ final class UpdateStore
                 $file = $images[$input] ?? null;
 
                 if ($file instanceof UploadedFile) {
-                    $stored = $this->media->put($file, "stores/{$sellerAccountId}/{$input}");
-                    $store->{$column} = $stored['disk'].':'.$stored['path'];
+                    $stored = $this->objects->put(
+                        $file,
+                        "stores/{$sellerAccountId}/{$input}",
+                        Visibility::Public,
+                    );
+
+                    $store->{$column} = $stored->reference();
+                    // The reference changes, never the bytes: the record
+                    // says a replacement happened, not what was in it.
                     $changed[$column] = ['from' => 'previous', 'to' => 'replaced'];
                 }
             }
