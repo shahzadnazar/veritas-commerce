@@ -35,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $business_city
  * @property string|null $business_state
  * @property string|null $business_country
+ * @property int|null $default_low_stock_threshold
  * @property-read SellerAccount|null $sellerAccount
  */
 final class Store extends Model

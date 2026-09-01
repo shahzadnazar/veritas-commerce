@@ -7,6 +7,7 @@ namespace App\Support;
 use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Inventory\Enums\InventoryMovementReason;
 use App\Modules\Inventory\Enums\ReservationStatus;
+use App\Modules\Inventory\Enums\StockState;
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
 use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Offers\Enums\OfferStatus;
@@ -54,6 +55,7 @@ final class StatusRegistry
             'ledger_entry_type' => LedgerEntryType::class,
             'inventory_movement_reason' => InventoryMovementReason::class,
             'inventory_reservation' => ReservationStatus::class,
+            'stock' => StockState::class,
         ];
     }
 

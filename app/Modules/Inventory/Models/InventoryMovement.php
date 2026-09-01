@@ -25,7 +25,7 @@ use RuntimeException;
  * @property string $public_id
  * @property int $offer_id
  * @property int $inventory_location_id
- * @property int $change
+ * @property int $on_hand_change
  * @property int $resulting_on_hand
  * @property InventoryMovementReason $reason
  * @property string $actor_type
@@ -33,6 +33,8 @@ use RuntimeException;
  * @property string|null $note
  * @property int|null $seller_order_id
  * @property Carbon $created_at
+ * @property int $reserved_change
+ * @property int $resulting_reserved
  */
 final class InventoryMovement extends Model
 {
@@ -48,8 +50,10 @@ final class InventoryMovement extends Model
     protected $fillable = [
         'offer_id',
         'inventory_location_id',
-        'change',
+        'on_hand_change',
+        'reserved_change',
         'resulting_on_hand',
+        'resulting_reserved',
         'reason',
         'actor_type',
         'actor_id',
@@ -62,8 +66,10 @@ final class InventoryMovement extends Model
     {
         return [
             'reason' => InventoryMovementReason::class,
-            'change' => 'integer',
+            'on_hand_change' => 'integer',
+            'reserved_change' => 'integer',
             'resulting_on_hand' => 'integer',
+            'resulting_reserved' => 'integer',
             'created_at' => 'datetime',
         ];
     }

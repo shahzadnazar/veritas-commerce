@@ -16,8 +16,10 @@ final class InventoryMovementFactory extends Factory
     public function definition(): array
     {
         return [
-            'change' => 1,
+            'on_hand_change' => 1,
+            'reserved_change' => 0,
             'resulting_on_hand' => 1,
+            'resulting_reserved' => 0,
             'reason' => InventoryMovementReason::OpeningStock->value,
             'actor_type' => 'system',
             'created_at' => now(),

@@ -26,6 +26,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $resolved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property int|null $opened_by_movement_id
+ * @property int|null $closed_by_movement_id
  */
 final class InventoryReservation extends Model
 {

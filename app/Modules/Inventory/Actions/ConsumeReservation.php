@@ -13,8 +13,14 @@ use Illuminate\Support\Facades\DB;
 /**
  * Turns a hold into a sale once payment has captured.
  *
- * The hold is marked consumed and on_hand is decremented in the same
- * transaction, so availability never double-counts during the switch.
+ * Both quantities fall in the same movement: the units leave the shelf and
+ * stop being spoken for at the same instant. Doing it as one entry is what
+ * stops availability flickering upward between two writes — with separate
+ * movements there is a moment where the stock is released but not yet sold,
+ * and a concurrent reservation could take it.
+ *
+ * IDEMPOTENT for the same reason release is: only held rows are selected,
+ * under a lock, so a retried job commits the sale once.
  */
 final class ConsumeReservation
 {
@@ -33,20 +39,23 @@ final class ConsumeReservation
                 $balance = InventoryBalance::query()
                     ->where('offer_id', $reservation->offer_id)
                     ->where('inventory_location_id', $reservation->inventory_location_id)
+                    ->lockForUpdate()
                     ->firstOrFail();
 
-                $reservation->update([
-                    'status' => ReservationStatus::Consumed->value,
-                    'resolved_at' => now(),
-                ]);
-
-                ($this->recordMovement)(
+                $movement = ($this->recordMovement)(
                     balance: $balance,
-                    change: -$reservation->quantity,
                     reason: InventoryMovementReason::SaleCompleted,
+                    onHandChange: -$reservation->quantity,
+                    reservedChange: -$reservation->quantity,
                     actorType: 'system',
                     sellerOrderId: $sellerOrderId,
                 );
+
+                $reservation->forceFill([
+                    'status' => ReservationStatus::Consumed->value,
+                    'resolved_at' => now(),
+                    'closed_by_movement_id' => $movement->id,
+                ])->save();
             }
 
             return $reservations->count();

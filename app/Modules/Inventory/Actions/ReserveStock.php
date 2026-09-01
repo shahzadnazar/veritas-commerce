@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Inventory\Actions;
 
+use App\Modules\Inventory\Enums\InventoryMovementReason;
 use App\Modules\Inventory\Enums\ReservationStatus;
 use App\Modules\Inventory\Exceptions\InsufficientStock;
 use App\Modules\Inventory\Models\InventoryBalance;
@@ -13,18 +14,26 @@ use Illuminate\Support\Facades\DB;
 /**
  * Holds stock for a checkout without changing the physical count.
  *
- * Two things make this safe under concurrency:
+ * Three things make this safe under concurrency:
  *
  *  1. The balance rows are locked FOR UPDATE before availability is read,
  *     so two simultaneous checkouts cannot both see the last unit.
  *  2. Locks are taken in ascending offer_id order, so two carts containing
  *     the same offers in different sequences cannot deadlock.
+ *  3. `reserved` is a real column with a CHECK that it never exceeds
+ *     on_hand, so even a caller that bypassed this action cannot oversell.
+ *
+ * Availability is read from the locked row rather than re-summed from the
+ * reservation table: the column is the authority, and the sum is what
+ * `inventory:reconcile` checks it against.
  *
  * Nothing here calls a payment provider: the transaction commits first, and
  * the network call happens outside it.
  */
 final class ReserveStock
 {
+    public function __construct(private readonly RecordMovement $recordMovement) {}
+
     /**
      * @param  array<int, int>  $quantitiesByOfferId
      * @return array<int, InventoryReservation>
@@ -53,25 +62,24 @@ final class ReserveStock
             $reservations = [];
 
             foreach ($quantitiesByOfferId as $offerId => $quantity) {
-                $balance = $balances[$offerId] ?? null;
-
-                if ($balance === null) {
+                if ($quantity < 1) {
                     throw new InsufficientStock($offerId, $quantity, 0);
                 }
 
-                $held = (int) InventoryReservation::query()
-                    ->where('offer_id', $offerId)
-                    ->where('inventory_location_id', $balance->inventory_location_id)
-                    ->where('status', ReservationStatus::Held->value)
-                    ->sum('quantity');
+                $balance = $balances[$offerId] ?? null;
 
-                $available = $balance->on_hand - $held;
+                if ($balance === null) {
+                    // No balance row means nothing was ever stocked here.
+                    throw new InsufficientStock($offerId, $quantity, 0);
+                }
+
+                $available = $balance->on_hand - $balance->reserved;
 
                 if ($available < $quantity) {
                     throw new InsufficientStock($offerId, $quantity, max(0, $available));
                 }
 
-                $reservations[] = InventoryReservation::query()->create([
+                $reservation = InventoryReservation::query()->create([
                     'offer_id' => $offerId,
                     'inventory_location_id' => $balance->inventory_location_id,
                     'quantity' => $quantity,
@@ -79,6 +87,19 @@ final class ReserveStock
                     'reference' => $reference,
                     'expires_at' => now()->addMinutes($ttlMinutes),
                 ]);
+
+                // The hold is a movement: `available` just dropped, and the
+                // ledger has to be able to say why when nothing sold.
+                $movement = ($this->recordMovement)(
+                    balance: $balance,
+                    reason: InventoryMovementReason::OrderReservation,
+                    reservedChange: $quantity,
+                    note: 'Reference '.$reference,
+                );
+
+                $reservation->forceFill(['opened_by_movement_id' => $movement->id])->save();
+
+                $reservations[] = $reservation;
             }
 
             return $reservations;

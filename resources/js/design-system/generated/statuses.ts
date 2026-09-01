@@ -367,6 +367,10 @@ export const STATUS_PRESENTATION = {
             "tone": "critical",
             "label": "Damaged"
         },
+        "lost": {
+            "tone": "critical",
+            "label": "Lost"
+        },
         "returned_to_supplier": {
             "tone": "critical",
             "label": "Returned to supplier"
@@ -374,6 +378,26 @@ export const STATUS_PRESENTATION = {
         "manual_edit": {
             "tone": "pending",
             "label": "Manual edit"
+        },
+        "other": {
+            "tone": "pending",
+            "label": "Other"
+        },
+        "admin_adjustment": {
+            "tone": "critical",
+            "label": "Platform adjustment"
+        },
+        "order_reservation": {
+            "tone": "pending",
+            "label": "Reserved for an order"
+        },
+        "reservation_release": {
+            "tone": "neutral",
+            "label": "Reservation released"
+        },
+        "reservation_expired": {
+            "tone": "pending",
+            "label": "Reservation expired"
         },
         "sale_completed": {
             "tone": "inactive",
@@ -404,6 +428,20 @@ export const STATUS_PRESENTATION = {
         "expired": {
             "tone": "critical",
             "label": "Expired"
+        }
+    },
+    "stock": {
+        "in_stock": {
+            "tone": "neutral",
+            "label": "In stock"
+        },
+        "low_stock": {
+            "tone": "pending",
+            "label": "Low stock"
+        },
+        "out_of_stock": {
+            "tone": "critical",
+            "label": "Out of stock"
         }
     }
 } as const satisfies Record<

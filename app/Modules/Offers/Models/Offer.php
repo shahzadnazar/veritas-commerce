@@ -52,6 +52,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $seller_notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property int|null $low_stock_threshold
  * @property-read Product|null $product
  * @property-read ProductVariant|null $productVariant
  * @property-read SellerAccount|null $sellerAccount

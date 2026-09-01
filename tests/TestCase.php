@@ -12,9 +12,26 @@ use App\Modules\Sellers\Models\SellerAccount;
 use App\Modules\Sellers\Models\SellerMembership;
 use App\Modules\Stores\Models\Store;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Testing\PendingCommand;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * `$this->artisan()` is declared as PendingCommand|int, and the int
+     * branch has no assertions on it. Every caller narrowing that by hand
+     * is noise, so it is narrowed once, here.
+     *
+     * @param  array<string, mixed>  $arguments
+     */
+    protected function runArtisan(string $command, array $arguments = []): PendingCommand
+    {
+        $pending = $this->artisan($command, $arguments);
+
+        $this->assertInstanceOf(PendingCommand::class, $pending);
+
+        return $pending;
+    }
+
     /**
      * Create a fully-formed seller: account, store, owner user and membership.
      *
