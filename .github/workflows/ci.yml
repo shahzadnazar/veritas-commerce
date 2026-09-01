@@ -149,7 +149,26 @@ jobs:
               run: |
                   docker compose exec -T app php artisan migrate:fresh --seed --force
                   curl -fsS -o /dev/null -w 'storefront %{http_code}\n' http://127.0.0.1:8000/
+                  curl -fsS -o /dev/null -w 'sign in %{http_code}\n' http://127.0.0.1:8000/login
+                  curl -fsS -o /dev/null -w 'register %{http_code}\n' http://127.0.0.1:8000/register
                   curl -fsS -o /dev/null -w 'admin login %{http_code}\n' http://127.0.0.1:8000/admin/login
+                  curl -fsS -o /dev/null -w 'health %{http_code}\n' http://127.0.0.1:8000/up
+                  # A guest is sent to the right sign-in page for the realm.
+                  test "$(curl -s -o /dev/null -w '%{redirect_url}' http://127.0.0.1:8000/admin)" = "http://127.0.0.1:8000/admin/login"
+                  test "$(curl -s -o /dev/null -w '%{redirect_url}' http://127.0.0.1:8000/seller)" = "http://127.0.0.1:8000/login"
+                  # An unknown store is a 404, not a shell.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/stores/nothing-here)" = "404"
+
+            - name: Security headers are set
+              run: |
+                  headers=$(curl -sD - -o /dev/null http://127.0.0.1:8000/)
+                  echo "$headers" | grep -qi 'X-Frame-Options: DENY'
+                  echo "$headers" | grep -qi "Content-Security-Policy: frame-ancestors 'none'"
+                  echo "$headers" | grep -qi 'X-Content-Type-Options: nosniff'
+                  echo "$headers" | grep -qi 'Referrer-Policy: strict-origin-when-cross-origin'
+                  # The portals are never a search result; the storefront is.
+                  curl -sD - -o /dev/null http://127.0.0.1:8000/admin/login | grep -qi 'X-Robots-Tag: noindex'
+                  ! curl -sD - -o /dev/null http://127.0.0.1:8000/ | grep -qi 'X-Robots-Tag'
 
             - name: Test database exists
               run: docker compose exec -T postgres psql -U veritas -lqt | grep -q veritas_test

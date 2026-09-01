@@ -30,7 +30,7 @@ export default function Profile() {
     const password = useForm({ current_password: '', password: '', password_confirmation: '' });
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title="Your account">
             <h1 className="mb-8 text-[42px]">Your account</h1>
 
             {status ? (

@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import type { SharedPageProps } from '../../shared/types';
 import { Wordmark } from './Wordmark';
@@ -8,12 +8,19 @@ import { Wordmark } from './Wordmark';
  *
  * Runs at the comfortable density — 15px body, 24px grid gaps — which is
  * the only intentional divergence from the operating portals.
+ *
+ * The title lives here rather than in the Blade shell. A page-supplied
+ * title alongside a shell default renders two <title> tags under SSR, and
+ * a crawler takes the first — so the shell has none, and this is the one
+ * place a storefront page gets one.
  */
-export function StorefrontLayout({ children }: { children: ReactNode }) {
+export function StorefrontLayout({ title, children }: { title?: string; children: ReactNode }) {
     const { platform } = usePage<SharedPageProps>().props;
 
     return (
         <div data-density="comfortable" className="min-h-screen bg-[var(--vc-bg)]">
+            <Head title={title === undefined ? platform.name : `${title} — ${platform.name}`} />
+
             <header className="border-b-2 border-[var(--vc-text)]">
                 <div className="mx-auto flex h-[var(--vc-header-storefront)] max-w-[var(--vc-container-storefront)] items-center gap-6 px-8">
                     <Link href="/" aria-label={`${platform.name} home`}>

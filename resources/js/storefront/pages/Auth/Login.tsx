@@ -10,7 +10,7 @@ export default function Login() {
     const form = useForm({ email: '', password: '', remember: false });
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title="Sign in">
             <AuthCard
                 title="Welcome back"
                 lede="Sign in to track orders, save addresses and check out faster."

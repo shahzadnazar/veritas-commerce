@@ -39,6 +39,8 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             ->middleware('seller.can:members.manage')->name('team.invite');
         Route::delete('team/invitations/{invitation}', [SellerTeamController::class, 'revoke'])
             ->middleware('seller.can:members.manage')->name('team.revoke');
+        Route::patch('team/{membership}', [SellerTeamController::class, 'update'])
+            ->middleware('seller.can:members.manage')->name('team.role');
         Route::delete('team/{membership}', [SellerTeamController::class, 'destroy'])
             ->middleware('seller.can:members.manage')->name('team.remove');
     });

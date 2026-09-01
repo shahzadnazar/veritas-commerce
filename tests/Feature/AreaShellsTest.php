@@ -126,4 +126,56 @@ final class AreaShellsTest extends TestCase
             fn (AssertableInertia $page) => $page->where('platform.name', 'Configured Marketplace'),
         );
     }
+
+    #[Test]
+    public function every_response_carries_the_baseline_security_headers(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertHeader('X-Frame-Options', 'DENY');
+        $response->assertHeader('Content-Security-Policy', "frame-ancestors 'none'");
+        $response->assertHeader('X-Content-Type-Options', 'nosniff');
+        $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->assertHeader('Permissions-Policy');
+
+        // Never over plain HTTP: a browser ignores it, and pinning a
+        // developer's localhost to a scheme it does not serve is worse
+        // than not sending it.
+        $response->assertHeaderMissing('Strict-Transport-Security');
+    }
+
+    #[Test]
+    public function the_portals_carry_a_noindex_header_and_the_storefront_does_not(): void
+    {
+        $this->get('/admin/login')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->get('/login')->assertHeaderMissing('X-Robots-Tag');
+        $this->get('/')->assertHeaderMissing('X-Robots-Tag');
+    }
+
+    #[Test]
+    public function the_shell_supplies_a_fallback_title_when_ssr_is_off(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $this->assertSame(1, substr_count($response->getContent() ?: '', '<title'));
+        $response->assertSee('<title inertia>'.config('veritas.identity.display_name').'</title>', false);
+    }
+
+    #[Test]
+    public function the_shell_supplies_no_title_when_ssr_is_on(): void
+    {
+        // Under SSR the page renders its own title through the layout, and
+        // a second one in the shell would be the one a crawler reads —
+        // titles are taken first-wins, not last. The shell is rendered
+        // directly here because the flag is read when the view renders,
+        // and a test request boots its own configuration.
+        config(['inertia.ssr.enabled' => true]);
+
+        $html = view('app', [
+            'page' => ['component' => 'Home', 'props' => [], 'url' => '/', 'version' => null],
+        ])->render();
+
+        $this->assertSame(0, substr_count($html, '<title'));
+    }
 }

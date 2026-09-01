@@ -10,7 +10,7 @@ export default function VerifyEmail() {
     const logout = useForm({});
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title="Verify your email">
             <AuthCard
                 title="Check your email"
                 lede={`We've sent a verification link to ${auth.user?.email ?? 'your address'}. It expires in 60 minutes and can only be used once.`}

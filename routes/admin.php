@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
 use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
+use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\SellerAccountController;
 use App\Modules\AdminPortal\Http\Controllers\SellerApplicationController;
@@ -53,6 +54,15 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:seller.reject')->name('reject');
                 Route::post('{application}/request-changes', [SellerApplicationController::class, 'requestChanges'])
                     ->middleware('admin.can:seller.application.review')->name('request-changes');
+            });
+
+            // Staff accounts. Only the permission that lets someone
+            // reset another person's second factor opens this at all.
+            Route::prefix('staff')->name('staff.')->group(function (): void {
+                Route::get('/', [AdminStaffController::class, 'index'])
+                    ->middleware('admin.can:staff.reset_mfa')->name('index');
+                Route::post('{admin}/reset-two-factor', [AdminStaffController::class, 'resetTwoFactor'])
+                    ->middleware('admin.can:staff.reset_mfa')->name('reset-mfa');
             });
 
             // Governance of sellers already trading, which is a different

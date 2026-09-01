@@ -53,7 +53,7 @@ final class PublicStoreController
                 ]))),
             ],
             'seo' => [
-                'title' => $store->name.' — '.config('veritas.identity.display_name'),
+                'title' => $store->name,
                 'description' => $store->description !== null
                     ? mb_substr($store->description, 0, 155)
                     : $store->name.' on '.config('veritas.identity.display_name').'.',

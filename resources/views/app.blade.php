@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title inertia>{{ config('veritas.identity.display_name') }}</title>
+    {{-- Only when SSR is off. With SSR on, @inertiaHead renders the page's
+         own title, and a second one here would be the one a crawler reads. --}}
+    @unless (config('inertia.ssr.enabled'))
+        <title inertia>{{ config('veritas.identity.display_name') }}</title>
+    @endunless
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=archivo:400,600,800&display=swap" rel="stylesheet">

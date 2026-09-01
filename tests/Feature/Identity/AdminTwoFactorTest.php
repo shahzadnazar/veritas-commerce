@@ -282,4 +282,72 @@ final class AdminTwoFactorTest extends TestCase
             'An audit record must never carry the secret it is about.',
         );
     }
+
+    #[Test]
+    public function an_admin_with_the_permission_can_reset_someone_elses_second_factor(): void
+    {
+        $superAdmin = AdminUser::factory()->role(AdminRole::SuperAdmin)->withTwoFactor()->create();
+        $subject = AdminUser::factory()->role(AdminRole::Support)->withTwoFactor()->create();
+
+        $this->actingAs($superAdmin, 'admin')
+            ->post("/admin/staff/{$subject->public_id}/reset-two-factor", [
+                'reason' => 'Lost the device; identity confirmed on a video call.',
+            ])
+            ->assertRedirect();
+
+        $fresh = $subject->fresh();
+        $this->assertNotNull($fresh);
+        $this->assertNull($fresh->two_factor_confirmed_at);
+        $this->assertNull($fresh->two_factor_secret);
+        $this->assertSame(0, AdminRecoveryCode::query()->where('admin_user_id', $subject->id)->count());
+    }
+
+    #[Test]
+    public function a_reset_without_a_reason_is_refused(): void
+    {
+        $superAdmin = AdminUser::factory()->role(AdminRole::SuperAdmin)->withTwoFactor()->create();
+        $subject = AdminUser::factory()->role(AdminRole::Support)->withTwoFactor()->create();
+
+        $this->actingAs($superAdmin, 'admin')
+            ->post("/admin/staff/{$subject->public_id}/reset-two-factor", ['reason' => ''])
+            ->assertSessionHasErrors('reason');
+
+        $this->assertNotNull($subject->fresh()?->two_factor_confirmed_at);
+    }
+
+    #[Test]
+    public function an_admin_without_the_permission_cannot_reset_anyone(): void
+    {
+        $support = AdminUser::factory()->role(AdminRole::Support)->withTwoFactor()->create();
+        $subject = AdminUser::factory()->role(AdminRole::Analyst)->withTwoFactor()->create();
+
+        $this->actingAs($support, 'admin')->get('/admin/staff')->assertForbidden();
+
+        $this->actingAs($support, 'admin')
+            ->post("/admin/staff/{$subject->public_id}/reset-two-factor", [
+                'reason' => 'They asked me to, over chat.',
+            ])
+            ->assertForbidden();
+
+        $this->assertNotNull($subject->fresh()?->two_factor_confirmed_at);
+    }
+
+    #[Test]
+    public function a_reset_is_audited_against_the_admin_who_did_it_and_carries_no_secret(): void
+    {
+        $superAdmin = AdminUser::factory()->role(AdminRole::SuperAdmin)->withTwoFactor()->create();
+        $subject = AdminUser::factory()->role(AdminRole::Support)->withTwoFactor()->create();
+        $secret = (string) $subject->two_factor_secret;
+
+        $this->actingAs($superAdmin, 'admin')
+            ->post("/admin/staff/{$subject->public_id}/reset-two-factor", [
+                'reason' => 'Lost the device; identity confirmed on a video call.',
+            ]);
+
+        $entry = AuditLog::query()->where('action', 'admin.mfa.disabled')->firstOrFail();
+
+        $this->assertSame($superAdmin->id, $entry->actor_id);
+        $this->assertSame($subject->id, $entry->subject_id);
+        $this->assertStringNotContainsString($secret, json_encode($entry->changes).(string) $entry->reason);
+    }
 }

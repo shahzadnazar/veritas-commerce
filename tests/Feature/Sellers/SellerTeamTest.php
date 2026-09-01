@@ -273,6 +273,54 @@ final class SellerTeamTest extends TestCase
         $this->assertDatabaseMissing('seller_memberships', ['id' => $other->id]);
     }
 
+    #[Test]
+    public function an_owner_can_change_a_members_role(): void
+    {
+        ['seller' => $seller, 'user' => $owner] = $this->makeSeller();
+
+        $member = SellerMembership::factory()->create([
+            'seller_account_id' => $seller->id,
+            'role' => SellerRole::Viewer->value,
+        ]);
+
+        $this->actingAs($owner, 'web')
+            ->patch("/seller/team/{$member->id}", ['role' => SellerRole::FulfillmentManager->value])
+            ->assertRedirect();
+
+        $this->assertSame(SellerRole::FulfillmentManager, $member->fresh()?->role);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'seller.member.role_changed']);
+    }
+
+    #[Test]
+    public function the_last_owner_cannot_be_demoted(): void
+    {
+        ['user' => $owner, 'membership' => $membership] = $this->makeSeller();
+
+        $this->actingAs($owner, 'web')
+            ->patch("/seller/team/{$membership->id}", ['role' => SellerRole::Viewer->value])
+            ->assertSessionHasErrors('role');
+
+        $this->assertSame(SellerRole::Owner, $membership->fresh()?->role);
+    }
+
+    #[Test]
+    public function a_role_change_across_stores_is_refused(): void
+    {
+        ['user' => $a] = $this->makeSeller();
+        ['seller' => $sellerB] = $this->makeSeller();
+
+        $memberB = SellerMembership::factory()->create([
+            'seller_account_id' => $sellerB->id,
+            'role' => SellerRole::Viewer->value,
+        ]);
+
+        $this->actingAs($a, 'web')
+            ->patch("/seller/team/{$memberB->id}", ['role' => SellerRole::Owner->value])
+            ->assertNotFound();
+
+        $this->assertSame(SellerRole::Viewer, $memberB->fresh()?->role);
+    }
+
     /** Invite through the real action so the token is the one that was hashed. */
     private function invite(User $owner, string $email, SellerRole $role): string
     {

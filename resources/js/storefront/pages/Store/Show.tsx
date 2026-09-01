@@ -36,9 +36,8 @@ export default function Show() {
     const { store, seo } = usePage<StoreShowProps>().props;
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title={seo.title}>
             <Head>
-                <title>{seo.title}</title>
                 <meta name="description" content={seo.description} />
                 <meta name="robots" content={seo.robots} />
                 <link rel="canonical" href={seo.canonical} />

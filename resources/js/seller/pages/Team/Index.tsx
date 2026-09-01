@@ -25,6 +25,7 @@ interface Invitation {
 }
 
 interface TeamProps extends SharedPageProps {
+    errors: Record<string, string>;
     members: Member[];
     invitations: Invitation[];
     roles: { value: string; label: string }[];
@@ -32,7 +33,7 @@ interface TeamProps extends SharedPageProps {
 }
 
 export default function Index() {
-    const { members, invitations, roles, can, flash } = usePage<TeamProps>().props;
+    const { members, invitations, roles, can, flash, errors } = usePage<TeamProps>().props;
 
     const form = useForm({ email: '', role: roles[0]?.value ?? '' });
 
@@ -49,7 +50,32 @@ export default function Index() {
                 </span>
             ),
         },
-        { key: 'role', header: 'Role', render: (row) => row.roleLabel },
+        {
+            key: 'role',
+            header: 'Role',
+            render: (row) =>
+                can.manage ? (
+                    <Select
+                        aria-label={`Role for ${row.email ?? 'this member'}`}
+                        value={row.role}
+                        onChange={(event) =>
+                            router.patch(
+                                `/seller/team/${row.id}`,
+                                { role: event.target.value },
+                                { preserveScroll: true },
+                            )
+                        }
+                    >
+                        {roles.map((role) => (
+                            <option key={role.value} value={role.value}>
+                                {role.label}
+                            </option>
+                        ))}
+                    </Select>
+                ) : (
+                    row.roleLabel
+                ),
+        },
         { key: 'accepted', header: 'Joined', render: (row) => row.acceptedAt ?? '—' },
         {
             key: 'action',
@@ -106,6 +132,15 @@ export default function Index() {
     return (
         <SellerLayout title="Team">
             <FlashBanner success={flash.success} error={flash.error} />
+
+            {errors.role || errors.member ? (
+                <p
+                    role="alert"
+                    className="mb-6 border-2 border-[var(--vc-accent)] px-4 py-3 text-[14px] text-[var(--vc-accent-800)]"
+                >
+                    {errors.role ?? errors.member}
+                </p>
+            ) : null}
 
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="flex flex-col gap-10">

@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureAdminPermission;
 use App\Http\Middleware\EnsureSellerMembership;
 use App\Http\Middleware\EnsureSellerPermission;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\RequireAdminTwoFactor;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             HandleInertiaRequests::class,
+            SecurityHeaders::class,
         ]);
 
         $middleware->alias([

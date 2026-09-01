@@ -22,6 +22,11 @@ namespace Illuminate\Testing;
 /**
  * Inertia registers its assertion as a TestResponse macro.
  *
+ * getContent() comes from the response the class wraps, which the stub
+ * does not carry — it is declared here for the same reason as the rest:
+ * it exists at runtime, and analysis should know it.
+ *
  * @method self assertInertia(\Closure $callback)
+ * @method string|false getContent()
  */
 class TestResponse {}

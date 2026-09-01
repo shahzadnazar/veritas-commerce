@@ -1,5 +1,5 @@
-import { Link, createInertiaApp, useForm, usePage } from "@inertiajs/react";
-import { jsx, jsxs } from "react/jsx-runtime";
+import { Head, Link, createInertiaApp, useForm, usePage } from "@inertiajs/react";
+import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useId } from "react";
 import createServer from "@inertiajs/react/server";
 import ReactDOMServer from "react-dom/server";
@@ -38,13 +38,19 @@ function Wordmark({ name, size = 18 }) {
 *
 * Runs at the comfortable density — 15px body, 24px grid gaps — which is
 * the only intentional divergence from the operating portals.
+*
+* The title lives here rather than in the Blade shell. A page-supplied
+* title alongside a shell default renders two <title> tags under SSR, and
+* a crawler takes the first — so the shell has none, and this is the one
+* place a storefront page gets one.
 */
-function StorefrontLayout({ children }) {
+function StorefrontLayout({ title, children }) {
 	const { platform } = usePage().props;
 	return /* @__PURE__ */ jsxs("div", {
 		"data-density": "comfortable",
 		className: "min-h-screen bg-[var(--vc-bg)]",
 		children: [
+			/* @__PURE__ */ jsx(Head, { title: title === void 0 ? platform.name : `${title} — ${platform.name}` }),
 			/* @__PURE__ */ jsx("header", {
 				className: "border-b-2 border-[var(--vc-text)]",
 				children: /* @__PURE__ */ jsxs("div", {
@@ -184,33 +190,287 @@ function Input({ invalid = false, className = "", ...rest }) {
 	});
 }
 //#endregion
-//#region resources/js/storefront/pages/Auth/Login.tsx
-var Login_exports = /* @__PURE__ */ __exportAll({ default: () => Login });
-/**
-* Customer sign-in shell.
-*
-* M0 renders the form and its states; the credential flow is built in M1
-* alongside registration, reset and guest-order claiming.
-*/
-function Login() {
-	const form = useForm({
-		email: "",
-		password: ""
+//#region resources/js/storefront/pages/Account/Profile.tsx
+var Profile_exports = /* @__PURE__ */ __exportAll({ default: () => Profile });
+function Profile() {
+	const { profile, status } = usePage().props;
+	const details = useForm({
+		first_name: profile.firstName,
+		last_name: profile.lastName,
+		email: profile.email,
+		phone: profile.phone ?? "",
+		marketing_opt_in: profile.marketingOptIn
 	});
-	return /* @__PURE__ */ jsx(StorefrontLayout, { children: /* @__PURE__ */ jsxs("div", {
+	const password = useForm({
+		current_password: "",
+		password: "",
+		password_confirmation: ""
+	});
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: "Your account",
+		children: [
+			/* @__PURE__ */ jsx("h1", {
+				className: "mb-8 text-[42px]",
+				children: "Your account"
+			}),
+			status ? /* @__PURE__ */ jsx("p", {
+				role: "status",
+				className: "mb-8 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]",
+				children: status
+			}) : null,
+			/* @__PURE__ */ jsxs("div", {
+				className: "grid max-w-[880px] gap-14 md:grid-cols-2",
+				children: [/* @__PURE__ */ jsxs("form", {
+					className: "flex flex-col gap-4",
+					onSubmit: (event) => {
+						event.preventDefault();
+						details.put("/account");
+					},
+					children: [
+						/* @__PURE__ */ jsx("h2", {
+							className: "text-[22px]",
+							children: "Your details"
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "First name",
+							error: details.errors.first_name,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								"aria-describedby": describedBy,
+								invalid,
+								value: details.data.first_name,
+								onChange: (event) => details.setData("first_name", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "Last name",
+							error: details.errors.last_name,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								"aria-describedby": describedBy,
+								invalid,
+								value: details.data.last_name,
+								onChange: (event) => details.setData("last_name", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "Email",
+							error: details.errors.email,
+							hint: profile.emailVerified ? "Changing this sends a fresh verification link to the new address." : "This address is not verified yet.",
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								type: "email",
+								"aria-describedby": describedBy,
+								invalid,
+								value: details.data.email,
+								onChange: (event) => details.setData("email", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "Phone — used for delivery updates",
+							error: details.errors.phone,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								type: "tel",
+								"aria-describedby": describedBy,
+								invalid,
+								value: details.data.phone,
+								onChange: (event) => details.setData("phone", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsxs("label", {
+							className: "flex items-start gap-2 text-[13px]",
+							children: [/* @__PURE__ */ jsx("input", {
+								type: "checkbox",
+								className: "mt-1",
+								checked: details.data.marketing_opt_in,
+								onChange: (event) => details.setData("marketing_opt_in", event.target.checked)
+							}), /* @__PURE__ */ jsx("span", { children: "New arrivals and seller news. Order emails are transactional and always sent." })]
+						}),
+						/* @__PURE__ */ jsx(Button, {
+							type: "submit",
+							variant: "primary",
+							loading: details.processing,
+							loadingLabel: "Saving…",
+							children: "Save changes"
+						})
+					]
+				}), /* @__PURE__ */ jsxs("form", {
+					className: "flex flex-col gap-4",
+					onSubmit: (event) => {
+						event.preventDefault();
+						password.put("/account/password", { onSuccess: () => password.reset() });
+					},
+					children: [
+						/* @__PURE__ */ jsx("h2", {
+							className: "text-[22px]",
+							children: "Password"
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "Current password",
+							error: password.errors.current_password,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								type: "password",
+								autoComplete: "current-password",
+								"aria-describedby": describedBy,
+								invalid,
+								value: password.data.current_password,
+								onChange: (event) => password.setData("current_password", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "New password",
+							error: password.errors.password,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								type: "password",
+								autoComplete: "new-password",
+								"aria-describedby": describedBy,
+								invalid,
+								value: password.data.password,
+								onChange: (event) => password.setData("password", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsx(Field, {
+							label: "Confirm new password",
+							children: ({ id }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								type: "password",
+								autoComplete: "new-password",
+								value: password.data.password_confirmation,
+								onChange: (event) => password.setData("password_confirmation", event.target.value)
+							})
+						}),
+						/* @__PURE__ */ jsx(Button, {
+							type: "submit",
+							variant: "secondary",
+							loading: password.processing,
+							loadingLabel: "Updating…",
+							children: "Update password"
+						})
+					]
+				})]
+			})
+		]
+	});
+}
+//#endregion
+//#region resources/js/design-system/patterns/AuthCard.tsx
+/**
+* The shell every credential screen sits in.
+*
+* One component so registration, sign-in, reset and verification cannot
+* drift apart in spacing, heading scale or focus behaviour.
+*/
+function AuthCard({ title, lede, status, children, footer }) {
+	return /* @__PURE__ */ jsxs("div", {
 		className: "max-w-[420px]",
 		children: [
 			/* @__PURE__ */ jsx("h1", {
 				className: "mb-3 text-[44px] leading-[1.05]",
-				children: "Welcome back"
+				children: title
 			}),
 			/* @__PURE__ */ jsx("p", {
 				className: "mb-7 text-[var(--vc-neutral-700)]",
-				children: "Sign in to track orders, save addresses and check out faster."
+				children: lede
 			}),
-			/* @__PURE__ */ jsxs("form", {
+			status ? /* @__PURE__ */ jsx("p", {
+				role: "status",
+				className: "mb-6 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]",
+				children: status
+			}) : null,
+			children,
+			footer ? /* @__PURE__ */ jsx("div", {
+				className: "mt-6 text-[13px] text-[var(--vc-neutral-700)]",
+				children: footer
+			}) : null
+		]
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Auth/ForgotPassword.tsx
+var ForgotPassword_exports = /* @__PURE__ */ __exportAll({ default: () => ForgotPassword });
+function ForgotPassword() {
+	const { status } = usePage().props;
+	const form = useForm({ email: "" });
+	return /* @__PURE__ */ jsx(StorefrontLayout, {
+		title: "Reset your password",
+		children: /* @__PURE__ */ jsx(AuthCard, {
+			title: "Reset your password",
+			lede: "Enter the email on your account and we'll send a link to set a new one.",
+			status,
+			footer: /* @__PURE__ */ jsxs(Fragment, { children: [
+				"For security, the confirmation is the same whether or not an account exists.",
+				" ",
+				/* @__PURE__ */ jsx(Link, {
+					href: "/login",
+					className: "underline",
+					children: "Back to sign in"
+				})
+			] }),
+			children: /* @__PURE__ */ jsxs("form", {
 				className: "flex flex-col gap-4",
-				onSubmit: (event) => event.preventDefault(),
+				onSubmit: (event) => {
+					event.preventDefault();
+					form.post("/forgot-password");
+				},
+				children: [/* @__PURE__ */ jsx(Field, {
+					label: "Email",
+					error: form.errors.email,
+					children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+						id,
+						type: "email",
+						autoComplete: "username",
+						"aria-describedby": describedBy,
+						invalid,
+						value: form.data.email,
+						onChange: (event) => form.setData("email", event.target.value)
+					})
+				}), /* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					variant: "primary",
+					loading: form.processing,
+					loadingLabel: "Sending…",
+					children: "Send reset link"
+				})]
+			})
+		})
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Auth/Login.tsx
+var Login_exports = /* @__PURE__ */ __exportAll({ default: () => Login });
+function Login() {
+	const { status } = usePage().props;
+	const form = useForm({
+		email: "",
+		password: "",
+		remember: false
+	});
+	return /* @__PURE__ */ jsx(StorefrontLayout, {
+		title: "Sign in",
+		children: /* @__PURE__ */ jsx(AuthCard, {
+			title: "Welcome back",
+			lede: "Sign in to track orders, save addresses and check out faster.",
+			status,
+			footer: /* @__PURE__ */ jsxs(Fragment, { children: [
+				"New here?",
+				" ",
+				/* @__PURE__ */ jsx(Link, {
+					href: "/register",
+					className: "underline",
+					children: "Create an account"
+				}),
+				" ",
+				"— it takes about a minute."
+			] }),
+			children: /* @__PURE__ */ jsxs("form", {
+				className: "flex flex-col gap-4",
+				onSubmit: (event) => {
+					event.preventDefault();
+					form.post("/login");
+				},
 				children: [
 					/* @__PURE__ */ jsx(Field, {
 						label: "Email",
@@ -238,6 +498,21 @@ function Login() {
 							onChange: (event) => form.setData("password", event.target.value)
 						})
 					}),
+					/* @__PURE__ */ jsxs("div", {
+						className: "flex items-center justify-between text-[13px]",
+						children: [/* @__PURE__ */ jsxs("label", {
+							className: "flex items-center gap-2",
+							children: [/* @__PURE__ */ jsx("input", {
+								type: "checkbox",
+								checked: form.data.remember,
+								onChange: (event) => form.setData("remember", event.target.checked)
+							}), "Stay signed in"]
+						}), /* @__PURE__ */ jsx(Link, {
+							href: "/forgot-password",
+							className: "underline",
+							children: "Forgot your password?"
+						})]
+					}),
 					/* @__PURE__ */ jsx(Button, {
 						type: "submit",
 						variant: "primary",
@@ -247,8 +522,227 @@ function Login() {
 					})
 				]
 			})
-		]
-	}) });
+		})
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Auth/Register.tsx
+var Register_exports = /* @__PURE__ */ __exportAll({ default: () => Register });
+function Register() {
+	const form = useForm({
+		first_name: "",
+		last_name: "",
+		email: "",
+		password: "",
+		password_confirmation: "",
+		marketing_opt_in: false
+	});
+	return /* @__PURE__ */ jsx(StorefrontLayout, {
+		title: "Create an account",
+		children: /* @__PURE__ */ jsx(AuthCard, {
+			title: "Create your account",
+			lede: "One account for every store on the marketplace. You can check out as a guest too — an account just keeps your orders and addresses.",
+			footer: /* @__PURE__ */ jsxs(Fragment, { children: [
+				"Already have one?",
+				" ",
+				/* @__PURE__ */ jsx(Link, {
+					href: "/login",
+					className: "underline",
+					children: "Sign in"
+				})
+			] }),
+			children: /* @__PURE__ */ jsxs("form", {
+				className: "flex flex-col gap-4",
+				onSubmit: (event) => {
+					event.preventDefault();
+					form.post("/register");
+				},
+				children: [
+					/* @__PURE__ */ jsxs("div", {
+						className: "grid grid-cols-2 gap-4",
+						children: [/* @__PURE__ */ jsx(Field, {
+							label: "First name",
+							error: form.errors.first_name,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								autoComplete: "given-name",
+								"aria-describedby": describedBy,
+								invalid,
+								value: form.data.first_name,
+								onChange: (event) => form.setData("first_name", event.target.value)
+							})
+						}), /* @__PURE__ */ jsx(Field, {
+							label: "Last name",
+							error: form.errors.last_name,
+							children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+								id,
+								autoComplete: "family-name",
+								"aria-describedby": describedBy,
+								invalid,
+								value: form.data.last_name,
+								onChange: (event) => form.setData("last_name", event.target.value)
+							})
+						})]
+					}),
+					/* @__PURE__ */ jsx(Field, {
+						label: "Email",
+						error: form.errors.email,
+						children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "email",
+							autoComplete: "username",
+							"aria-describedby": describedBy,
+							invalid,
+							value: form.data.email,
+							onChange: (event) => form.setData("email", event.target.value)
+						})
+					}),
+					/* @__PURE__ */ jsx(Field, {
+						label: "Password",
+						error: form.errors.password,
+						hint: "At least eight characters, and not one that has appeared in a known breach.",
+						children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "password",
+							autoComplete: "new-password",
+							"aria-describedby": describedBy,
+							invalid,
+							value: form.data.password,
+							onChange: (event) => form.setData("password", event.target.value)
+						})
+					}),
+					/* @__PURE__ */ jsx(Field, {
+						label: "Confirm password",
+						children: ({ id }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "password",
+							autoComplete: "new-password",
+							value: form.data.password_confirmation,
+							onChange: (event) => form.setData("password_confirmation", event.target.value)
+						})
+					}),
+					/* @__PURE__ */ jsxs("label", {
+						className: "flex items-start gap-2 text-[13px]",
+						children: [/* @__PURE__ */ jsx("input", {
+							type: "checkbox",
+							className: "mt-1",
+							checked: form.data.marketing_opt_in,
+							onChange: (event) => form.setData("marketing_opt_in", event.target.checked)
+						}), /* @__PURE__ */ jsx("span", { children: "Email me new arrivals and seller news. Order emails are sent either way." })]
+					}),
+					/* @__PURE__ */ jsx(Button, {
+						type: "submit",
+						variant: "primary",
+						loading: form.processing,
+						loadingLabel: "Creating account…",
+						children: "Create account"
+					})
+				]
+			})
+		})
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Auth/ResetPassword.tsx
+var ResetPassword_exports = /* @__PURE__ */ __exportAll({ default: () => ResetPassword });
+function ResetPassword() {
+	const { token, email } = usePage().props;
+	const form = useForm({
+		token,
+		email,
+		password: "",
+		password_confirmation: ""
+	});
+	return /* @__PURE__ */ jsx(StorefrontLayout, {
+		title: "Choose a new password",
+		children: /* @__PURE__ */ jsx(AuthCard, {
+			title: "Choose a new password",
+			lede: "This link works once, and expires after 60 minutes.",
+			children: /* @__PURE__ */ jsxs("form", {
+				className: "flex flex-col gap-4",
+				onSubmit: (event) => {
+					event.preventDefault();
+					form.post("/reset-password");
+				},
+				children: [
+					/* @__PURE__ */ jsx(Field, {
+						label: "Email",
+						error: form.errors.email,
+						children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "email",
+							autoComplete: "username",
+							"aria-describedby": describedBy,
+							invalid,
+							value: form.data.email,
+							onChange: (event) => form.setData("email", event.target.value)
+						})
+					}),
+					/* @__PURE__ */ jsx(Field, {
+						label: "New password",
+						error: form.errors.password,
+						hint: "At least eight characters, and not one that has appeared in a known breach.",
+						children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "password",
+							autoComplete: "new-password",
+							"aria-describedby": describedBy,
+							invalid,
+							value: form.data.password,
+							onChange: (event) => form.setData("password", event.target.value)
+						})
+					}),
+					/* @__PURE__ */ jsx(Field, {
+						label: "Confirm new password",
+						children: ({ id }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "password",
+							autoComplete: "new-password",
+							value: form.data.password_confirmation,
+							onChange: (event) => form.setData("password_confirmation", event.target.value)
+						})
+					}),
+					/* @__PURE__ */ jsx(Button, {
+						type: "submit",
+						variant: "primary",
+						loading: form.processing,
+						loadingLabel: "Saving…",
+						children: "Set new password"
+					})
+				]
+			})
+		})
+	});
+}
+//#endregion
+//#region resources/js/storefront/pages/Auth/VerifyEmail.tsx
+var VerifyEmail_exports = /* @__PURE__ */ __exportAll({ default: () => VerifyEmail });
+function VerifyEmail() {
+	const { status, auth } = usePage().props;
+	const resend = useForm({});
+	const logout = useForm({});
+	return /* @__PURE__ */ jsx(StorefrontLayout, {
+		title: "Verify your email",
+		children: /* @__PURE__ */ jsx(AuthCard, {
+			title: "Check your email",
+			lede: `We've sent a verification link to ${auth.user?.email ?? "your address"}. It expires in 60 minutes and can only be used once.`,
+			status,
+			children: /* @__PURE__ */ jsxs("div", {
+				className: "flex flex-wrap gap-2",
+				children: [/* @__PURE__ */ jsx(Button, {
+					variant: "primary",
+					loading: resend.processing,
+					loadingLabel: "Sending…",
+					onClick: () => resend.post("/verify-email/send"),
+					children: "Send it again"
+				}), /* @__PURE__ */ jsx(Button, {
+					variant: "ghost",
+					onClick: () => logout.post("/logout"),
+					children: "Sign out"
+				})]
+			})
+		})
+	});
 }
 //#endregion
 //#region resources/js/design-system/patterns/States.tsx
@@ -341,6 +835,114 @@ function Home() {
 	] });
 }
 //#endregion
+//#region resources/js/storefront/pages/Store/Show.tsx
+var Show_exports = /* @__PURE__ */ __exportAll({ default: () => Show });
+/**
+* The public store page.
+*
+* The catalogue belongs to M2, so the product area carries an honest empty
+* state rather than placeholder cards — a page that looks finished but
+* shows nothing real is worse than one that says what it is.
+*/
+function Show() {
+	const { store, seo } = usePage().props;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: seo.title,
+		children: [
+			/* @__PURE__ */ jsxs(Head, { children: [
+				/* @__PURE__ */ jsx("meta", {
+					name: "description",
+					content: seo.description
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					name: "robots",
+					content: seo.robots
+				}),
+				/* @__PURE__ */ jsx("link", {
+					rel: "canonical",
+					href: seo.canonical
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:title",
+					content: seo.ogTitle
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:description",
+					content: seo.description
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:type",
+					content: seo.ogType
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:url",
+					content: seo.ogUrl
+				})
+			] }),
+			/* @__PURE__ */ jsxs("header", {
+				className: "mb-10 border-b-2 border-[var(--vc-text)] pb-8",
+				children: [
+					/* @__PURE__ */ jsx("h1", {
+						className: "mb-2 text-[38px]",
+						children: store.name
+					}),
+					/* @__PURE__ */ jsxs("p", {
+						className: "text-[13px] text-[var(--vc-neutral-600)]",
+						children: [
+							"/stores/",
+							store.slug,
+							store.shipsFrom ? ` · ships from ${store.shipsFrom}` : ""
+						]
+					}),
+					store.description ? /* @__PURE__ */ jsx("p", {
+						className: "mt-5 max-w-[62ch] text-[var(--vc-neutral-700)]",
+						children: store.description
+					}) : null,
+					!store.isOpen ? /* @__PURE__ */ jsx("p", {
+						className: "mt-5 border-2 border-[var(--vc-divider)] px-4 py-3 text-[14px]",
+						children: "This store is not taking orders at the moment."
+					}) : null
+				]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "grid gap-10 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]",
+				children: [/* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsx("h2", {
+					className: "mb-5 text-[24px]",
+					children: "Products"
+				}), /* @__PURE__ */ jsx(EmptyState, {
+					title: "No products listed yet",
+					body: "This seller has not published anything to the marketplace catalogue. Their listings will appear here once they do."
+				})] }), /* @__PURE__ */ jsxs("aside", {
+					className: "flex flex-col gap-6 text-[14px]",
+					children: [
+						store.shippingPolicy ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+							className: "mb-2 text-[16px]",
+							children: "Shipping"
+						}), /* @__PURE__ */ jsx("p", {
+							className: "text-[var(--vc-neutral-700)]",
+							children: store.shippingPolicy
+						})] }) : null,
+						store.returnPolicy ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+							className: "mb-2 text-[16px]",
+							children: "Returns"
+						}), /* @__PURE__ */ jsx("p", {
+							className: "text-[var(--vc-neutral-700)]",
+							children: store.returnPolicy
+						})] }) : null,
+						store.supportEmail ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
+							className: "mb-2 text-[16px]",
+							children: "Contact"
+						}), /* @__PURE__ */ jsx("p", {
+							className: "text-[var(--vc-neutral-700)]",
+							children: store.supportEmail
+						})] }) : null
+					]
+				})]
+			})
+		]
+	});
+}
+//#endregion
 //#region resources/js/storefront/ssr.tsx
 /**
 * Server-side rendering, storefront only.
@@ -354,8 +956,14 @@ createServer((page) => createInertiaApp({
 	render: ReactDOMServer.renderToString,
 	resolve: (name) => {
 		return (/* @__PURE__ */ Object.assign({
+			"./pages/Account/Profile.tsx": Profile_exports,
+			"./pages/Auth/ForgotPassword.tsx": ForgotPassword_exports,
 			"./pages/Auth/Login.tsx": Login_exports,
-			"./pages/Home.tsx": Home_exports
+			"./pages/Auth/Register.tsx": Register_exports,
+			"./pages/Auth/ResetPassword.tsx": ResetPassword_exports,
+			"./pages/Auth/VerifyEmail.tsx": VerifyEmail_exports,
+			"./pages/Home.tsx": Home_exports,
+			"./pages/Store/Show.tsx": Show_exports
 		}))[`./pages/${name}.tsx`];
 	},
 	setup: ({ App, props }) => /* @__PURE__ */ jsx(App, { ...props })

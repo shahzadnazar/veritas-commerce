@@ -10,7 +10,7 @@ export default function ForgotPassword() {
     const form = useForm({ email: '' });
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title="Reset your password">
             <AuthCard
                 title="Reset your password"
                 lede="Enter the email on your account and we'll send a link to set a new one."

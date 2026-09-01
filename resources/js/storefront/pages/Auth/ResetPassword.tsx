@@ -15,7 +15,7 @@ export default function ResetPassword() {
     const form = useForm({ token, email, password: '', password_confirmation: '' });
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title="Choose a new password">
             <AuthCard
                 title="Choose a new password"
                 lede="This link works once, and expires after 60 minutes."

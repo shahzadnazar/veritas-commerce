@@ -15,7 +15,7 @@ export default function Register() {
     });
 
     return (
-        <StorefrontLayout>
+        <StorefrontLayout title="Create an account">
             <AuthCard
                 title="Create your account"
                 lede="One account for every store on the marketplace. You can check out as a guest too — an account just keeps your orders and addresses."

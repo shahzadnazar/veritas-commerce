@@ -2,10 +2,17 @@
   "\u0000rolldown/runtime.js": [],
   "resources/js/design-system/layout/StorefrontLayout.tsx": [],
   "resources/js/design-system/layout/Wordmark.tsx": [],
+  "resources/js/design-system/patterns/AuthCard.tsx": [],
   "resources/js/design-system/patterns/States.tsx": [],
   "resources/js/design-system/primitives/Button.tsx": [],
   "resources/js/design-system/primitives/Field.tsx": [],
+  "resources/js/storefront/pages/Account/Profile.tsx": [],
+  "resources/js/storefront/pages/Auth/ForgotPassword.tsx": [],
   "resources/js/storefront/pages/Auth/Login.tsx": [],
+  "resources/js/storefront/pages/Auth/Register.tsx": [],
+  "resources/js/storefront/pages/Auth/ResetPassword.tsx": [],
+  "resources/js/storefront/pages/Auth/VerifyEmail.tsx": [],
   "resources/js/storefront/pages/Home.tsx": [],
+  "resources/js/storefront/pages/Store/Show.tsx": [],
   "resources/js/storefront/ssr.tsx": []
 }

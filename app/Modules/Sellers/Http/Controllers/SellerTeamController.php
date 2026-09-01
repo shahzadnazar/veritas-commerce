@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Sellers\Http\Controllers;
 
+use App\Modules\Sellers\Actions\ChangeSellerMemberRole;
 use App\Modules\Sellers\Actions\InviteSellerMember;
 use App\Modules\Sellers\Actions\RemoveSellerMember;
 use App\Modules\Sellers\Actions\RevokeSellerInvitation;
@@ -36,6 +37,7 @@ final class SellerTeamController
         private readonly InviteSellerMember $invite,
         private readonly RevokeSellerInvitation $revoke,
         private readonly RemoveSellerMember $remove,
+        private readonly ChangeSellerMemberRole $changeRole,
     ) {}
 
     public function index(): Response
@@ -147,6 +149,27 @@ final class SellerTeamController
         }
 
         return back()->with('success', 'Member removed.');
+    }
+
+    public function update(Request $request, int $membershipId): RedirectResponse
+    {
+        $validated = $request->validate(['role' => ['required', Rule::enum(SellerRole::class)]]);
+
+        $membership = SellerMembership::query()
+            ->where('seller_account_id', $this->sellerId())
+            ->whereKey($membershipId)
+            ->firstOrFail();
+
+        $user = $request->user('web');
+        abort_if($user === null, 403);
+
+        try {
+            ($this->changeRole)($membership, SellerRole::from($validated['role']), $user->getAuthIdentifier());
+        } catch (RuntimeException $exception) {
+            throw ValidationException::withMessages(['role' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Role updated.');
     }
 
     private function sellerId(): int

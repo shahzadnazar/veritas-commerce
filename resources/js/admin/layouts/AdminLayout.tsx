@@ -8,6 +8,7 @@ const NAV: NavItem[] = [
     { label: 'Dashboard', href: '/admin' },
     { label: 'Applications', href: '/admin/applications' },
     { label: 'Sellers', href: '/admin/sellers' },
+    { label: 'Staff', href: '/admin/staff' },
     { label: 'Two-factor', href: '/admin/two-factor' },
 ];
 
