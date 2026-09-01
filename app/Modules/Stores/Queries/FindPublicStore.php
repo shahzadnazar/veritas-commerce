@@ -13,10 +13,16 @@ use Illuminate\Support\Facades\DB;
  * Resolves a store for the public storefront, or nothing.
  *
  * Eligibility is a single decision made here, so every public surface
- * agrees: the seller must be approved and the store must be open. A
- * suspended seller's store must not resolve at all — an empty shell would
- * still be indexed, still be linkable, and still look like a shop that has
- * simply run out of stock.
+ * agrees. The policy, in full:
+ *
+ *   - Seller approved, store open   → the page is public and indexable.
+ *   - Seller approved, store closed → the page is public and says so, but
+ *     carries noindex. A seller closing for a fortnight should not lose
+ *     their URL, and a temporary closure should not be what search engines
+ *     have on file.
+ *   - Seller suspended or not yet approved → the store does not resolve at
+ *     all. An empty shell would still be indexed, still be linkable, and
+ *     still look like a shop that had simply run out of stock.
  */
 final class FindPublicStore
 {

@@ -21,6 +21,7 @@ interface StoreShowProps extends SharedPageProps {
         ogTitle: string;
         ogType: string;
         ogUrl: string;
+        robots: string;
     };
 }
 
@@ -39,6 +40,7 @@ export default function Show() {
             <Head>
                 <title>{seo.title}</title>
                 <meta name="description" content={seo.description} />
+                <meta name="robots" content={seo.robots} />
                 <link rel="canonical" href={seo.canonical} />
                 <meta property="og:title" content={seo.ogTitle} />
                 <meta property="og:description" content={seo.description} />

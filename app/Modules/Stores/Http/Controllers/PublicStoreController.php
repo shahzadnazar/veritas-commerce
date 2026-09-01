@@ -61,6 +61,9 @@ final class PublicStoreController
                 'ogTitle' => $store->name,
                 'ogType' => 'website',
                 'ogUrl' => $canonical,
+                // A store that is closed today may be open next week, so
+                // the URL stays — but it is not what should be indexed.
+                'robots' => $store->is_open ? 'index, follow' : 'noindex, follow',
             ],
         ]);
     }

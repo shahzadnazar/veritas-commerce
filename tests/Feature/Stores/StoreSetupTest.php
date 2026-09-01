@@ -45,7 +45,7 @@ final class StoreSetupTest extends TestCase
     {
         ['seller' => $seller, 'store' => $store, 'user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->post('/seller/store', $this->payload())
             ->assertRedirect();
 
@@ -61,7 +61,7 @@ final class StoreSetupTest extends TestCase
     {
         ['store' => $store, 'user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/store', $this->payload());
+        $this->actingAs($owner, 'web')->post('/seller/store', $this->payload());
 
         $slug = (string) $store->fresh()?->slug;
 
@@ -76,7 +76,7 @@ final class StoreSetupTest extends TestCase
         Store::factory()->create(['slug' => 'taken-address']);
         ['user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->post('/seller/store', $this->payload(['slug' => 'taken-address']))
             ->assertSessionHasErrors('slug');
     }
@@ -87,7 +87,7 @@ final class StoreSetupTest extends TestCase
         ['user' => $owner] = $this->makeSeller();
 
         foreach (['admin', 'checkout', 'seller'] as $reserved) {
-            $this->actingAs($owner)
+            $this->actingAs($owner, 'web')
                 ->post('/seller/store', $this->payload(['slug' => $reserved]))
                 ->assertSessionHasErrors('slug');
         }
@@ -108,7 +108,7 @@ final class StoreSetupTest extends TestCase
             // Over-long addresses are cut to the limit, not rejected.
             'aeris-kitchen-company-of-portland-oregon-usa' => 'aeris-kitchen-company-of-portland-oregon',
         ] as $typed => $expected) {
-            $this->actingAs($owner)
+            $this->actingAs($owner, 'web')
                 ->post('/seller/store', $this->payload(['slug' => $typed]))
                 ->assertSessionHasNoErrors();
 
@@ -123,7 +123,7 @@ final class StoreSetupTest extends TestCase
         $before = $store->slug;
 
         foreach (['!!!', '   ', 'ab'] as $bad) {
-            $this->actingAs($owner)
+            $this->actingAs($owner, 'web')
                 ->post('/seller/store', $this->payload(['slug' => $bad]))
                 ->assertSessionHasErrors(['slug']);
         }
@@ -136,8 +136,8 @@ final class StoreSetupTest extends TestCase
     {
         ['store' => $store, 'user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/store', $this->payload(['slug' => 'first-address']));
-        $this->actingAs($owner)->post('/seller/store', $this->payload(['slug' => 'second-address']));
+        $this->actingAs($owner, 'web')->post('/seller/store', $this->payload(['slug' => 'first-address']));
+        $this->actingAs($owner, 'web')->post('/seller/store', $this->payload(['slug' => 'second-address']));
 
         $this->assertDatabaseHas('store_slug_history', [
             'store_id' => $store->id,
@@ -162,7 +162,7 @@ final class StoreSetupTest extends TestCase
 
         ['user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->post('/seller/store', $this->payload(['slug' => 'the-old-name']))
             ->assertSessionHasErrors('slug');
     }
@@ -172,7 +172,7 @@ final class StoreSetupTest extends TestCase
     {
         ['store' => $store, 'user' => $catalogManager] = $this->makeSeller(SellerRole::CatalogManager);
 
-        $this->actingAs($catalogManager)
+        $this->actingAs($catalogManager, 'web')
             ->post('/seller/store', $this->payload())
             ->assertForbidden();
 
@@ -186,7 +186,7 @@ final class StoreSetupTest extends TestCase
 
         ['store' => $store, 'user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/store', $this->payload([
+        $this->actingAs($owner, 'web')->post('/seller/store', $this->payload([
             'logo' => UploadedFile::fake()->image('../../etc/passwd.jpg', 400, 400),
         ]))->assertRedirect();
 
@@ -246,6 +246,22 @@ final class StoreSetupTest extends TestCase
     }
 
     #[Test]
+    public function a_temporarily_closed_store_keeps_its_page_but_is_not_indexed(): void
+    {
+        ['store' => $store, 'user' => $owner] = $this->makeSeller();
+
+        $this->actingAs($owner, 'web')->post('/seller/store', $this->payload(['is_open' => false]));
+
+        // The seller closing for a fortnight must not lose their URL, and
+        // a temporary closure must not be what search engines have on file.
+        $this->get('/stores/'.$store->fresh()?->slug)
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('store.isOpen', false)
+                ->where('seo.robots', 'noindex, follow'));
+    }
+
+    #[Test]
     public function the_public_store_page_carries_its_seo_identity_and_no_invented_products(): void
     {
         ['store' => $store] = $this->makeSeller();
@@ -258,6 +274,7 @@ final class StoreSetupTest extends TestCase
                 ->has('seo.title')
                 ->has('seo.description')
                 ->where('seo.canonical', fn (string $url) => str_ends_with($url, '/stores/'.$store->slug))
+                ->where('seo.robots', 'index, follow')
                 // The catalogue arrives in M2. Until then there is no
                 // product list to render, invented or otherwise.
                 ->missing('products'));

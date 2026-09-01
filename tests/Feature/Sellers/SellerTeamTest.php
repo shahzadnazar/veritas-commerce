@@ -40,7 +40,7 @@ final class SellerTeamTest extends TestCase
     {
         ['user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->post('/seller/team/invitations', [
                 'email' => 'new.colleague@example.com',
                 'role' => SellerRole::CatalogManager->value,
@@ -66,7 +66,7 @@ final class SellerTeamTest extends TestCase
     {
         ['user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => 'hashed@example.com',
             'role' => SellerRole::Viewer->value,
         ]);
@@ -86,9 +86,9 @@ final class SellerTeamTest extends TestCase
 
         $payload = ['email' => 'twice@example.com', 'role' => SellerRole::Viewer->value];
 
-        $this->actingAs($owner)->post('/seller/team/invitations', $payload);
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', $payload);
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->post('/seller/team/invitations', $payload)
             ->assertSessionHasErrors('email');
 
@@ -104,7 +104,7 @@ final class SellerTeamTest extends TestCase
         $token = $this->invite($owner, 'invited@example.com', SellerRole::FinanceManager);
         $invitation = SellerInvitation::query()->firstOrFail();
 
-        $this->actingAs($invitee)
+        $this->actingAs($invitee, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => $token])
             ->assertRedirect('/seller');
 
@@ -126,9 +126,9 @@ final class SellerTeamTest extends TestCase
         $token = $this->invite($owner, 'once@example.com', SellerRole::Viewer);
         $invitation = SellerInvitation::query()->firstOrFail();
 
-        $this->actingAs($invitee)->post("/seller/invitations/{$invitation->public_id}", ['token' => $token]);
+        $this->actingAs($invitee, 'web')->post("/seller/invitations/{$invitation->public_id}", ['token' => $token]);
 
-        $this->actingAs($invitee)
+        $this->actingAs($invitee, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => $token])
             ->assertSessionHasErrors('token');
 
@@ -144,7 +144,7 @@ final class SellerTeamTest extends TestCase
         $token = $this->invite($owner, 'intended@example.com', SellerRole::Viewer);
         $invitation = SellerInvitation::query()->firstOrFail();
 
-        $this->actingAs($stranger)
+        $this->actingAs($stranger, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => $token])
             ->assertSessionHasErrors('token');
 
@@ -160,7 +160,7 @@ final class SellerTeamTest extends TestCase
         $this->invite($owner, 'guessing@example.com', SellerRole::Viewer);
         $invitation = SellerInvitation::query()->firstOrFail();
 
-        $this->actingAs($invitee)
+        $this->actingAs($invitee, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => 'not-the-token'])
             ->assertSessionHasErrors('token');
 
@@ -177,7 +177,7 @@ final class SellerTeamTest extends TestCase
         $invitation = SellerInvitation::query()->firstOrFail();
         $invitation->forceFill(['expires_at' => Carbon::now()->subDay()])->save();
 
-        $this->actingAs($invitee)
+        $this->actingAs($invitee, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => $token])
             ->assertSessionHasErrors('token');
 
@@ -193,11 +193,11 @@ final class SellerTeamTest extends TestCase
         $token = $this->invite($owner, 'withdrawn@example.com', SellerRole::Viewer);
         $invitation = SellerInvitation::query()->firstOrFail();
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->delete("/seller/team/invitations/{$invitation->public_id}")
             ->assertRedirect();
 
-        $this->actingAs($invitee)
+        $this->actingAs($invitee, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => $token])
             ->assertSessionHasErrors('token');
     }
@@ -209,7 +209,7 @@ final class SellerTeamTest extends TestCase
         // not manage membership — that is deliberately the owner's alone.
         ['user' => $administrator] = $this->makeSeller(SellerRole::Administrator);
 
-        $this->actingAs($administrator)
+        $this->actingAs($administrator, 'web')
             ->post('/seller/team/invitations', [
                 'email' => 'nope@example.com',
                 'role' => SellerRole::Viewer->value,
@@ -224,9 +224,9 @@ final class SellerTeamTest extends TestCase
     {
         ['user' => $administrator] = $this->makeSeller(SellerRole::Administrator);
 
-        $this->actingAs($administrator)->get('/seller/team')->assertOk();
+        $this->actingAs($administrator, 'web')->get('/seller/team')->assertOk();
 
-        $this->actingAs($administrator)
+        $this->actingAs($administrator, 'web')
             ->post('/seller/team/invitations', [
                 'email' => 'nope@example.com',
                 'role' => SellerRole::Viewer->value,
@@ -241,7 +241,7 @@ final class SellerTeamTest extends TestCase
         // store is not something a read-only account needs.
         ['user' => $viewer] = $this->makeSeller(SellerRole::Viewer);
 
-        $this->actingAs($viewer)->get('/seller/team')->assertForbidden();
+        $this->actingAs($viewer, 'web')->get('/seller/team')->assertForbidden();
     }
 
     #[Test]
@@ -249,7 +249,7 @@ final class SellerTeamTest extends TestCase
     {
         ['user' => $owner, 'membership' => $membership] = $this->makeSeller();
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->delete("/seller/team/{$membership->id}")
             ->assertSessionHasErrors('member');
 
@@ -266,7 +266,7 @@ final class SellerTeamTest extends TestCase
             'role' => SellerRole::Viewer->value,
         ]);
 
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'web')
             ->delete("/seller/team/{$other->id}")
             ->assertRedirect();
 
@@ -276,7 +276,7 @@ final class SellerTeamTest extends TestCase
     /** Invite through the real action so the token is the one that was hashed. */
     private function invite(User $owner, string $email, SellerRole $role): string
     {
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => $email,
             'role' => $role->value,
         ]);

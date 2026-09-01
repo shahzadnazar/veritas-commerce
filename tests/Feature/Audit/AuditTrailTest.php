@@ -104,12 +104,12 @@ final class AuditTrailTest extends TestCase
     {
         ['seller' => $seller, 'user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/store', [
+        $this->actingAs($owner, 'web')->post('/seller/store', [
             'name' => 'Aeris Kitchen Co.',
             'slug' => 'aeris-kitchen-audit',
         ]);
 
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => 'colleague@example.com',
             'role' => SellerRole::Viewer->value,
         ]);
@@ -131,7 +131,7 @@ final class AuditTrailTest extends TestCase
     {
         ['user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => 'colleague@example.com',
             'role' => SellerRole::Viewer->value,
         ]);
@@ -186,7 +186,7 @@ final class AuditTrailTest extends TestCase
         ['user' => $owner] = $this->makeSeller();
 
         $this->actingAs($admin, 'admin')->post("/admin/applications/{$application->public_id}/approve");
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => 'sweep@example.com',
             'role' => SellerRole::Viewer->value,
         ]);

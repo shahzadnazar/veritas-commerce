@@ -46,4 +46,22 @@ abstract class TestCase extends BaseTestCase
     {
         return AdminUser::factory()->role($role)->withTwoFactor()->create();
     }
+
+    /**
+     * Sign in as a customer or seller, naming the guard.
+     *
+     * actingAs() with no guard writes to whichever guard is currently the
+     * default — so a test that has already acted as an admin would put a
+     * customer into the admin guard. Both realms are always named here for
+     * the same reason the application never calls $request->user() bare.
+     */
+    protected function asUser(User $user): static
+    {
+        return $this->actingAs($user, 'web');
+    }
+
+    protected function asAdmin(AdminUser $admin): static
+    {
+        return $this->actingAs($admin, 'admin');
+    }
 }

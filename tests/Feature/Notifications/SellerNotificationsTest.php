@@ -56,7 +56,7 @@ final class SellerNotificationsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->post('/seller/apply', $this->applicationPayload());
+        $this->actingAs($user, 'web')->post('/seller/apply', $this->applicationPayload());
 
         Notification::assertSentTo($user, SellerApplicationDecided::class,
             fn (SellerApplicationDecided $notification): bool => $notification->status === SellerApplicationStatus::Submitted);
@@ -149,7 +149,7 @@ final class SellerNotificationsTest extends TestCase
     {
         ['user' => $owner] = $this->makeSeller();
 
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => 'not-yet-a-user@example.com',
             'role' => SellerRole::Viewer->value,
         ]);

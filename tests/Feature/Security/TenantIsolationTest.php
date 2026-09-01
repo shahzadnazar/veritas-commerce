@@ -45,7 +45,7 @@ final class TenantIsolationTest extends TestCase
             'role' => SellerRole::Viewer->value,
         ]);
 
-        $response = $this->actingAs($a)->get('/seller/team');
+        $response = $this->actingAs($a, 'web')->get('/seller/team');
         $response->assertOk();
 
         // A's own team page must not contain B's member, whatever the ids.
@@ -72,7 +72,7 @@ final class TenantIsolationTest extends TestCase
         ]);
 
         // 404 rather than 403: a 403 would confirm the id is real.
-        $this->actingAs($a)
+        $this->actingAs($a, 'web')
             ->delete("/seller/team/{$memberB->id}")
             ->assertNotFound();
 
@@ -85,7 +85,7 @@ final class TenantIsolationTest extends TestCase
         ['user' => $a] = $this->makeSeller();
         ['seller' => $sellerB, 'user' => $b] = $this->makeSeller();
 
-        $this->actingAs($b)->post('/seller/team/invitations', [
+        $this->actingAs($b, 'web')->post('/seller/team/invitations', [
             'email' => 'b-colleague@example.com',
             'role' => SellerRole::Viewer->value,
         ]);
@@ -94,7 +94,7 @@ final class TenantIsolationTest extends TestCase
             ->where('seller_account_id', $sellerB->id)
             ->firstOrFail();
 
-        $this->actingAs($a)
+        $this->actingAs($a, 'web')
             ->delete("/seller/team/invitations/{$invitation->public_id}")
             ->assertNotFound();
 
@@ -114,7 +114,7 @@ final class TenantIsolationTest extends TestCase
 
         // There is no store id to tamper with, so the attempt is to plant
         // one in the payload and see whether it is believed.
-        $this->actingAs($a)->post('/seller/store', [
+        $this->actingAs($a, 'web')->post('/seller/store', [
             'id' => $storeB->id,
             'store_id' => $storeB->id,
             'seller_account_id' => $storeB->seller_account_id,
@@ -132,7 +132,7 @@ final class TenantIsolationTest extends TestCase
         ['user' => $a, 'store' => $storeA] = $this->makeSeller();
         ['store' => $storeB] = $this->makeSeller();
 
-        $this->actingAs($a)
+        $this->actingAs($a, 'web')
             ->get('/seller/store')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
@@ -148,10 +148,10 @@ final class TenantIsolationTest extends TestCase
         $customer = User::factory()->create();
 
         foreach (['/seller', '/seller/store', '/seller/team'] as $route) {
-            $this->actingAs($customer)->get($route)->assertNotFound();
+            $this->actingAs($customer, 'web')->get($route)->assertNotFound();
         }
 
-        $this->actingAs($customer)
+        $this->actingAs($customer, 'web')
             ->post('/seller/team/invitations', ['email' => 'x@example.com', 'role' => 'viewer'])
             ->assertNotFound();
     }
@@ -162,9 +162,9 @@ final class TenantIsolationTest extends TestCase
         ['user' => $seller] = $this->makeSeller();
         $application = SellerApplication::factory()->create();
 
-        $this->actingAs($seller)->get('/admin')->assertRedirect('/admin/login');
-        $this->actingAs($seller)->get('/admin/applications')->assertRedirect('/admin/login');
-        $this->actingAs($seller)
+        $this->actingAs($seller, 'web')->get('/admin')->assertRedirect('/admin/login');
+        $this->actingAs($seller, 'web')->get('/admin/applications')->assertRedirect('/admin/login');
+        $this->actingAs($seller, 'web')
             ->post("/admin/applications/{$application->public_id}/approve")
             ->assertRedirect('/admin/login');
 
@@ -198,16 +198,16 @@ final class TenantIsolationTest extends TestCase
         ]);
 
         // They still owe their customers fulfilment, so the portal opens.
-        $this->actingAs($owner)->get('/seller')->assertOk();
+        $this->actingAs($owner, 'web')->get('/seller')->assertOk();
 
         // But nothing can be changed, whichever route is called directly.
-        $this->actingAs($owner)->get('/seller/store')->assertForbidden();
-        $this->actingAs($owner)->post('/seller/store', [
+        $this->actingAs($owner, 'web')->get('/seller/store')->assertForbidden();
+        $this->actingAs($owner, 'web')->post('/seller/store', [
             'name' => 'Changed while suspended',
             'slug' => 'changed-while-suspended',
         ])->assertForbidden();
 
-        $this->actingAs($owner)->post('/seller/team/invitations', [
+        $this->actingAs($owner, 'web')->post('/seller/team/invitations', [
             'email' => 'during@example.com',
             'role' => SellerRole::Viewer->value,
         ])->assertForbidden();
@@ -246,14 +246,14 @@ final class TenantIsolationTest extends TestCase
         ['user' => $a] = $this->makeSeller();
         ['user' => $b] = $this->makeSeller();
 
-        $this->actingAs($b)->post('/seller/team/invitations', [
+        $this->actingAs($b, 'web')->post('/seller/team/invitations', [
             'email' => 'someone-else@example.com',
             'role' => SellerRole::Owner->value,
         ]);
 
         $invitation = SellerInvitation::query()->firstOrFail();
 
-        $this->actingAs($a)
+        $this->actingAs($a, 'web')
             ->post("/seller/invitations/{$invitation->public_id}", ['token' => 'anything'])
             ->assertSessionHasErrors('token');
 
@@ -261,6 +261,95 @@ final class TenantIsolationTest extends TestCase
             'seller_account_id' => $invitation->seller_account_id,
             'user_id' => $a->id,
         ]);
+    }
+
+    #[Test]
+    public function a_manipulated_seller_id_does_not_switch_tenants(): void
+    {
+        ['user' => $a, 'seller' => $sellerA, 'store' => $storeA] = $this->makeSeller();
+        ['seller' => $sellerB, 'store' => $storeB] = $this->makeSeller();
+
+        // Every shape a request could use to nominate a different tenant.
+        foreach ([
+            "/seller?seller={$sellerB->public_id}",
+            "/seller?seller_account_id={$sellerB->id}",
+            "/seller?seller_id={$sellerB->id}",
+            "/seller/store?store={$storeB->id}",
+            "/seller/store?seller_account_id={$sellerB->id}",
+        ] as $url) {
+            $response = $this->actingAs($a, 'web')->get($url);
+            $response->assertOk();
+
+            $response->assertInertia(fn ($page) => $page
+                ->where('auth.seller.publicId', $sellerA->public_id));
+        }
+
+        $this->assertNotSame($sellerA->public_id, $sellerB->public_id);
+        $this->assertNotSame($storeA->slug, $storeB->slug);
+    }
+
+    #[Test]
+    public function a_viewer_is_refused_every_write_route_it_is_shown_or_not(): void
+    {
+        ['user' => $viewer, 'store' => $store] = $this->makeSeller(SellerRole::Viewer);
+
+        $this->actingAs($viewer, 'web')->get('/seller/store')->assertForbidden();
+        $this->actingAs($viewer, 'web')->post('/seller/store', [
+            'name' => 'Renamed by a viewer',
+            'slug' => 'renamed-by-a-viewer',
+        ])->assertForbidden();
+        $this->actingAs($viewer, 'web')->post('/seller/team/invitations', [
+            'email' => 'nope@example.com',
+            'role' => SellerRole::Viewer->value,
+        ])->assertForbidden();
+
+        $this->assertNotSame('Renamed by a viewer', $store->fresh()?->name);
+    }
+
+    #[Test]
+    public function an_applicant_awaiting_approval_cannot_configure_a_store(): void
+    {
+        // A pending seller account exists, but nobody has been approved
+        // into it, so there is no membership and no portal.
+        $applicant = User::factory()->create();
+        SellerApplication::factory()->create(['user_id' => $applicant->id]);
+
+        $this->actingAs($applicant, 'web')->get('/seller/store')->assertNotFound();
+        $this->actingAs($applicant, 'web')->post('/seller/store', [
+            'name' => 'Jumping the queue',
+            'slug' => 'jumping-the-queue',
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('stores', ['slug' => 'jumping-the-queue']);
+    }
+
+    #[Test]
+    public function reactivation_restores_exactly_the_access_suspension_removed(): void
+    {
+        ['seller' => $seller, 'user' => $owner, 'store' => $store] = $this->makeSeller();
+        $admin = $this->makeAdmin(AdminRole::SellerOperations);
+
+        $this->actingAs($admin, 'admin')
+            ->post("/admin/sellers/{$seller->public_id}/suspend", ['reason' => 'Repeated late dispatch.']);
+
+        $this->actingAs($owner, 'web')->post('/seller/store', [
+            'name' => 'Blocked while suspended',
+            'slug' => 'blocked-while-suspended',
+        ])->assertForbidden();
+        $this->get('/stores/'.$store->slug)->assertNotFound();
+
+        $this->actingAs($admin, 'admin')
+            ->post("/admin/sellers/{$seller->public_id}/reactivate")
+            ->assertRedirect();
+
+        $this->actingAs($owner, 'web')->get('/seller/store')->assertOk();
+        $this->actingAs($owner, 'web')->post('/seller/store', [
+            'name' => 'Allowed again',
+            'slug' => 'allowed-again',
+        ])->assertRedirect();
+
+        $this->assertSame('Allowed again', $store->fresh()?->name);
+        $this->get('/stores/allowed-again')->assertOk();
     }
 
     #[Test]
@@ -273,7 +362,7 @@ final class TenantIsolationTest extends TestCase
 
         // There is no id in the route at all: the application is resolved
         // from the session, so there is nothing to substitute.
-        $this->actingAs($mine)
+        $this->actingAs($mine, 'web')
             ->get('/seller/apply')
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('Apply')->where('application', null));

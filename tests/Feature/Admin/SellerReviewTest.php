@@ -11,7 +11,6 @@ use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Models\SellerAccount;
 use App\Modules\Sellers\Models\SellerApplication;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -35,11 +34,6 @@ final class SellerReviewTest extends TestCase
     private function admin(AdminRole $role = AdminRole::SellerOperations): AdminUser
     {
         return AdminUser::factory()->role($role)->withTwoFactor()->create();
-    }
-
-    private function asAdmin(AdminUser $admin): BaseTestCase
-    {
-        return $this->actingAs($admin, 'admin');
     }
 
     #[Test]
