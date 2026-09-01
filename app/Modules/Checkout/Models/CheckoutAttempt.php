@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string $public_id
  * @property string $idempotency_key
  * @property int|null $user_id
+ * @property string|null $email
  * @property int|null $cart_id
  * @property int|null $marketplace_order_id
  * @property CheckoutStatus $status
@@ -44,7 +45,7 @@ final class CheckoutAttempt extends Model
     use HasPublicId;
 
     protected $fillable = [
-        'idempotency_key', 'user_id', 'cart_id', 'marketplace_order_id',
+        'idempotency_key', 'user_id', 'email', 'cart_id', 'marketplace_order_id',
         'status', 'currency', 'items_total_minor', 'shipping_total_minor',
         'tax_total_minor', 'grand_total_minor', 'shipping_address',
         'failure_reason', 'expires_at', 'completed_at',

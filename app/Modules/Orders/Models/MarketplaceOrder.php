@@ -42,10 +42,13 @@ use Illuminate\Support\Carbon;
  * @property string $ship_line1
  * @property string|null $ship_line2
  * @property string $ship_city
- * @property string $ship_state
+ * @property string|null $ship_state
  * @property string $ship_postcode
  * @property string $ship_country
  * @property string|null $ship_phone
+ * @property int|null $checkout_attempt_id
+ * @property Carbon|null $payment_expires_at
+ * @property string|null $reservation_reference
  * @property Carbon|null $placed_at
  * @property Carbon|null $completed_at
  * @property Carbon|null $cancelled_at
@@ -69,6 +72,7 @@ final class MarketplaceOrder extends Model
         'discount_total_minor', 'grand_total_minor',
         'ship_name', 'ship_line1', 'ship_line2', 'ship_city', 'ship_state',
         'ship_postcode', 'ship_country', 'ship_phone', 'placed_at',
+        'checkout_attempt_id', 'payment_expires_at', 'reservation_reference',
     ];
 
     protected function casts(): array
@@ -76,6 +80,7 @@ final class MarketplaceOrder extends Model
         return [
             'status' => MarketplaceOrderStatus::class,
             'placed_at' => 'datetime',
+            'payment_expires_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];

@@ -60,6 +60,7 @@ final class StartCheckout
         string $idempotencyKey,
         ShippingAddress $address,
         ?int $userId = null,
+        ?string $email = null,
     ): CheckoutAttempt {
         $existing = $this->existingAttempt($idempotencyKey, $cart, $userId);
 
@@ -84,7 +85,7 @@ final class StartCheckout
         }
 
         try {
-            return $this->accept($idempotencyKey, $cart, $userId, $address, $quote);
+            return $this->accept($idempotencyKey, $cart, $userId, $email, $address, $quote);
         } catch (InsufficientStock) {
             /*
              * The gap §11 exists to close. The quote was buyable a
@@ -155,13 +156,17 @@ final class StartCheckout
         string $key,
         Cart $cart,
         ?int $userId,
+        ?string $email,
         ShippingAddress $address,
         CheckoutQuote $quote,
     ): CheckoutAttempt {
-        return DB::transaction(function () use ($key, $cart, $userId, $address, $quote): CheckoutAttempt {
+        return DB::transaction(function () use ($key, $cart, $userId, $email, $address, $quote): CheckoutAttempt {
             $attempt = CheckoutAttempt::query()->create([
                 'idempotency_key' => $key,
                 'user_id' => $userId,
+                // A receipt goes to a person, a parcel goes to a place;
+                // for a guest checkout the two are given separately.
+                'email' => $email ?? $this->emailFor($userId),
                 'cart_id' => $cart->id,
                 'status' => CheckoutStatus::Reserved->value,
                 'currency' => $quote->currency,
@@ -241,6 +246,17 @@ final class StartCheckout
         }
 
         return $refusal;
+    }
+
+    private function emailFor(?int $userId): ?string
+    {
+        if ($userId === null) {
+            return null;
+        }
+
+        $email = DB::table('users')->where('id', $userId)->value('email');
+
+        return is_string($email) ? $email : null;
     }
 
     private function isDuplicateKey(QueryException $e): bool

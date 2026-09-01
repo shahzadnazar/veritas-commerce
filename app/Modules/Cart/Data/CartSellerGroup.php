@@ -18,6 +18,7 @@ final readonly class CartSellerGroup
     /** @param  array<int, CartLine>  $lines */
     public function __construct(
         public int $sellerAccountId,
+        public int $storeId,
         public string $storeName,
         public string $storeSlug,
         public array $lines,

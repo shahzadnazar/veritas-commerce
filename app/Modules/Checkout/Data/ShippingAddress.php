@@ -71,25 +71,6 @@ final readonly class ShippingAddress
         ];
     }
 
-    /**
-     * The order's own ship_* columns.
-     *
-     * @return array<string, string|null>
-     */
-    public function toOrderColumns(): array
-    {
-        return [
-            'ship_name' => $this->name,
-            'ship_line1' => $this->line1,
-            'ship_line2' => $this->line2,
-            'ship_city' => $this->city,
-            'ship_state' => $this->state,
-            'ship_postcode' => $this->postcode,
-            'ship_country' => $this->country,
-            'ship_phone' => $this->phone,
-        ];
-    }
-
     /** @param array<string, mixed> $row */
     private static function string(array $row, string $key): string
     {

@@ -176,8 +176,10 @@ final class BuildCartView
             variantName: $offer->productVariant->name ?? null,
             variantId: $offer->product_variant_id,
             sellerAccountId: $offer->seller_account_id,
+            storeId: $store->id,
             storeName: $store->name,
             storeSlug: $store->slug,
+            categoryId: $product->category_id,
             sellerSku: $offer->seller_sku,
             quantity: $item->quantity,
             unitPrice: $unitPrice,
@@ -313,6 +315,7 @@ final class BuildCartView
 
             $groups[] = new CartSellerGroup(
                 sellerAccountId: $sellerId,
+                storeId: $first->storeId,
                 storeName: $first->storeName,
                 storeSlug: $first->storeSlug,
                 lines: $sellerLines,

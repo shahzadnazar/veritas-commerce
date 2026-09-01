@@ -36,6 +36,10 @@ use RuntimeException;
  * @property int|null $product_id
  * @property int|null $product_variant_id
  * @property string $product_title
+ * @property string|null $brand_name_snapshot
+ * @property string|null $store_name_snapshot
+ * @property string|null $product_slug_snapshot
+ * @property array<string, mixed>|null $variant_options_snapshot
  * @property string|null $variant_name
  * @property string $seller_sku
  * @property string $currency
@@ -84,6 +88,8 @@ final class OrderItem extends Model
     protected $fillable = [
         'seller_order_id', 'offer_id', 'product_id', 'product_variant_id',
         'product_title', 'variant_name', 'seller_sku', 'currency',
+        'brand_name_snapshot', 'store_name_snapshot', 'product_slug_snapshot',
+        'variant_options_snapshot',
         'unit_price_snapshot_minor', 'quantity', 'discount_snapshot_minor',
         'line_total_minor', 'tax_amount_minor', 'tax_rate_snapshot', 'tax_source',
         'commission_rate_snapshot', 'commission_rule_id', 'commission_scope_snapshot',
@@ -101,6 +107,7 @@ final class OrderItem extends Model
             'seller_earning_amount_minor' => 'integer',
             'refunded_amount_minor' => 'integer',
             'snapshotted_at' => 'datetime',
+            'variant_options_snapshot' => 'array',
         ];
     }
 

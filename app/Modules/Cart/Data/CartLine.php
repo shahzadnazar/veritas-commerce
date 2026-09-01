@@ -28,8 +28,12 @@ final readonly class CartLine
         public ?string $variantName,
         public ?int $variantId,
         public int $sellerAccountId,
+        public int $storeId,
         public string $storeName,
         public string $storeSlug,
+        /* Carried so order creation does not look one up per line: the
+         * commission rule may be scoped to a category. */
+        public ?int $categoryId,
         public string $sellerSku,
         public int $quantity,
         public Money $unitPrice,
