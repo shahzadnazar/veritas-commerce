@@ -296,17 +296,40 @@ final class PostgresSearchIndex implements SearchIndex
         $sort = $query->sort->resolvedFor($query->hasPhrase());
 
         return match ($sort) {
-            SortOption::PriceAscending => $builder
-                ->orderByRaw('lowest_price_minor asc nulls last')
-                ->orderBy('product_id'),
-            SortOption::PriceDescending => $builder
-                ->orderByRaw('lowest_price_minor desc nulls last')
-                ->orderBy('product_id'),
-            SortOption::Newest => $builder
-                ->orderByRaw('published_at desc nulls last')
-                ->orderBy('product_id'),
+            SortOption::PriceAscending => $this->thenAvailability(
+                $builder->orderByRaw('lowest_price_minor asc nulls last'),
+            ),
+            SortOption::PriceDescending => $this->thenAvailability(
+                $builder->orderByRaw('lowest_price_minor desc nulls last'),
+            ),
+            SortOption::Newest => $this->thenAvailability(
+                $builder->orderByRaw('published_at desc nulls last'),
+            ),
             SortOption::Relevance => $this->orderByRelevance($builder, $query->phrase),
         };
+    }
+
+    /**
+     * The availability policy, applied to every sort.
+     *
+     * §1 of the M4 brief, and the only place it is expressed: an
+     * out-of-stock product keeps its page, its indexability and its
+     * presence in results, but where two results are otherwise equivalent
+     * the one a customer can actually buy comes first. "Otherwise
+     * equivalent" is what makes this a tie-break rather than a filter —
+     * it never reorders a cheaper result below a dearer one.
+     *
+     * Applied here rather than per sort so a fifth sort added later cannot
+     * quietly forget it, and nowhere in React, which could not see the
+     * whole result set anyway.
+     */
+    private function thenAvailability(Builder $builder): Builder
+    {
+        return $builder
+            ->orderByRaw('in_stock desc')
+            // Last, always: two identical results must not swap places
+            // between requests.
+            ->orderBy('product_id');
     }
 
     /**
@@ -321,16 +344,16 @@ final class PostgresSearchIndex implements SearchIndex
     {
         $normalised = SearchText::normalise($phrase);
 
-        return $builder
+        $ranked = $builder
             ->orderByRaw('case when identifiers @> ?::text[] then 0 else 1 end', [$this->textArray([$normalised])])
             ->orderByRaw('case when normalised_title = ? then 0 else 1 end', [$normalised])
             ->orderByRaw('case when normalised_title like ? then 0 else 1 end', [$normalised.'%'])
             ->orderByRaw("ts_rank(search_vector, websearch_to_tsquery('english', ?)) desc", [$phrase])
-            ->orderByRaw('word_similarity(?, normalised_title) desc', [$normalised])
-            // In stock above out of stock: a buyable result is worth more
-            // than an identical unbuyable one.
-            ->orderByRaw('in_stock desc')
-            ->orderBy('product_id');
+            ->orderByRaw('word_similarity(?, normalised_title) desc', [$normalised]);
+
+        // Availability and the stable id come from the shared policy, so
+        // relevance cannot drift from the other three sorts.
+        return $this->thenAvailability($ranked);
     }
 
     /**

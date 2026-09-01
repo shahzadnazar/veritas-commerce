@@ -125,7 +125,7 @@ final class SearchEngineTest extends TestCase
     {
         $draft = $this->listedProduct('Secret Kettle');
         $draft->forceFill(['status' => ProductStatus::PendingReview->value])->save();
-        $this->reindex($draft);
+        $this->reindexProduct($draft);
 
         $this->assertSame(0, $this->index->query(new SearchQuery(phrase: 'Secret Kettle'))->total);
     }
@@ -135,7 +135,7 @@ final class SearchEngineTest extends TestCase
     {
         $product = $this->listedProduct('Recalled Kettle');
         $product->forceFill(['status' => ProductStatus::Suspended->value])->save();
-        $this->reindex($product);
+        $this->reindexProduct($product);
 
         $this->assertSame(0, $this->index->query(new SearchQuery(phrase: 'Recalled Kettle'))->total);
     }
@@ -145,7 +145,7 @@ final class SearchEngineTest extends TestCase
     {
         $product = $this->listedProduct('Aeris Kettle');
         Offer::query()->where('product_id', $product->id)->update(['status' => OfferStatus::Suspended->value]);
-        $this->reindex($product);
+        $this->reindexProduct($product);
 
         $results = $this->index->query(new SearchQuery(phrase: 'Aeris Kettle'));
 
@@ -163,7 +163,7 @@ final class SearchEngineTest extends TestCase
         $seller = Offer::query()->where('product_id', $product->id)->firstOrFail()->sellerAccount;
 
         $seller?->forceFill(['status' => SellerStatus::Suspended->value])->save();
-        $this->reindex($product);
+        $this->reindexProduct($product);
 
         $results = $this->index->query(new SearchQuery(phrase: 'Aeris Kettle'));
 
@@ -176,7 +176,7 @@ final class SearchEngineTest extends TestCase
         $product = $this->listedProduct('Aeris Kettle');
         $this->addOffer($product, 8_900);
         $this->addOffer($product, 12_500);
-        $this->reindex($product);
+        $this->reindexProduct($product);
 
         $results = $this->index->query(new SearchQuery(phrase: 'Aeris Kettle'));
 
@@ -261,8 +261,8 @@ final class SearchEngineTest extends TestCase
             'product_id' => $small->id, 'attribute_id' => $storage->id, 'value_int' => 128,
         ]);
 
-        $this->reindex($big);
-        $this->reindex($small);
+        $this->reindexProduct($big);
+        $this->reindexProduct($small);
 
         $results = $this->index->query(new SearchQuery(attributes: ['storage' => ['256']]));
 
@@ -300,8 +300,8 @@ final class SearchEngineTest extends TestCase
 
         // Reindexed oldest-last on purpose: a reindex must not reorder the
         // catalogue.
-        $this->reindex($newer);
-        $this->reindex($older);
+        $this->reindexProduct($newer);
+        $this->reindexProduct($older);
 
         $results = $this->index->query(new SearchQuery(sort: SortOption::Newest));
 
@@ -315,6 +315,67 @@ final class SearchEngineTest extends TestCase
         // arbitrary order presented as a considered one.
         $this->assertSame(SortOption::Newest, SortOption::Relevance->resolvedFor(false));
         $this->assertSame(SortOption::Relevance, SortOption::Relevance->resolvedFor(true));
+    }
+
+    #[Test]
+    public function an_in_stock_product_outranks_an_identical_out_of_stock_one(): void
+    {
+        // Same title, same price, same everything but availability.
+        $empty = $this->listedProduct('Aeris Cordless Kettle', stock: 0);
+        $stocked = $this->listedProduct('Aeris Cordless Kettle');
+
+        $results = $this->index->query(new SearchQuery(phrase: 'Aeris Cordless Kettle'));
+
+        $this->assertSame(
+            [$stocked->id, $empty->id],
+            array_column($results->hits, 'productId'),
+            'A buyable result outranks an identical unbuyable one.',
+        );
+    }
+
+    #[Test]
+    public function the_availability_tie_break_applies_to_every_sort(): void
+    {
+        // Same price and same publication date, so availability is the
+        // only thing left to order them by.
+        $empty = $this->listedProduct('Kettle A', priceMinor: 9_900, stock: 0);
+        $stocked = $this->listedProduct('Kettle B', priceMinor: 9_900);
+
+        $moment = now()->subDay();
+        Product::query()->whereIn('id', [$empty->id, $stocked->id])->update(['published_at' => $moment]);
+
+        $this->reindexProduct($empty);
+        $this->reindexProduct($stocked);
+
+        /*
+         * §1: the rule is a default tie-break, not a filter, and it lives
+         * in one place — so a sort added later cannot quietly forget it.
+         */
+        foreach ([SortOption::PriceAscending, SortOption::PriceDescending, SortOption::Newest] as $sort) {
+            $results = $this->index->query(new SearchQuery(sort: $sort));
+
+            $this->assertSame(
+                $stocked->id,
+                $results->hits[0]->productId,
+                "Availability did not break the tie under {$sort->value}.",
+            );
+        }
+    }
+
+    #[Test]
+    public function availability_never_outranks_a_genuinely_cheaper_result(): void
+    {
+        $cheapButEmpty = $this->listedProduct('Kettle A', priceMinor: 5_000, stock: 0);
+        $dearButStocked = $this->listedProduct('Kettle B', priceMinor: 50_000);
+
+        $results = $this->index->query(new SearchQuery(sort: SortOption::PriceAscending));
+
+        // A tie-break breaks ties. Sorting by price and getting the dearer
+        // product first would be the control lying about what it does.
+        $this->assertSame(
+            [$cheapButEmpty->id, $dearButStocked->id],
+            array_column($results->hits, 'productId'),
+        );
     }
 
     #[Test]
@@ -373,6 +434,7 @@ final class SearchEngineTest extends TestCase
         ?string $gtin = null,
         int $priceMinor = 9_900,
         ?OfferCondition $condition = null,
+        int $stock = 10,
     ): Product {
         $product = Product::factory()->create([
             'title' => $title,
@@ -383,14 +445,18 @@ final class SearchEngineTest extends TestCase
             'gtin' => $gtin,
         ]);
 
-        $this->addOffer($product, $priceMinor, $condition);
-        $this->reindex($product);
+        $this->addOffer($product, $priceMinor, $condition, $stock);
+        $this->reindexProduct($product);
 
         return $product;
     }
 
-    private function addOffer(Product $product, int $priceMinor, ?OfferCondition $condition = null): Offer
-    {
+    private function addOffer(
+        Product $product,
+        int $priceMinor,
+        ?OfferCondition $condition = null,
+        int $stock = 10,
+    ): Offer {
         $seller = SellerAccount::factory()->create(['status' => SellerStatus::Approved->value]);
         $store = Store::factory()->create(['seller_account_id' => $seller->id, 'is_open' => true]);
 
@@ -404,14 +470,17 @@ final class SearchEngineTest extends TestCase
             'status' => OfferStatus::Published->value,
         ]);
 
-        // Stocked, so availability-sensitive assertions have something to
-        // measure rather than defaulting to zero everywhere.
-        $this->stockOffer($offer, 10);
+        // Stocked by default, so availability-sensitive assertions have
+        // something to measure rather than defaulting to zero everywhere.
+        // Pass zero where the test is about an empty listing.
+        if ($stock > 0) {
+            $this->stockOffer($offer, $stock);
+        }
 
         return $offer;
     }
 
-    private function reindex(Product $product): void
+    private function reindexProduct(Product $product): void
     {
         $document = app(BuildIndexableProduct::class)->describe($product->id);
 
