@@ -272,6 +272,145 @@ jobs:
                   curl -fsS http://127.0.0.1:8000/robots.txt | grep -q 'Disallow: /search'
                   curl -fsS http://127.0.0.1:8000/robots.txt | grep -q 'Sitemap: '
 
+            # M4's commerce path, on the built image: a real basket, a
+            # real checkout and a real payment-pending order, plus the
+            # isolation that has to hold around them. Controller tests
+            # cannot prove any of this against a production build.
+            - name: A customer can fill a basket and reach a payment-pending order
+              run: |
+                  # Known accounts and a stocked offer, created through the
+                  # same models the application uses. Written to a file so
+                  # a seeding failure fails THIS step rather than a curl
+                  # three steps later.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m4-smoke-seed.php";' > m4.txt
+                  cat m4.txt
+                  offer=$(grep '^offer=' m4.txt | cut -d= -f2 | tr -d '\r')
+                  test -n "$offer"
+
+                  jar=$(mktemp)
+                  base=http://127.0.0.1:8000
+                  xsrf() { grep XSRF-TOKEN "$jar" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))'; }
+
+                  # Anonymous first: the basket is open to everyone, and
+                  # every transactional page must refuse a crawler.
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/cart"
+                  curl -sD - -o /dev/null -b "$jar" "$base/cart" | grep -qi 'X-Robots-Tag: noindex, nofollow'
+
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/login"
+                  test "$(curl -s -b "$jar" -c "$jar" -o /dev/null -w '%{http_code}' -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" \
+                      -d 'email=m4-customer@veritas.test' -d 'password=m4-smoke-password')" = "302"
+
+                  test "$(curl -s -b "$jar" -c "$jar" -o /dev/null -w '%{http_code}' -X POST "$base/cart" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" -d "offer=${offer}" -d 'quantity=2')" = "302"
+
+                  # Server-rendered, so the basket is in the first response.
+                  cart=$(curl -fsS -b "$jar" -c "$jar" "$base/cart")
+                  test "$(echo "$cart" | grep -c '<title')" = "1"
+                  echo "$cart" | grep -q 'M4 Smoke Kettle'
+                  echo "$cart" | grep -q 'M4 Smoke Store'
+                  echo "$cart" | grep -q '\$90.00'
+                  echo "$cart" | grep -q 'Continue to checkout'
+
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/checkout"
+
+                  location=$(curl -sD - -o /dev/null -b "$jar" -c "$jar" -X POST "$base/checkout" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" \
+                      -d 'idempotency_key=m4smokekey123456' -d 'email=m4-customer@veritas.test' \
+                      -d 'name=M4 Customer' -d 'line1=1 Test Way' -d 'city=London' \
+                      -d 'postcode=EC1A 1BB' -d 'country=GB' \
+                      | grep -i '^location:' | tr -d '\r' | awk '{print $2}')
+                  test -n "$location"
+                  ref=$(echo "$location" | sed 's#.*/checkout/##;s#/payment##')
+                  echo "order $ref"
+
+                  # The M4 boundary, in the page's own words: an order
+                  # exists and nothing has been paid.
+                  pending=$(curl -fsS -b "$jar" -c "$jar" "$location")
+                  echo "$pending" | grep -q 'Awaiting payment'
+                  echo "$pending" | grep -qi 'payment has not yet been completed'
+                  ! echo "$pending" | grep -qi 'payment successful'
+                  ! echo "$pending" | grep -qi 'order confirmed'
+
+                  # And the stock is HELD, not sold: on_hand untouched,
+                  # availability down by two.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m4-holds.php";' > holds.txt
+                  cat holds.txt
+                  grep -q 'holds on_hand=25 reserved=2 available=23 status=pending_payment' holds.txt
+
+                  order=$(curl -fsS -b "$jar" -c "$jar" "$base/account/orders/${ref}")
+                  echo "$order" | grep -q 'M4 Smoke Kettle'
+                  echo "$order" | grep -q "${ref}-01"
+
+                  # A resubmission of the same key is the same checkout.
+                  curl -s -b "$jar" -c "$jar" -o /dev/null -X POST "$base/checkout" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" \
+                      -d 'idempotency_key=m4smokekey123456' -d 'email=m4-customer@veritas.test' \
+                      -d 'name=M4 Customer' -d 'line1=1 Test Way' -d 'city=London' \
+                      -d 'postcode=EC1A 1BB' -d 'country=GB'
+                  docker compose exec -T app php artisan tinker --execute \
+                      'echo "orders=".\App\Modules\Orders\Models\MarketplaceOrder::query()->count();' \
+                      | grep -q 'orders=1'
+
+                  echo "$ref" > m4-ref.txt
+
+            - name: A seller sees only their half, and nobody else reaches it
+              run: |
+                  ref=$(cat m4-ref.txt)
+                  base=http://127.0.0.1:8000
+                  login() {
+                      jar=$1; email=$2
+                      curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/login"
+                      t=$(grep XSRF-TOKEN "$jar" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))')
+                      curl -s -b "$jar" -c "$jar" -o /dev/null -w '%{http_code}' -X POST "$base/login" \
+                          -H "X-XSRF-TOKEN: $t" -d "email=$email" -d 'password=m4-smoke-password'
+                  }
+
+                  seller=$(mktemp); other=$(mktemp); stranger=$(mktemp)
+                  test "$(login "$seller" m4-seller@veritas.test)" = "302"
+                  test "$(login "$other" m4-other-seller@veritas.test)" = "302"
+                  test "$(login "$stranger" m4-stranger@veritas.test)" = "302"
+
+                  curl -fsS -b "$seller" -c "$seller" "$base/seller/orders" | grep -q "${ref}-01"
+                  curl -fsS -b "$seller" -c "$seller" -o /dev/null "$base/seller/orders/${ref}-01"
+
+                  # An unpaid seller order is visible and not actionable.
+                  curl -fsS -b "$seller" -c "$seller" "$base/seller/orders/${ref}-01" \
+                      | grep -q 'cannot be packed or shipped until payment is confirmed'
+
+                  # The parent number is printed on the page; it is not a
+                  # route into the parent.
+                  test "$(curl -s -b "$seller" -o /dev/null -w '%{http_code}' "$base/seller/orders/${ref}")" = "404"
+
+                  # Another seller reaches none of it, by URL or by search.
+                  test "$(curl -s -b "$other" -o /dev/null -w '%{http_code}' "$base/seller/orders/${ref}-01")" = "404"
+                  ! curl -fsS -b "$other" "$base/seller/orders?parent=${ref}" | grep -q "${ref}-01"
+
+                  # And neither does another customer.
+                  test "$(curl -s -b "$stranger" -o /dev/null -w '%{http_code}' "$base/account/orders/${ref}")" = "404"
+                  test "$(curl -s -b "$stranger" -o /dev/null -w '%{http_code}' "$base/checkout/${ref}/payment")" = "404"
+
+                  # Every private path refuses a crawler.
+                  for path in /cart /checkout "/checkout/${ref}/payment" /account/orders "/account/orders/${ref}" /seller/orders "/seller/orders/${ref}-01"; do
+                      curl -sD - -o /dev/null -b "$seller" "${base}${path}" | grep -qi 'X-Robots-Tag: noindex, nofollow'
+                  done
+
+            - name: The unpaid order gives its stock back, once
+              run: |
+                  # The scheduled sweep, against real order data, run twice.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m4-expire.php";' > expire.txt
+                  cat expire.txt
+                  grep -q 'order=cancelled' expire.txt
+                  grep -q 'seller=cancelled' expire.txt
+                  grep -q 'reserved=0' expire.txt
+                  grep -q 'on_hand=25' expire.txt
+                  grep -q 'releases=1' expire.txt
+                  grep -q 'sales=0' expire.txt
+                  grep -q 'ledger=0' expire.txt
+
             - name: The inventory ledger reconciles in the built image
               run: |
                   # The stored `reserved` column is only safe because
