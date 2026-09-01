@@ -55,7 +55,9 @@ final class PostLedgerEntry
                 ->orderByDesc('id')
                 ->first();
 
-            $balanceAfter = ((int) ($previous?->balance_after_minor ?? 0)) + $amountMinor;
+            // A seller's first entry has nothing before it, and the
+            // running balance starts at zero.
+            $balanceAfter = ($previous === null ? 0 : $previous->balance_after_minor) + $amountMinor;
 
             $resolvedStatus = $status ?? $this->defaultStatusFor($type);
 

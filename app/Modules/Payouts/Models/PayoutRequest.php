@@ -26,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string $currency
  * @property int $amount_minor
  * @property PayoutStatus $status
- * @property Carbon|null $requested_at
+ * @property Carbon $requested_at
  * @property Carbon|null $decided_at
  * @property int|null $decided_by_admin_id
  * @property string|null $decision_reason

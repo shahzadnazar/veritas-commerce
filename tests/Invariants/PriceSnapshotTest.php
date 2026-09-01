@@ -64,7 +64,7 @@ final class PriceSnapshotTest extends TestCase
         $this->assertSame(9_200, $item->unit_price_snapshot_minor, 'The price the customer paid must not move.');
         $this->assertSame(9_200, $item->line_total_minor);
         $this->assertSame('Aeris cordless kettle, 1.2L', $item->product_title);
-        $this->assertSame(12_900, $offer->fresh()->price_minor, 'The live offer is free to change.');
+        $this->assertSame(12_900, $offer->refresh()->price_minor, 'The live offer is free to change.');
     }
 
     #[Test]

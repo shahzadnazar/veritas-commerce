@@ -24,10 +24,11 @@ final class SellerOrderFactory extends Factory
             'seller_account_id' => SellerAccount::factory(),
             'store_id' => Store::factory(),
             'position' => 1,
-            'reference' => fn (array $attributes): string => Reference::subOrder(
-                MarketplaceOrder::find($attributes['marketplace_order_id'])?->reference ?? 'VC-00000',
-                $attributes['position'],
-            ),
+            'reference' => function (array $attributes): string {
+                $order = MarketplaceOrder::query()->whereKey($attributes['marketplace_order_id'])->firstOrFail();
+
+                return Reference::subOrder($order->reference, $attributes['position']);
+            },
             'status' => SellerOrderStatus::Paid->value,
             'currency' => 'USD',
         ];

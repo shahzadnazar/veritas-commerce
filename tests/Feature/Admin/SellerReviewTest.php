@@ -172,7 +172,7 @@ final class SellerReviewTest extends TestCase
 
         $fresh = $application->fresh();
         $this->assertSame(SellerApplicationStatus::Rejected, $fresh?->status);
-        $this->assertSame('The tax ID does not match the registered business name.', $fresh?->decision_reason);
+        $this->assertSame('The tax ID does not match the registered business name.', $fresh->decision_reason);
     }
 
     #[Test]
@@ -187,7 +187,7 @@ final class SellerReviewTest extends TestCase
 
         $fresh = $application->fresh();
         $this->assertSame(SellerApplicationStatus::UnderReview, $fresh?->status);
-        $this->assertSame($admin->id, $fresh?->reviewer_admin_id);
+        $this->assertSame($admin->id, $fresh->reviewer_admin_id);
     }
 
     #[Test]
@@ -209,7 +209,7 @@ final class SellerReviewTest extends TestCase
             ->post("/admin/sellers/{$seller->public_id}/suspend", ['reason' => 'Chargeback rate above threshold.'])
             ->assertRedirect();
 
-        $this->assertSame('suspended', $seller->fresh()?->status->value);
+        $this->assertSame('suspended', $seller->fresh()->status->value);
     }
 
     #[Test]

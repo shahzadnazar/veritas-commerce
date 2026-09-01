@@ -1,0 +1,22 @@
+<?php
+
+/*
+ * Macros, which no static analyser can see.
+ *
+ * A macro is registered at runtime by a service provider, so neither
+ * PHPStan nor Larastan knows it exists. Both configurations load this.
+ */
+
+namespace Illuminate\Testing;
+
+/**
+ * Inertia registers its assertion as a TestResponse macro.
+ *
+ * getContent() comes from the response the class wraps, which this
+ * declaration does not carry — it is named here for the same reason as
+ * the macro: it exists at runtime, and analysis should know it.
+ *
+ * @method self assertInertia(\Closure $callback)
+ * @method string|false getContent()
+ */
+class TestResponse {}

@@ -32,6 +32,12 @@ final class Totp
     /** A fresh 160-bit secret, base32 encoded as authenticator apps expect. */
     public static function generateSecret(int $bytes = 20): string
     {
+        // RFC 4226 requires at least 128 bits and recommends 160. A caller
+        // asking for less is a bug worth stopping, not rounding up.
+        if ($bytes < 16) {
+            throw new InvalidArgumentException('A TOTP secret must be at least 128 bits (16 bytes).');
+        }
+
         return self::base32Encode(random_bytes($bytes));
     }
 
@@ -116,7 +122,12 @@ final class Totp
         $encoded = '';
 
         foreach (str_split($bits, 5) as $chunk) {
-            $encoded .= self::ALPHABET[bindec(str_pad($chunk, 5, '0', STR_PAD_RIGHT))];
+            // Five bits index the 32-character alphabet exactly. bindec()
+            // widens to float past PHP_INT_MAX, which five bits cannot
+            // reach; the modulo states the bound the alphabet relies on.
+            $index = (int) bindec(str_pad($chunk, 5, '0', STR_PAD_RIGHT)) % 32;
+
+            $encoded .= self::ALPHABET[abs($index)];
         }
 
         return $encoded;
@@ -141,7 +152,9 @@ final class Totp
 
         foreach (str_split($bits, 8) as $chunk) {
             if (strlen($chunk) === 8) {
-                $binary .= chr(bindec($chunk));
+                // Eight bits is a byte: 0-255, never wide enough for
+                // bindec() to return a float.
+                $binary .= chr((int) bindec($chunk) % 256);
             }
         }
 

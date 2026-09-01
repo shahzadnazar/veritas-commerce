@@ -23,7 +23,7 @@ use RuntimeException;
  * @property string $actor_type
  * @property int|null $actor_id
  * @property string|null $reason
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class SellerApplicationEvent extends Model
 {

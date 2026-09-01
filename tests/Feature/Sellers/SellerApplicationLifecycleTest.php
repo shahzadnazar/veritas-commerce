@@ -92,7 +92,7 @@ final class SellerApplicationLifecycleTest extends TestCase
         $first = app(SubmitSellerApplication::class)($user, $this->validApplication());
         app(RequestApplicationChanges::class)($first, $admin->id, 'The tax ID does not match the legal name.');
 
-        $second = app(SubmitSellerApplication::class)($user->fresh(), [
+        $second = app(SubmitSellerApplication::class)($user->refresh(), [
             ...$this->validApplication(),
             'legal_name' => 'Aeris Kitchen Company, LLC',
         ]);
@@ -112,8 +112,8 @@ final class SellerApplicationLifecycleTest extends TestCase
         app(RequestApplicationChanges::class)($application, $admin->id, 'Upload a clearer registration document.');
 
         $this->assertSame(SellerApplicationStatus::ChangesRequested, $application->fresh()?->status);
-        $this->assertTrue($application->fresh()?->status->isOpen(), 'The application is still live.');
-        $this->assertTrue($application->fresh()?->status->isEditableByApplicant());
+        $this->assertTrue($application->fresh()->status->isOpen(), 'The application is still live.');
+        $this->assertTrue($application->fresh()->status->isEditableByApplicant());
     }
 
     #[Test]
@@ -161,8 +161,8 @@ final class SellerApplicationLifecycleTest extends TestCase
 
         $fresh = $application->fresh();
         $this->assertSame(SellerApplicationStatus::Rejected, $fresh?->status);
-        $this->assertSame('Tax ID does not match the registered name.', $fresh?->decision_reason);
-        $this->assertNotNull($fresh?->decided_at);
+        $this->assertSame('Tax ID does not match the registered name.', $fresh->decision_reason);
+        $this->assertNotNull($fresh->decided_at);
 
         $event = AuditLog::query()->where('action', 'seller.rejected')->firstOrFail();
         $this->assertSame('Tax ID does not match the registered name.', $event->reason);
@@ -187,10 +187,10 @@ final class SellerApplicationLifecycleTest extends TestCase
         $memberships = SellerMembership::query()->where('seller_account_id', $seller->id)->get();
         $this->assertCount(1, $memberships);
         $this->assertSame(SellerRole::Owner, $memberships->first()?->role);
-        $this->assertSame($user->id, $memberships->first()?->user_id);
+        $this->assertSame($user->id, $memberships->first()->user_id);
 
         $this->assertSame(SellerApplicationStatus::Approved, $application->fresh()?->status);
-        $this->assertSame($seller->id, $application->fresh()?->seller_account_id);
+        $this->assertSame($seller->id, $application->fresh()->seller_account_id);
 
         Event::assertDispatched(SellerApproved::class);
         $this->assertDatabaseHas('audit_logs', ['action' => 'seller.approved']);
@@ -205,7 +205,7 @@ final class SellerApplicationLifecycleTest extends TestCase
 
         // The double-click. Both calls must land on the same seller.
         $first = app(ApproveSellerApplication::class)($application, $admin->id);
-        $second = app(ApproveSellerApplication::class)($application->fresh(), $admin->id);
+        $second = app(ApproveSellerApplication::class)($application->refresh(), $admin->id);
 
         $this->assertSame($first->id, $second->id);
         $this->assertSame(1, SellerAccount::query()->count(), 'One account, however many times Approve is pressed.');
@@ -220,7 +220,7 @@ final class SellerApplicationLifecycleTest extends TestCase
         $application = SellerApplication::factory()->create(['user_id' => $user->id]);
 
         foreach (range(1, 3) as $ignored) {
-            app(ApproveSellerApplication::class)($application->fresh(), $admin->id);
+            app(ApproveSellerApplication::class)($application->refresh(), $admin->id);
         }
 
         $this->assertSame(1, SellerAccount::query()->count());
@@ -240,7 +240,7 @@ final class SellerApplicationLifecycleTest extends TestCase
 
         $application = app(SubmitSellerApplication::class)($user, $this->validApplication());
         app(TransitionSellerApplication::class)($application, SellerApplicationStatus::UnderReview, 'admin', $admin->id);
-        app(ApproveSellerApplication::class)($application->fresh(), $admin->id);
+        app(ApproveSellerApplication::class)($application->refresh(), $admin->id);
 
         $history = SellerApplicationEvent::query()
             ->where('seller_application_id', $application->id)
@@ -296,8 +296,8 @@ final class SellerApplicationLifecycleTest extends TestCase
 
         $fresh = $seller->fresh();
         $this->assertSame(SellerStatus::Approved, $fresh?->status);
-        $this->assertNull($fresh?->suspended_at);
-        $this->assertNull($fresh?->suspension_reason);
+        $this->assertNull($fresh->suspended_at);
+        $this->assertNull($fresh->suspension_reason);
         $this->assertDatabaseHas('audit_logs', ['action' => 'seller.reactivated']);
     }
 }

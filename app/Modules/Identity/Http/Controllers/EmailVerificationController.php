@@ -36,12 +36,18 @@ final class EmailVerificationController
 
     public function verify(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        // Named guard, as everywhere: the default shifts with context, and
+        // only a customer verifies an address through this route.
+        $user = $request->user('web');
+
+        abort_if(! $user instanceof User, 403);
+
+        if ($user->hasVerifiedEmail()) {
             return redirect()->route('home');
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            Event::dispatch(new Verified($request->user()));
+        if ($user->markEmailAsVerified()) {
+            Event::dispatch(new Verified($user));
         }
 
         return redirect()->route('home')->with('status', 'Your email address is verified.');

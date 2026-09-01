@@ -30,23 +30,25 @@ final class SellerDashboardController
 
         // Setup steps are read from the record, not tracked in a separate
         // "onboarding progress" column that can drift out of step with it.
+        $hasStore = $store !== null;
+
         $steps = [
             [
                 'key' => 'store',
                 'label' => 'Name your store and claim its address',
-                'done' => $store !== null,
+                'done' => $hasStore,
                 'href' => '/seller/store',
             ],
             [
                 'key' => 'branding',
                 'label' => 'Upload a logo and banner',
-                'done' => $store?->logo_media_id !== null && $store?->banner_media_id !== null,
+                'done' => $hasStore && $store->logo_media_id !== null && $store->banner_media_id !== null,
                 'href' => '/seller/store',
             ],
             [
                 'key' => 'policies',
                 'label' => 'Write your shipping and return policies',
-                'done' => $store?->shipping_policy !== null && $store?->return_policy !== null,
+                'done' => $hasStore && $store->shipping_policy !== null && $store->return_policy !== null,
                 'href' => '/seller/store',
             ],
             [
@@ -62,8 +64,8 @@ final class SellerDashboardController
                 'legalName' => $seller->legal_name,
                 'reference' => $seller->public_id,
                 'status' => $seller->status->value,
-                'role' => $membership?->role->value,
-                'roleLabel' => $membership?->role->label(),
+                'role' => $membership->role->value,
+                'roleLabel' => $membership->role->label(),
             ],
             'store' => $store === null ? null : [
                 'name' => $store->name,

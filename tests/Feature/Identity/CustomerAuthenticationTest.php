@@ -222,7 +222,7 @@ final class CustomerAuthenticationTest extends TestCase
         $this->assertGuest();
 
         $this->post('/login', ['email' => 'shopper@example.com', 'password' => 'a-brand-new-passphrase']);
-        $this->assertAuthenticatedAs($user->fresh());
+        $this->assertAuthenticatedAs($user->refresh());
     }
 
     #[Test]
@@ -264,7 +264,7 @@ final class CustomerAuthenticationTest extends TestCase
 
         $fresh = $user->fresh();
         $this->assertSame('new@example.com', $fresh?->email);
-        $this->assertNull($fresh?->email_verified_at, 'A moved address is unverified until proved.');
+        $this->assertNull($fresh->email_verified_at, 'A moved address is unverified until proved.');
 
         Notification::assertSentTo($fresh, VerifyEmail::class);
     }

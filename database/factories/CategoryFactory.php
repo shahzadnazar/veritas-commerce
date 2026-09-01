@@ -15,7 +15,7 @@ final class CategoryFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->words(2, true);
+        $name = implode(' ', array_map(fn (): string => $this->faker->unique()->word(), range(1, 2)));
 
         return [
             'name' => Str::title($name),

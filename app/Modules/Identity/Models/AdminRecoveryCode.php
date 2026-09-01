@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $code_hash
  * @property Carbon|null $used_at
  * @property string|null $used_ip
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  * @property-read AdminUser|null $adminUser
  */
 final class AdminRecoveryCode extends Model

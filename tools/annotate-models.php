@@ -101,8 +101,12 @@ foreach ($models as $class => $path) {
             $cast = $casts[$column];
             $nullable = str_ends_with($type, '|null');
             $type = match (true) {
-                $cast === 'datetime' => '\Illuminate\Support\Carbon|null',
-                $cast === 'array' => 'array<string, mixed>|null',
+                // Shape only — never |null here. Whether the value can be
+                // absent is the column's business, applied below. Writing
+                // it in made every NOT NULL timestamp look nullable, which
+                // is how a real null check ends up looking redundant.
+                $cast === 'datetime' => '\Illuminate\Support\Carbon',
+                $cast === 'array' => 'array<string, mixed>',
                 $cast === 'boolean' => 'bool',
                 $cast === 'integer' => 'int',
                 $cast === 'encrypted' => 'string',

@@ -31,7 +31,7 @@ use RuntimeException;
  * @property string|null $failure_code
  * @property string|null $failure_message
  * @property array<string, mixed>|null $raw_response
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class PaymentAttempt extends Model
 {

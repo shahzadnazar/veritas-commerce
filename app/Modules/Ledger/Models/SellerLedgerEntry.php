@@ -40,7 +40,7 @@ use RuntimeException;
  * @property int|null $reverses_entry_id
  * @property Carbon|null $available_at
  * @property string|null $note
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class SellerLedgerEntry extends Model
 {

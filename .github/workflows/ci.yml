@@ -73,10 +73,14 @@ jobs:
               run: ./vendor/bin/pint --test
 
             # Larastan installs normally on a runner, so this is the strict
-            # configuration — the local fallback in phpstan.neon is not used
-            # here and cannot hide a finding from CI.
+            # configuration: level 8, with the Laravel-aware rules. The
+            # level 6 fallback in phpstan.neon is never selected here and
+            # cannot hide a finding from CI.
             - name: Static analysis
-              run: php tools/phpstan.php analyse --memory-limit=1G --no-progress
+              run: |
+                  test -f vendor/larastan/larastan/extension.neon \
+                      || { echo "Larastan is missing; CI must run the strict configuration."; exit 1; }
+                  php tools/phpstan.php analyse --memory-limit=2G --no-progress
 
             # The architectural invariants run first and on their own: if
             # money or tenant isolation is broken, nothing else in the suite

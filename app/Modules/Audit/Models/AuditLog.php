@@ -25,7 +25,7 @@ use RuntimeException;
  * @property array<string, mixed>|null $changes
  * @property string|null $reason
  * @property string|null $ip_address
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class AuditLog extends Model
 {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sellers\Actions;
 
 use App\Modules\Audit\Actions\RecordAuditEvent;
+use App\Modules\Identity\Models\User;
 use App\Modules\Sellers\Enums\InvitationStatus;
 use App\Modules\Sellers\Enums\SellerRole;
 use App\Modules\Sellers\Models\SellerAccount;
@@ -39,7 +40,10 @@ final class InviteSellerMember
         return DB::transaction(function () use ($seller, $email, $role, $invitedByUserId): array {
             $alreadyMember = SellerMembership::query()
                 ->where('seller_account_id', $seller->id)
-                ->whereHas('user', fn ($query) => $query->where('email', $email))
+                // Membership is by user id; the address only identifies
+                // which user. Saying that directly is one query and one
+                // unambiguous column.
+                ->whereIn('user_id', User::query()->where('email', $email)->select('id'))
                 ->exists();
 
             if ($alreadyMember) {

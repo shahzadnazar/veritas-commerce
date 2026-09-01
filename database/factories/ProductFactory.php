@@ -16,7 +16,7 @@ final class ProductFactory extends Factory
 
     public function definition(): array
     {
-        $title = Str::title($this->faker->unique()->words(3, true));
+        $title = Str::title(implode(' ', array_map(fn (): string => $this->faker->unique()->word(), range(1, 3))));
 
         return [
             'category_id' => Category::factory(),

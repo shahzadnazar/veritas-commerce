@@ -51,7 +51,7 @@ use RuntimeException;
  * @property CommissionScope|null $commission_scope_snapshot
  * @property int $commission_amount_minor
  * @property int $seller_earning_amount_minor
- * @property Carbon|null $snapshotted_at
+ * @property Carbon $snapshotted_at
  * @property int $refunded_amount_minor
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

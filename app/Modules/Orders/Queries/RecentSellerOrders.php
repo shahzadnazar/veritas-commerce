@@ -27,7 +27,7 @@ final class RecentSellerOrders
             ->get()
             ->map(fn (SellerOrder $order): SellerOrderSummary => new SellerOrderSummary(
                 reference: $order->reference,
-                customerName: $order->marketplaceOrder?->ship_name ?? '—',
+                customerName: $order->marketplaceOrder->ship_name ?? '—',
                 orderTotal: $order->orderTotal()->format(),
                 sellerEarning: Money::of($order->seller_earning_total_minor, $order->currency)->format(),
                 status: $order->status->value,

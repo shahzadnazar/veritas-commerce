@@ -110,7 +110,7 @@ final class WebhookIdempotencyTest extends TestCase
     {
         /** @var FakePaymentGateway $gateway */
         $gateway = app(PaymentGateway::class);
-        $payload = json_encode(['id' => 'evt_x', 'type' => 'payment.captured']);
+        $payload = (string) json_encode(['id' => 'evt_x', 'type' => 'payment.captured'], JSON_THROW_ON_ERROR);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('signature verification failed');
@@ -123,7 +123,7 @@ final class WebhookIdempotencyTest extends TestCase
     {
         /** @var FakePaymentGateway $gateway */
         $gateway = app(PaymentGateway::class);
-        $payload = json_encode(['id' => 'evt_ok', 'type' => 'payment.captured']);
+        $payload = (string) json_encode(['id' => 'evt_ok', 'type' => 'payment.captured'], JSON_THROW_ON_ERROR);
 
         $event = $gateway->parseWebhook($payload, $gateway->sign($payload));
 

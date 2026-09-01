@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $carrier
  * @property string|null $carrier_code
  * @property string $tracking_number
- * @property Carbon|null $shipped_at
+ * @property Carbon $shipped_at
  * @property Carbon|null $delivered_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

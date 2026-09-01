@@ -37,7 +37,7 @@ use Illuminate\Support\Str;
  * @property string|null $context
  * @property int|null $value_minor
  * @property array<string, mixed>|null $metadata
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class InteractionEvent extends Model
 {

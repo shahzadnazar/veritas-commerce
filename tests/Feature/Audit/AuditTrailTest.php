@@ -44,7 +44,10 @@ final class AuditTrailTest extends TestCase
         $this->assertSame('admin', $entry->actor_type);
         $this->assertSame($admin->id, $entry->actor_id);
         $this->assertNotNull($entry->subject_id);
-        $this->assertNotNull($entry->created_at);
+        $this->assertTrue(
+            $entry->created_at->isToday(),
+            'The record is stamped when the decision happened, not when it is read.',
+        );
     }
 
     #[Test]

@@ -52,7 +52,7 @@ final class AdminTwoFactorTest extends TestCase
 
         // Started, but not yet proved — and therefore not yet protecting.
         $this->assertTrue($admin->fresh()?->isEnrollingTwoFactor());
-        $this->assertFalse($admin->fresh()?->hasTwoFactorEnabled());
+        $this->assertFalse($admin->fresh()->hasTwoFactorEnabled());
     }
 
     #[Test]
@@ -65,7 +65,7 @@ final class AdminTwoFactorTest extends TestCase
 
         $this->assertTrue($admin->fresh()?->hasTwoFactorEnabled());
         $this->assertCount(8, $codes->codes);
-        $this->assertSame(8, $admin->fresh()?->unusedRecoveryCodeCount());
+        $this->assertSame(8, $admin->fresh()->unusedRecoveryCodeCount());
     }
 
     #[Test]

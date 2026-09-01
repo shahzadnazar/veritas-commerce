@@ -1,12 +1,12 @@
-# The full configuration: everything in phpstan.neon plus Larastan's
-# Laravel extension, which resolves Eloquent model properties, query
-# builder returns and facade roots. Selected automatically by
-# tools/phpstan.php when vendor/larastan/larastan is installed.
+# The full configuration: everything shared plus Larastan's Laravel
+# extension, which resolves Eloquent model properties, query builder
+# returns and facade roots. Selected automatically by tools/phpstan.php
+# when vendor/larastan/larastan is installed, which is the case on CI.
 includes:
     - vendor/larastan/larastan/extension.neon
-    - phpstan.neon
+    - phpstan.base.neon
 
 parameters:
     # With Larastan present, model properties are knowable, so the check
-    # that the base configuration has to disable is turned back on.
+    # that the base configuration cannot make is turned on.
     checkModelProperties: true

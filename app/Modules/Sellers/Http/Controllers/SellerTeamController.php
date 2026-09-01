@@ -107,7 +107,7 @@ final class SellerTeamController
         // The plaintext token exists here and in the email, nowhere else.
         Notification::route('mail', $validated['email'])->notify(
             new SellerInvitationNotification(
-                storeName: $seller->store?->name ?? $seller->legal_name,
+                storeName: $seller->store->name ?? $seller->legal_name,
                 invitationPublicId: $result['invitation']->public_id,
                 token: $result['token'],
                 expiresAt: $result['invitation']->expires_at,

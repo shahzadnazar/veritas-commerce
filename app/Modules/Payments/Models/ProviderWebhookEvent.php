@@ -22,8 +22,8 @@ use Illuminate\Support\Carbon;
  * @property string $provider
  * @property string $event_id
  * @property string $type
- * @property array<string, mixed>|null $payload
- * @property Carbon|null $received_at
+ * @property array<string, mixed> $payload
+ * @property Carbon $received_at
  * @property Carbon|null $processed_at
  * @property string|null $error
  */

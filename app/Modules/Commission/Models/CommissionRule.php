@@ -29,11 +29,11 @@ use RuntimeException;
  * @property int|null $seller_account_id
  * @property string|null $campaign_code
  * @property string $rate_percent
- * @property Carbon|null $effective_from
+ * @property Carbon $effective_from
  * @property Carbon|null $effective_until
  * @property string|null $note
  * @property int|null $created_by_admin_id
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class CommissionRule extends Model
 {

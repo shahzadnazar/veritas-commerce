@@ -34,7 +34,7 @@ final class AdminDashboardController
                 ->get()
                 ->map(fn (SellerOrder $order): array => [
                     'reference' => $order->reference,
-                    'seller' => $order->sellerAccount->legal_name,
+                    'seller' => $order->sellerAccount->legal_name ?? 'Unknown seller',
                     'total' => $order->orderTotal()->format(),
                     // Null, not zero: a failed payment produced no split.
                     'commission' => $order->commission_total_minor > 0

@@ -22,7 +22,7 @@ use RuntimeException;
  * @property string $actor_type
  * @property int|null $actor_id
  * @property string|null $note
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class OrderStatusHistory extends Model
 {

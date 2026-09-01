@@ -125,14 +125,14 @@ final class SellerApplicationController
             'documents' => $application->documents->map(fn ($document): array => [
                 'kind' => $document->kind,
                 'originalName' => $document->original_name,
-                'uploadedAt' => $document->uploaded_at?->toDateString(),
+                'uploadedAt' => $document->uploaded_at->toDateString(),
             ])->all(),
             'history' => $application->events->sortBy('id')->values()->map(fn (SellerApplicationEvent $event): array => [
                 'fromStatus' => $event->from_status,
                 'toStatus' => $event->to_status,
                 'actorType' => $event->actor_type,
                 'reason' => $event->reason,
-                'at' => $event->created_at?->toDayDateTimeString(),
+                'at' => $event->created_at->toDayDateTimeString(),
             ])->all(),
             'can' => [
                 'review' => $admin->role->can(AdminPermission::SellerApplicationReview),

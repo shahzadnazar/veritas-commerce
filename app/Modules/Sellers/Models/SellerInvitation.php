@@ -30,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property InvitationStatus $status
  * @property int|null $invited_by_user_id
  * @property int|null $accepted_by_user_id
- * @property Carbon|null $expires_at
+ * @property Carbon $expires_at
  * @property Carbon|null $accepted_at
  * @property Carbon|null $revoked_at
  * @property Carbon|null $created_at

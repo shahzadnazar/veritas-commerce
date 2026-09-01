@@ -48,6 +48,12 @@ final class HandleInertiaRequests extends Middleware
 
         $membership = $user !== null ? CurrentSeller::membership() : null;
 
+        // The account is resolved once and checked. A membership whose
+        // account has gone is not a seller session — the foreign key makes
+        // that unreachable, and the code should not pretend otherwise by
+        // dereferencing blind.
+        $sellerAccount = $membership?->sellerAccount;
+
         return [
             ...parent::share($request),
 
@@ -63,9 +69,9 @@ final class HandleInertiaRequests extends Middleware
                     'name' => $user->fullName(),
                     'email' => $user->email,
                 ],
-                'seller' => $membership === null ? null : [
-                    'publicId' => $membership->sellerAccount->public_id,
-                    'storeName' => $membership->sellerAccount->store?->name ?? $membership->sellerAccount->legal_name,
+                'seller' => $membership === null || $sellerAccount === null ? null : [
+                    'publicId' => $sellerAccount->public_id,
+                    'storeName' => $sellerAccount->store->name ?? $sellerAccount->legal_name,
                     'role' => $membership->role->value,
                 ],
                 'admin' => $admin === null ? null : [

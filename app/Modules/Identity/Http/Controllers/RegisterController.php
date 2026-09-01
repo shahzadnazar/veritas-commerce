@@ -22,7 +22,7 @@ final class RegisterController
 
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $user = ($this->register)($request->validated());
+        $user = ($this->register)($request->registration());
 
         Guards::session('web')->login($user);
         $request->session()->regenerate();

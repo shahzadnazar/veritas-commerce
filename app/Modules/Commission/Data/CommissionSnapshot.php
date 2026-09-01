@@ -24,7 +24,22 @@ final readonly class CommissionSnapshot
         public Carbon $snapshottedAt,
     ) {}
 
-    /** @return array<string, mixed> */
+    /**
+     * The snapshot as the order item's own columns.
+     *
+     * Named precisely so a typo in a key is a static error rather than a
+     * silently discarded attribute — these six values are the commercial
+     * record and cannot be re-derived once the rate moves on.
+     *
+     * @return array{
+     *     commission_rate_snapshot: string,
+     *     commission_rule_id: int,
+     *     commission_scope_snapshot: string,
+     *     commission_amount_minor: int,
+     *     seller_earning_amount_minor: int,
+     *     snapshotted_at: Carbon,
+     * }
+     */
     public function toOrderItemColumns(): array
     {
         return [

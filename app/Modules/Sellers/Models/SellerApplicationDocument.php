@@ -29,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property string $mime
  * @property int $bytes
  * @property string|null $checksum
- * @property Carbon|null $uploaded_at
+ * @property Carbon $uploaded_at
  */
 final class SellerApplicationDocument extends Model
 {

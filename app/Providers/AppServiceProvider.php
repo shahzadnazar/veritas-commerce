@@ -38,9 +38,15 @@ final class AppServiceProvider extends ServiceProvider
         // Models live in module namespaces (App\Modules\Orders\Models\...),
         // so the default factory guess does not apply. Factories stay in one
         // flat namespace keyed by class basename.
-        Factory::guessFactoryNamesUsing(
-            static fn (string $modelName): string => 'Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
+        Factory::guessFactoryNamesUsing(static function (string $modelName): string {
+            $factory = 'Database\\Factories\\'.class_basename($modelName).'Factory';
+
+            if (! class_exists($factory) || ! is_subclass_of($factory, Factory::class)) {
+                throw new RuntimeException("No factory for {$modelName}: expected {$factory}.");
+            }
+
+            return $factory;
+        });
 
         Factory::guessModelNamesUsing(static function (Factory $factory): string {
             throw new RuntimeException(

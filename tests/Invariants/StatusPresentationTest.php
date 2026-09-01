@@ -111,7 +111,10 @@ final class StatusPresentationTest extends TestCase
                 continue;
             }
 
-            preg_match('/namespace\s+([^;]+);/', $contents, $ns);
+            if (preg_match('/namespace\s+([^;]+);/', $contents, $ns) !== 1) {
+                continue;
+            }
+
             $class = trim($ns[1]).'\\'.$file->getBasename('.php');
             $found[] = $class;
         }

@@ -32,7 +32,7 @@ use RuntimeException;
  * @property int|null $actor_id
  * @property string|null $note
  * @property int|null $seller_order_id
- * @property Carbon|null $created_at
+ * @property Carbon $created_at
  */
 final class InventoryMovement extends Model
 {

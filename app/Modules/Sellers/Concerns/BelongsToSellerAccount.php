@@ -26,7 +26,14 @@ trait BelongsToSellerAccount
             $sellerId = CurrentSeller::id();
 
             if ($sellerId !== null) {
-                $query->where($query->getModel()->getTable().'.seller_account_id', $sellerId);
+                // Qualified with the table name so a joined query cannot
+                // make the column ambiguous. It goes to the underlying
+                // query builder because `table.column` is a SQL reference,
+                // not one of the model's own attributes.
+                $query->getQuery()->where(
+                    $query->getModel()->getTable().'.seller_account_id',
+                    $sellerId,
+                );
             }
         });
 

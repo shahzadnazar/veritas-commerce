@@ -15,6 +15,7 @@ use App\Modules\Sellers\Notifications\SellerInvitationNotification;
 use App\Modules\Sellers\Notifications\SellerStatusChanged;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
@@ -156,7 +157,7 @@ final class SellerNotificationsTest extends TestCase
 
         Notification::assertSentOnDemand(
             SellerInvitationNotification::class,
-            fn (SellerInvitationNotification $notification, array $channels, object $notifiable): bool => $notifiable->routes['mail'] === 'not-yet-a-user@example.com',
+            fn (SellerInvitationNotification $notification, array $channels, AnonymousNotifiable $notifiable): bool => $notifiable->routes['mail'] === 'not-yet-a-user@example.com',
         );
     }
 

@@ -33,6 +33,28 @@ final class RegisterRequest extends FormRequest
         ];
     }
 
+    /**
+     * The validated input as the registration action's own input shape.
+     *
+     * The conversion happens here, at the boundary, so the action states
+     * exactly what it needs and the controller does not hand it a bag of
+     * unknowns and hope.
+     *
+     * @return array{first_name: string, last_name: string, email: string, password: string, marketing_opt_in: bool}
+     */
+    public function registration(): array
+    {
+        $validated = $this->validated();
+
+        return [
+            'first_name' => (string) $validated['first_name'],
+            'last_name' => (string) $validated['last_name'],
+            'email' => (string) $validated['email'],
+            'password' => (string) $validated['password'],
+            'marketing_opt_in' => (bool) ($validated['marketing_opt_in'] ?? false),
+        ];
+    }
+
     /** @return array<string, string> */
     public function messages(): array
     {

@@ -49,11 +49,21 @@ final class ResolveCommissionRule
         }
 
         // Highest precedence wins; the most recently effective breaks a tie.
-        return $candidates
+        $winner = $candidates
             ->sortByDesc(fn (CommissionRule $rule): array => [
                 $rule->scope->precedence(),
                 $rule->effective_from->getTimestamp(),
             ])
             ->first();
+
+        if ($winner === null) {
+            // Unreachable — the emptiness check above already returned —
+            // but sorting a non-empty collection is not something the type
+            // system can carry, and a silent null here would be a
+            // commission of zero.
+            throw new RuntimeException('Commission rule resolution produced nothing from a non-empty candidate set.');
+        }
+
+        return $winner;
     }
 }

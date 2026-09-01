@@ -1,0 +1,20 @@
+<?php
+
+/*
+ * Eloquent's statically-resolved API, declared for analysis running
+ * WITHOUT Larastan.
+ *
+ * Larastan derives all of this by reflecting the framework and ships its
+ * own Model stub, so this file must not be loaded alongside it — two
+ * declarations of the same class is an error. phpstan.neon loads it;
+ * phpstan.larastan.neon does not.
+ */
+
+namespace Illuminate\Database\Eloquent;
+
+/**
+ * @method static static|null find(mixed $id, array<int, string> $columns = ['*'])
+ * @method static static findOrFail(mixed $id, array<int, string> $columns = ['*'])
+ * @method static static create(array<string, mixed> $attributes = [])
+ */
+abstract class Model {}

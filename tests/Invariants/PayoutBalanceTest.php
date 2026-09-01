@@ -88,6 +88,7 @@ final class PayoutBalanceTest extends TestCase
             amountMinor: 10_000,
         );
 
+        $this->assertNotNull($entry->available_at, 'A clearing entry must carry the date it becomes available.');
         $this->assertTrue(
             $entry->available_at->between(now()->addDays(3)->subMinute(), now()->addDays(3)->addMinute()),
             'available_at must be derived from the configured clearing period, not a literal.',
@@ -107,6 +108,7 @@ final class PayoutBalanceTest extends TestCase
             amountMinor: 10_000,
         );
 
+        $this->assertNotNull($entry->available_at, 'A clearing entry must carry the date it becomes available.');
         $this->assertTrue(
             $entry->available_at->between(now()->addDay()->subMinute(), now()->addDay()->addMinute()),
             "The seller's own clearing period overrides the platform default.",

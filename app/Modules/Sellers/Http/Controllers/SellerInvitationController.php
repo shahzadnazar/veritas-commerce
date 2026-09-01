@@ -31,7 +31,7 @@ final class SellerInvitationController
         return Inertia::render('Invitation', [
             'invitation' => [
                 'publicId' => $invitation->public_id,
-                'storeName' => $invitation->sellerAccount?->store?->name
+                'storeName' => $invitation->sellerAccount->store->name
                     ?? $invitation->sellerAccount?->legal_name,
                 'role' => $invitation->role->label(),
                 'email' => $invitation->email,

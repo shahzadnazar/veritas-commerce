@@ -89,13 +89,13 @@ final class InventoryTest extends TestCase
         ['offer' => $offer, 'balance' => $balance] = $this->stockedOffer(3);
 
         app(ReserveStock::class)([$offer->id => 3], 'cart-1');
-        $this->assertSame(0, $balance->fresh()->available());
+        $this->assertSame(0, $balance->refresh()->available());
 
         $released = app(ReleaseReservation::class)('cart-1');
 
         $this->assertSame(1, $released);
-        $this->assertSame(3, $balance->fresh()->available(), 'All three units are sellable again.');
-        $this->assertSame(3, $balance->fresh()->on_hand, 'on_hand never changed, so no movement was written.');
+        $this->assertSame(3, $balance->refresh()->available(), 'All three units are sellable again.');
+        $this->assertSame(3, $balance->refresh()->on_hand, 'on_hand never changed, so no movement was written.');
         $this->assertSame(0, InventoryMovement::query()->count());
     }
 
@@ -140,14 +140,14 @@ final class InventoryTest extends TestCase
         ['balance' => $balance] = $this->stockedOffer(0);
 
         app(RecordMovement::class)($balance, 10, InventoryMovementReason::OpeningStock);
-        app(RecordMovement::class)($balance->fresh(), 5, InventoryMovementReason::RestockReceived, 'seller', 1);
-        app(RecordMovement::class)($balance->fresh(), -3, InventoryMovementReason::Damaged, 'seller', 1);
-        app(RecordMovement::class)($balance->fresh(), -2, InventoryMovementReason::SaleCompleted);
+        app(RecordMovement::class)($balance->refresh(), 5, InventoryMovementReason::RestockReceived, 'seller', 1);
+        app(RecordMovement::class)($balance->refresh(), -3, InventoryMovementReason::Damaged, 'seller', 1);
+        app(RecordMovement::class)($balance->refresh(), -2, InventoryMovementReason::SaleCompleted);
 
         $replayed = (int) InventoryMovement::query()->where('offer_id', $balance->offer_id)->sum('change');
 
-        $this->assertSame(10, $balance->fresh()->on_hand);
-        $this->assertSame($replayed, $balance->fresh()->on_hand, 'The movement log must reconstruct the balance.');
+        $this->assertSame(10, $balance->refresh()->on_hand);
+        $this->assertSame($replayed, $balance->refresh()->on_hand, 'The movement log must reconstruct the balance.');
     }
 
     #[Test]

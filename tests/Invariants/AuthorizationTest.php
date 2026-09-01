@@ -222,4 +222,33 @@ final class AuthorizationTest extends TestCase
             'Staff authenticate against their own table, so a customer session can never be escalated.',
         );
     }
+
+    #[Test]
+    public function both_realms_are_session_guards(): void
+    {
+        // App\Support\Guards checks this at runtime and PHPStan cannot see
+        // that the check is live, so the same fact is proved here: switching
+        // either guard to a token driver breaks the build, not production.
+        foreach (['web', 'admin'] as $guard) {
+            $this->assertSame(
+                'session',
+                config("auth.guards.{$guard}.driver"),
+                "The {$guard} guard must use the session driver.",
+            );
+        }
+    }
+
+    #[Test]
+    public function the_media_disk_can_address_its_own_files(): void
+    {
+        // The other runtime check PHPStan reads as dead: a media disk whose
+        // driver cannot produce a URL would serve broken images.
+        $disk = (string) config('veritas.media.disk');
+
+        $this->assertContains(
+            config("filesystems.disks.{$disk}.driver"),
+            ['local', 's3'],
+            "The {$disk} disk must use a driver that can produce URLs.",
+        );
+    }
 }
