@@ -85,7 +85,11 @@ return new class extends Migration
              * of a product from another's. Stored rather than derived in
              * SQL so the rule lives in one readable place.
              */
-            $table->string('line_identity', 64)->after('product_variant_id');
+            // 96, not 64: a customised line hashes to 'h:' plus a
+            // 64-character SHA-256 digest, and a column that fits today's
+            // 'offer:12:v3' but not tomorrow's hash is a seam that breaks
+            // the first time anybody uses it.
+            $table->string('line_identity', 96)->after('product_variant_id');
         });
 
         DB::statement("update cart_items set line_identity = 'offer:' || offer_id");
@@ -110,6 +114,10 @@ return new class extends Migration
          * for a preference would ripple with no functional gain.
          */
         DB::statement('alter table customer_addresses alter column state drop not null');
+
+        // And the order's own copy of it, for exactly the same reason: an
+        // address that cannot be saved cannot be shipped to either.
+        DB::statement('alter table marketplace_orders alter column ship_state drop not null');
 
         /*
          * A checkout attempt.
@@ -268,6 +276,7 @@ return new class extends Migration
             $table->dropColumn('line_identity');
         });
 
+        DB::statement('alter table marketplace_orders alter column ship_state set not null');
         DB::statement('alter table carts drop constraint if exists carts_have_an_owner');
         DB::statement('drop index if exists carts_one_active_per_session');
         DB::statement('create unique index carts_session_token_unique on carts (session_token)');

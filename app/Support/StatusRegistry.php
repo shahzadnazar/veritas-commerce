@@ -6,6 +6,7 @@ namespace App\Support;
 
 use App\Modules\Cart\Enums\CartStatus;
 use App\Modules\Catalog\Enums\ProductStatus;
+use App\Modules\Checkout\Enums\CheckoutStatus;
 use App\Modules\Inventory\Enums\InventoryMovementReason;
 use App\Modules\Inventory\Enums\ReservationStatus;
 use App\Modules\Inventory\Enums\StockState;
@@ -48,6 +49,7 @@ final class StatusRegistry
             'seller_invitation' => InvitationStatus::class,
             'product' => ProductStatus::class,
             'cart' => CartStatus::class,
+            'checkout' => CheckoutStatus::class,
             'offer' => OfferStatus::class,
             'marketplace_order' => MarketplaceOrderStatus::class,
             'seller_order' => SellerOrderStatus::class,

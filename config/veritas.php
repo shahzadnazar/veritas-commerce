@@ -113,6 +113,25 @@ return [
         'reservation_ttl_minutes' => (int) env('VERITAS_RESERVATION_TTL_MINUTES', 20),
     ],
 
+    /*
+     * Checkout policy.
+     *
+     * Shipping is per seller order because that is what a marketplace
+     * ships: two sellers are two parcels. Zero by default — a rate card
+     * belongs to the sellers, and inventing one here would be a guess
+     * hard-coded into the platform.
+     *
+     * The payment window is what an unpaid order gets before its stock
+     * goes back on the shelf. It is deliberately longer than the
+     * reservation TTL a browsing customer gets, and deliberately short
+     * enough that an abandoned checkout does not hold a seller's last unit
+     * overnight.
+     */
+    'checkout' => [
+        'shipping_per_seller_order_minor' => (int) env('VERITAS_SHIPPING_PER_SELLER_ORDER_MINOR', 0),
+        'payment_window_minutes' => (int) env('VERITAS_PAYMENT_WINDOW_MINUTES', 30),
+    ],
+
     'providers' => [
         'payment' => env('PAYMENT_GATEWAY', 'fake'),
         'search' => env('SEARCH_DRIVER', 'database'),

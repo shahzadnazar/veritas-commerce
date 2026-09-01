@@ -126,6 +126,24 @@ export const STATUS_PRESENTATION = {
             "label": "Abandoned"
         }
     },
+    "checkout": {
+        "reserved": {
+            "tone": "pending",
+            "label": "Awaiting payment"
+        },
+        "completed": {
+            "tone": "neutral",
+            "label": "Completed"
+        },
+        "failed": {
+            "tone": "critical",
+            "label": "Failed"
+        },
+        "expired": {
+            "tone": "inactive",
+            "label": "Expired"
+        }
+    },
     "offer": {
         "draft": {
             "tone": "inactive",

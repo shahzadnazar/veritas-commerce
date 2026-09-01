@@ -104,7 +104,7 @@ final class ModuleBoundaryTest extends TestCase
     public function every_module_directory_is_a_declared_module(): void
     {
         $expected = [
-            'AdminPortal', 'Audit', 'Cart', 'Catalog', 'Commission', 'Customers',
+            'AdminPortal', 'Audit', 'Cart', 'Catalog', 'Checkout', 'Commission', 'Customers',
             'Events', 'Fulfillment', 'Identity', 'Inventory', 'Ledger',
             'Media', 'Notifications', 'Offers', 'Orders', 'Payments',
             'Payouts', 'Search', 'Sellers', 'Stores',
