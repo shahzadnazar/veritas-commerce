@@ -108,6 +108,24 @@ export const STATUS_PRESENTATION = {
             "label": "Archived"
         }
     },
+    "cart": {
+        "active": {
+            "tone": "pending",
+            "label": "Active"
+        },
+        "converted": {
+            "tone": "neutral",
+            "label": "Converted"
+        },
+        "merged": {
+            "tone": "inactive",
+            "label": "Merged"
+        },
+        "abandoned": {
+            "tone": "inactive",
+            "label": "Abandoned"
+        }
+    },
     "offer": {
         "draft": {
             "tone": "inactive",

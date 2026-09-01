@@ -132,7 +132,23 @@ final class ModuleBoundaryTest extends TestCase
             'Offers' => ['Catalog', 'Inventory', 'Stores'],
             'Inventory' => ['Offers'],
             'Catalog' => ['Offers'],
-            'Orders' => ['Identity'],
+            /*
+             * A cart line IS a seller offer — that is the M4 requirement,
+             * not an implementation detail — and describing what is in a
+             * cart means naming the product it points at. Both are reads
+             * of upstream modules, the same direction Offers already reads
+             * Catalog in. Identity for the same reason Orders has it: a
+             * cart belongs to a customer.
+             */
+            'Cart' => ['Offers', 'Catalog', 'Identity'],
+            /*
+             * Checkout turns a cart into orders, so it touches everything
+             * the transaction spans. It writes through the owning modules'
+             * actions wherever one exists; the model reads here are for
+             * validation and snapshotting, which is what a checkout is.
+             */
+            'Checkout' => ['Cart', 'Offers', 'Catalog', 'Orders', 'Inventory', 'Identity', 'Payments', 'Stores'],
+            'Orders' => ['Identity', 'Offers', 'Catalog'],
             'Payouts' => ['Ledger'],
             'Ledger' => ['Orders'],
             'Stores' => ['Sellers'],
