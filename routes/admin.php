@@ -90,6 +90,11 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                 Route::post('products/{product}/suspend', [CatalogueProductController::class, 'suspend'])
                     ->middleware('admin.can:catalog.product.suspend')->name('products.suspend');
 
+                // Search health: what customers look for, and what they
+                // look for and do not find.
+                Route::get('search-health', [CatalogueProductController::class, 'searchHealth'])
+                    ->middleware('admin.can:catalog.view')->name('search-health');
+
                 // The taxonomy every seller lists against.
                 Route::get('taxonomy', [CatalogueTaxonomyController::class, 'index'])
                     ->middleware('admin.can:catalog.view')->name('taxonomy');

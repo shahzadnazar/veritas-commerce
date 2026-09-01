@@ -13,6 +13,7 @@ use App\Modules\Catalog\Events\ProductSuspended;
 use App\Modules\Catalog\Listeners\KeepSearchIndexCurrent;
 use App\Modules\Catalog\Listeners\NotifyProposingSeller;
 use App\Modules\Catalog\Queries\BuildIndexableProduct;
+use App\Modules\Inventory\Events\InventoryAdjusted;
 use App\Modules\Inventory\Events\InventoryDepleted;
 use App\Modules\Inventory\Events\InventoryLow;
 use App\Modules\Inventory\Events\InventoryRestored;
@@ -95,6 +96,11 @@ final class AppServiceProvider extends ServiceProvider
             OfferSuspended::class,
             OfferUpdated::class,
         ], [KeepSearchIndexCurrent::class, 'offerChanged']);
+
+        // Availability is denormalised into the search document, so a
+        // stock change has to rebuild it or the storefront will keep
+        // offering something nobody can buy.
+        Event::listen(InventoryAdjusted::class, [KeepSearchIndexCurrent::class, 'stockChanged']);
 
         Event::listen([
             ProductApproved::class,

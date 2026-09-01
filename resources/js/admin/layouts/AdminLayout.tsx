@@ -11,6 +11,7 @@ const NAV: NavItem[] = [
     { label: 'Catalogue', href: '/admin/catalogue/products' },
     { label: 'Taxonomy', href: '/admin/catalogue/taxonomy' },
     { label: 'Inventory', href: '/admin/inventory' },
+    { label: 'Search health', href: '/admin/catalogue/search-health' },
     { label: 'Staff', href: '/admin/staff' },
     { label: 'Two-factor', href: '/admin/two-factor' },
 ];

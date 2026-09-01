@@ -8,6 +8,7 @@ use App\Modules\Catalog\Events\ProductApproved;
 use App\Modules\Catalog\Events\ProductEdited;
 use App\Modules\Catalog\Events\ProductPublished;
 use App\Modules\Catalog\Events\ProductSuspended;
+use App\Modules\Inventory\Events\InventoryAdjusted;
 use App\Modules\Offers\Events\OfferActivated;
 use App\Modules\Offers\Events\OfferSuspended;
 use App\Modules\Offers\Events\OfferUpdated;
@@ -25,6 +26,19 @@ use App\Modules\Search\Jobs\ReindexProduct;
 final class KeepSearchIndexCurrent
 {
     public function productChanged(ProductApproved|ProductEdited|ProductPublished|ProductSuspended $event): void
+    {
+        ReindexProduct::dispatch($event->productId);
+    }
+
+    /**
+     * Stock moved, so what a customer would see has changed.
+     *
+     * The document carries availability precisely so a results page does
+     * not query inventory per card — which only works if a stock change
+     * rebuilds the document. The event already knows the product, so this
+     * costs no lookup.
+     */
+    public function stockChanged(InventoryAdjusted $event): void
     {
         ReindexProduct::dispatch($event->productId);
     }

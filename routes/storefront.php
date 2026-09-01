@@ -6,6 +6,7 @@ use App\Modules\Catalog\Http\Controllers\HomeController;
 use App\Modules\Catalog\Http\Controllers\PublicCategoryController;
 use App\Modules\Catalog\Http\Controllers\PublicProductController;
 use App\Modules\Catalog\Http\Controllers\SearchController;
+use App\Modules\Catalog\Http\Controllers\SitemapController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
 use App\Modules\Identity\Http\Controllers\LoginController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
@@ -18,6 +19,20 @@ use Illuminate\Support\Facades\Route;
  * The customer storefront — server-rendered, indexable, public.
  */
 Route::get('/', HomeController::class)->name('home');
+
+/*
+ * Sitemaps and robots.
+ *
+ * An index plus one file per kind: a single flat file works today and
+ * would have to be split the first time the catalogue outgrows it.
+ * Only publicly eligible URLs appear — a sitemap listing a suspended
+ * product is telling a crawler to fetch a 404.
+ */
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/products-sitemap.xml', [SitemapController::class, 'products'])->name('sitemap.products');
+Route::get('/categories-sitemap.xml', [SitemapController::class, 'categories'])->name('sitemap.categories');
+Route::get('/stores-sitemap.xml', [SitemapController::class, 'stores'])->name('sitemap.stores');
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
 // The public seller store. Only an eligible store resolves; everything
 // else is a 404 rather than an empty shell, so a suspended store leaves no

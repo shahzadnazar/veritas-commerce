@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Support;
 
+use App\Modules\Inventory\Enums\StockState;
+
 /**
  * Schema.org JSON-LD for a product page.
  *
@@ -122,9 +124,11 @@ final class ProductStructuredData
                 'url' => $canonical,
                 'price' => $low,
                 'priceCurrency' => $range['currency'],
-                // "A seller lists this" is all M2 can honestly say. Real
-                // stock arrives with inventory in M3.
-                'availability' => 'https://schema.org/InStock',
+                // The inventory ledger's answer, not an assumption. A
+                // product whose sellers have all run out says OutOfStock,
+                // because a page that claims InStock and then cannot
+                // fulfil is how a marketplace earns a manual penalty.
+                'availability' => self::availability($page),
                 'itemCondition' => self::condition((string) $offers[0]['condition']),
             ], static fn (mixed $value): bool => $value !== null);
         }
@@ -136,8 +140,20 @@ final class ProductStructuredData
             'highPrice' => $high,
             'priceCurrency' => $range['currency'],
             'offerCount' => count($offers),
-            'availability' => 'https://schema.org/InStock',
+            'availability' => self::availability($page),
         ];
+    }
+
+    /**
+     * schema.org availability, from real stock.
+     *
+     * @param  array<string, mixed>  $page
+     */
+    private static function availability(array $page): string
+    {
+        return ($page['inStock'] ?? false) === true
+            ? StockState::InStock->schemaAvailability()
+            : StockState::OutOfStock->schemaAvailability();
     }
 
     private static function decimal(int $minor): string

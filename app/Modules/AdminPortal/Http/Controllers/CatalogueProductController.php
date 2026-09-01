@@ -6,6 +6,7 @@ namespace App\Modules\AdminPortal\Http\Controllers;
 
 use App\Modules\AdminPortal\Http\Requests\DecisionRequest;
 use App\Modules\AdminPortal\Queries\ProductModerationQueue;
+use App\Modules\AdminPortal\Queries\SearchHealth;
 use App\Modules\Catalog\Actions\ApproveProduct;
 use App\Modules\Catalog\Actions\DecideProduct;
 use App\Modules\Catalog\Actions\UpdateCanonicalProduct;
@@ -84,6 +85,22 @@ final class CatalogueProductController
                 ])
                 ->all(),
             'can' => $this->capabilities($request),
+        ]);
+    }
+
+    /**
+     * How search is behaving, from the event stream.
+     *
+     * Lives with catalogue moderation because that is who acts on it: a
+     * repeated search returning nothing is a product to source or a word
+     * the index should learn.
+     */
+    public function searchHealth(Request $request, SearchHealth $health): Response
+    {
+        $this->authorize($request, AdminPermission::CatalogueView);
+
+        return Inertia::render('Catalogue/SearchHealth', [
+            'health' => $health((int) min(90, max(1, $request->integer('days', 30)))),
         ]);
     }
 

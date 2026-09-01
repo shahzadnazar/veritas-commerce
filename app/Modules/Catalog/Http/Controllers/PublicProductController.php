@@ -7,7 +7,10 @@ namespace App\Modules\Catalog\Http\Controllers;
 use App\Modules\Catalog\Queries\BuildProductPage;
 use App\Modules\Catalog\Queries\FindPublicProduct;
 use App\Modules\Catalog\Support\ProductStructuredData;
+use App\Modules\Events\Actions\RecordInteraction;
+use App\Modules\Events\Enums\InteractionEventType;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,9 +27,10 @@ final class PublicProductController
     public function __construct(
         private readonly FindPublicProduct $findProduct,
         private readonly BuildProductPage $buildPage,
+        private readonly RecordInteraction $interactions,
     ) {}
 
-    public function __invoke(string $slug): Response|RedirectResponse
+    public function __invoke(Request $request, string $slug): Response|RedirectResponse
     {
         $product = ($this->findProduct)($slug);
 
@@ -44,6 +48,15 @@ final class PublicProductController
 
         $page = ($this->buildPage)($product);
         $base = rtrim((string) config('veritas.identity.public_url'), '/');
+
+        // Queued, so a view is recorded without the customer waiting for
+        // the write — and never on a redirect, which is not a view.
+        $this->interactions->record(
+            $request,
+            InteractionEventType::ProductViewed,
+            productId: $product->id,
+            payload: ['context' => 'product_page'],
+        );
         $canonical = $base.'/products/'.$product->slug;
 
         return Inertia::render('Product/Show', [

@@ -38,9 +38,12 @@ final class BuildProductPage
     /** @return array<string, mixed> */
     public function __invoke(Product $product): array
     {
-        $offers = $this->eligibility->query()
+        // With availability, so the page can say what is actually
+        // buyable rather than only what is listed — and so the structured
+        // data can tell the truth about it.
+        $offers = $this->eligibility->queryWithAvailability()
             ->with(['store', 'sellerAccount', 'productVariant'])
-            ->where('product_id', $product->id)
+            ->where('offers.product_id', $product->id)
             ->get();
 
         $ranked = $this->ranking->rank($offers);
@@ -94,6 +97,17 @@ final class BuildProductPage
                 ])
                 ->values()
                 ->all(),
+            /*
+             * Whether anybody can actually buy this right now.
+             *
+             * §32: a published product keeps its page when it runs out —
+             * the URL, the ranking and the history are worth more than the
+             * momentary stock level — but the page says so plainly, and
+             * the structured data says so too.
+             */
+            'inStock' => $offers->contains(
+                static fn (Offer $offer): bool => (int) $offer->getAttribute('available_stock') > 0,
+            ),
             'offers' => $ranked
                 ->map(fn (Offer $offer): array => [
                     'publicId' => $offer->public_id,
@@ -107,6 +121,11 @@ final class BuildProductPage
                     'conditionLabel' => $offer->condition->label(),
                     'handlingDays' => $offer->handling_days,
                     'variantPublicId' => $offer->productVariant?->public_id,
+                    // The ledger's number, not a recomputation: a card,
+                    // this page and the search index all read the same
+                    // availability.
+                    'available' => (int) $offer->getAttribute('available_stock'),
+                    'inStock' => (int) $offer->getAttribute('available_stock') > 0,
                     'seller' => [
                         'storeName' => $offer->store->name ?? 'A Veritas seller',
                         'storeSlug' => $offer->store?->slug,
