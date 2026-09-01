@@ -44,6 +44,17 @@ enum AdminPermission: string
     case CatalogueAttributeManage = 'catalog.attribute.manage';
     case CatalogueBrandManage = 'catalog.brand.manage';
 
+    /*
+     * Inventory, split view from adjust.
+     *
+     * Reading a seller's stock to answer "why can nobody buy this" is an
+     * everyday support question. Changing that number is the platform
+     * reaching into a seller's business, and is not the same act of trust.
+     */
+    case InventoryView = 'inventory.view';
+    case InventoryAdjust = 'inventory.adjust';
+    case InventoryAudit = 'inventory.audit';
+
     // Commerce
     case ViewOrders = 'orders.view';
     case IssueRefunds = 'orders.refund';

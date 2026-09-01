@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Catalog\Http\Controllers\SellerCatalogueController;
+use App\Modules\Inventory\Http\Controllers\SellerInventoryController;
 use App\Modules\Offers\Http\Controllers\SellerOfferController;
 use App\Modules\Sellers\Http\Controllers\SellerApplicationController;
 use App\Modules\Sellers\Http\Controllers\SellerDashboardController;
@@ -74,6 +75,22 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             ->middleware('seller.can:catalog.manage')->name('offers.update');
         Route::post('offers/{offer}/status', [SellerOfferController::class, 'transition'])
             ->middleware('seller.can:catalog.manage')->name('offers.status');
+
+        /*
+         * Stock. Read and write are different permissions: a catalogue
+         * manager lists products and a warehouse manager counts them, and
+         * the role matrix keeps those apart.
+         */
+        Route::get('inventory', [SellerInventoryController::class, 'index'])
+            ->middleware('seller.can:inventory.view')->name('inventory');
+        Route::get('inventory/{offer}', [SellerInventoryController::class, 'show'])
+            ->middleware('seller.can:inventory.view')->name('inventory.show');
+        Route::post('inventory/{offer}/adjust', [SellerInventoryController::class, 'adjust'])
+            ->middleware('seller.can:inventory.manage')->name('inventory.adjust');
+        Route::post('inventory/{offer}/opening-stock', [SellerInventoryController::class, 'openingStock'])
+            ->middleware('seller.can:inventory.manage')->name('inventory.opening');
+        Route::patch('inventory/{offer}/threshold', [SellerInventoryController::class, 'threshold'])
+            ->middleware('seller.can:inventory.manage')->name('inventory.threshold');
 
         Route::get('team', [SellerTeamController::class, 'index'])
             ->middleware('seller.can:members.view')->name('team');

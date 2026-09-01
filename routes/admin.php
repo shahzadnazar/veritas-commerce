@@ -9,6 +9,7 @@ use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
 use App\Modules\AdminPortal\Http\Controllers\CatalogueProductController;
 use App\Modules\AdminPortal\Http\Controllers\CatalogueTaxonomyController;
+use App\Modules\AdminPortal\Http\Controllers\InventoryOversightController;
 use App\Modules\AdminPortal\Http\Controllers\SellerAccountController;
 use App\Modules\AdminPortal\Http\Controllers\SellerApplicationController;
 use Illuminate\Support\Facades\Route;
@@ -102,6 +103,21 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:catalog.attribute.manage')->name('attributes.store');
                 Route::post('brands/{brand}/approve', [CatalogueTaxonomyController::class, 'approveBrand'])
                     ->middleware('admin.can:catalog.brand.manage')->name('brands.approve');
+            });
+
+            /*
+             * Stock oversight. Reading a seller's count answers "why can
+             * nobody buy this"; changing it is the platform reaching into
+             * their business, so it is a separate permission and always
+             * carries a written reason.
+             */
+            Route::prefix('inventory')->name('inventory.')->group(function (): void {
+                Route::get('/', [InventoryOversightController::class, 'index'])
+                    ->middleware('admin.can:inventory.view')->name('index');
+                Route::get('{offer}', [InventoryOversightController::class, 'show'])
+                    ->middleware('admin.can:inventory.view')->name('show');
+                Route::post('{offer}/adjust', [InventoryOversightController::class, 'adjust'])
+                    ->middleware('admin.can:inventory.adjust')->name('adjust');
             });
 
             // Staff accounts. Only the permission that lets someone

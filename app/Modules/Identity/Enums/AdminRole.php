@@ -50,6 +50,9 @@ enum AdminRole: string
                 AdminPermission::CatalogueProductApprove,
                 AdminPermission::CatalogueProductReject,
                 AdminPermission::CatalogueProductSuspend,
+                AdminPermission::InventoryView,
+                AdminPermission::InventoryAdjust,
+                AdminPermission::InventoryAudit,
             ],
 
             // Governs sellers. Deliberately holds no finance or catalogue
@@ -66,6 +69,9 @@ enum AdminRole: string
                 AdminPermission::SellerReactivate,
                 AdminPermission::SellerViewSensitive,
                 AdminPermission::ViewOrders,
+                // Reads stock to answer a seller's question; correcting it
+                // is the marketplace admin's call, not theirs.
+                AdminPermission::InventoryView,
             ],
 
             // Moderates the catalogue: reviews proposals, decides them,
@@ -84,6 +90,7 @@ enum AdminRole: string
                 AdminPermission::CatalogueCategoryManage,
                 AdminPermission::CatalogueAttributeManage,
                 AdminPermission::CatalogueBrandManage,
+                AdminPermission::InventoryView,
             ],
 
             self::FinanceAdmin => [
@@ -104,12 +111,16 @@ enum AdminRole: string
                 // Reading a product to answer a customer's question is
                 // support's job; deciding one is not.
                 AdminPermission::CatalogueView,
+                // Likewise stock: "is it actually out of stock" is a
+                // support question, "make it not be" is not.
+                AdminPermission::InventoryView,
             ],
 
             self::Analyst => [
                 AdminPermission::ViewDashboard,
                 AdminPermission::ViewOrders,
                 AdminPermission::CatalogueView,
+                AdminPermission::InventoryView,
             ],
         };
     }
