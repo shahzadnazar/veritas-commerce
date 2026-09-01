@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Models;
 
+use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Offers\Models\Offer;
 use App\Support\HasPublicId;
 use Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,15 +37,31 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $specifications
  * @property array<string, mixed>|null $attributes
  * @property int|null $created_by_seller_account_id
- * @property bool $is_active
  * @property string|null $seo_title
  * @property string|null $seo_description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property ProductStatus $status
+ * @property string|null $moderation_reason
+ * @property int|null $reviewed_by_admin_id
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $reviewed_at
+ * @property Carbon|null $published_at
+ * @property string|null $upc
+ * @property string|null $ean
+ * @property string|null $isbn
+ * @property string|null $model_number
+ * @property string|null $normalised_title
+ * @property int|null $merged_into_product_id
+ * @property Carbon|null $merged_at
  * @property-read Category|null $category
  * @property-read Brand|null $brand
  * @property-read Collection<int, ProductVariant> $variants
  * @property-read Collection<int, Offer> $offers
+ * @property-read Collection<int, ProductMedia> $media
+ * @property-read Collection<int, ProductAttributeValue> $attributeValues
+ * @property-read Collection<int, ProductProposalEvent> $proposalEvents
+ * @property-read Product|null $mergedInto
  */
 final class Product extends Model
 {
@@ -58,14 +76,20 @@ final class Product extends Model
         'category_id',
         'brand_id',
         'title',
+        'normalised_title',
         'slug',
         'description',
         'gtin',
+        'upc',
+        'ean',
+        'isbn',
         'mpn',
+        'model_number',
         'specifications',
         'attributes',
         'created_by_seller_account_id',
-        'is_active',
+        'status',
+        'moderation_reason',
         'seo_title',
         'seo_description',
     ];
@@ -75,7 +99,11 @@ final class Product extends Model
         return [
             'specifications' => 'array',
             'attributes' => 'array',
-            'is_active' => 'boolean',
+            'status' => ProductStatus::class,
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'published_at' => 'datetime',
+            'merged_at' => 'datetime',
         ];
     }
 
@@ -107,5 +135,69 @@ final class Product extends Model
     public function offers(): HasMany
     {
         return $this->hasMany(Offer::class);
+    }
+
+    /** @return HasMany<ProductMedia, $this> */
+    public function media(): HasMany
+    {
+        return $this->hasMany(ProductMedia::class)->orderBy('position');
+    }
+
+    /** @return HasMany<ProductAttributeValue, $this> */
+    public function attributeValues(): HasMany
+    {
+        return $this->hasMany(ProductAttributeValue::class);
+    }
+
+    /** @return HasMany<ProductProposalEvent, $this> */
+    public function proposalEvents(): HasMany
+    {
+        return $this->hasMany(ProductProposalEvent::class);
+    }
+
+    /**
+     * The product this one was superseded by, if it has been merged.
+     *
+     * @return BelongsTo<Product, $this>
+     */
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_product_id');
+    }
+
+    /** The image a listing or a search result leads with. */
+    public function primaryImage(): ?ProductMedia
+    {
+        return $this->media->firstWhere('is_primary', true) ?? $this->media->first();
+    }
+
+    /**
+     * Every trade identifier this product carries, keyed by kind.
+     *
+     * @return array<string, string>
+     */
+    public function identifiers(): array
+    {
+        return array_filter([
+            'gtin' => $this->gtin,
+            'upc' => $this->upc,
+            'ean' => $this->ean,
+            'isbn' => $this->isbn,
+            'mpn' => $this->mpn,
+            'model_number' => $this->model_number,
+        ], static fn (?string $value): bool => $value !== null && $value !== '');
+    }
+
+    /** Only a live, unmerged product appears on the storefront. */
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status->isPublic() && $this->merged_into_product_id === null;
+    }
+
+    /** @param  Builder<Product>  $query */
+    public function scopePublished(Builder $query): void
+    {
+        $query->where('status', ProductStatus::Published->value)
+            ->whereNull('merged_into_product_id');
     }
 }

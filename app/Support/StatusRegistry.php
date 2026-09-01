@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Modules\Catalog\Enums\ProductStatus;
 use App\Modules\Inventory\Enums\InventoryMovementReason;
 use App\Modules\Inventory\Enums\ReservationStatus;
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
@@ -43,6 +44,7 @@ final class StatusRegistry
             'seller_application' => SellerApplicationStatus::class,
             'seller' => SellerStatus::class,
             'seller_invitation' => InvitationStatus::class,
+            'product' => ProductStatus::class,
             'offer' => OfferStatus::class,
             'marketplace_order' => MarketplaceOrderStatus::class,
             'seller_order' => SellerOrderStatus::class,

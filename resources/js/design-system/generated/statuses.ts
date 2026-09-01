@@ -74,6 +74,40 @@ export const STATUS_PRESENTATION = {
             "label": "Expired"
         }
     },
+    "product": {
+        "draft": {
+            "tone": "inactive",
+            "label": "Draft"
+        },
+        "pending_review": {
+            "tone": "pending",
+            "label": "Pending review"
+        },
+        "changes_requested": {
+            "tone": "pending",
+            "label": "Changes requested"
+        },
+        "approved": {
+            "tone": "neutral",
+            "label": "Approved"
+        },
+        "published": {
+            "tone": "neutral",
+            "label": "Published"
+        },
+        "rejected": {
+            "tone": "critical",
+            "label": "Rejected"
+        },
+        "suspended": {
+            "tone": "critical",
+            "label": "Suspended"
+        },
+        "archived": {
+            "tone": "inactive",
+            "label": "Archived"
+        }
+    },
     "offer": {
         "draft": {
             "tone": "inactive",

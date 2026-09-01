@@ -30,6 +30,11 @@ use Illuminate\Support\Carbon;
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $sku
+ * @property string|null $upc
+ * @property string|null $ean
+ * @property string|null $mpn
+ * @property string|null $option_signature
  * @property-read Product|null $product
  */
 final class ProductVariant extends Model
@@ -41,7 +46,10 @@ final class ProductVariant extends Model
 
     protected $table = 'product_variants';
 
-    protected $fillable = ['product_id', 'name', 'option_values', 'gtin', 'position', 'is_active'];
+    protected $fillable = [
+        'product_id', 'name', 'sku', 'option_values', 'option_signature',
+        'gtin', 'upc', 'ean', 'mpn', 'position', 'is_active',
+    ];
 
     protected function casts(): array
     {

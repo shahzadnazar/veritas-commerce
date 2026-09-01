@@ -23,7 +23,12 @@ final class OfferFactory extends Factory
             'seller_account_id' => SellerAccount::factory(),
             'store_id' => Store::factory(),
             'product_id' => Product::factory(),
-            'product_variant_id' => ProductVariant::factory(),
+            // The variant must belong to the product the offer names.
+            // Defaulting it to its own factory quietly created a second
+            // canonical product for every offer.
+            'product_variant_id' => fn (array $attributes): int => ProductVariant::factory()
+                ->create(['product_id' => $attributes['product_id']])
+                ->id,
             'seller_sku' => strtoupper($this->faker->unique()->bothify('SKU-####-???')),
             'condition' => 'new',
             'price_minor' => $this->faker->numberBetween(1_000, 200_000),

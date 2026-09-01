@@ -22,6 +22,13 @@ use Illuminate\Support\Carbon;
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $description
+ * @property string|null $logo_media_id
+ * @property string|null $seo_title
+ * @property string|null $seo_description
+ * @property string $normalised_name
+ * @property int|null $proposed_by_seller_account_id
+ * @property Carbon|null $approved_at
  */
 final class Brand extends Model
 {
@@ -32,11 +39,22 @@ final class Brand extends Model
 
     protected $table = 'brands';
 
-    protected $fillable = ['name', 'slug', 'owner_seller_account_id', 'merged_into_brand_id', 'is_active'];
+    protected $fillable = [
+        'name', 'normalised_name', 'slug', 'description', 'logo_media_id',
+        'owner_seller_account_id', 'proposed_by_seller_account_id',
+        'merged_into_brand_id', 'is_active', 'approved_at',
+        'seo_title', 'seo_description',
+    ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'approved_at' => 'datetime'];
+    }
+
+    /** A proposed brand is not yet part of the public catalogue. */
+    public function isApproved(): bool
+    {
+        return $this->is_active && $this->approved_at !== null;
     }
 
     /** Platform-wide brands may be used by any seller; owned ones may not. */
