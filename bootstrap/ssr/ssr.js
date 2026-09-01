@@ -1,6 +1,6 @@
 import { Head, Link, createInertiaApp, useForm, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
-import { useId } from "react";
+import { useId, useState } from "react";
 import createServer from "@inertiajs/react/server";
 import ReactDOMServer from "react-dom/server";
 //#region \0rolldown/runtime.js
@@ -786,6 +786,108 @@ function CardGridSkeleton({ count = 8 }) {
 	});
 }
 //#endregion
+//#region resources/js/storefront/pages/Category/Show.tsx
+var Show_exports$2 = /* @__PURE__ */ __exportAll({ default: () => Show$2 });
+/**
+* A category page.
+*
+* Deliberately thin: filtering and facets belong to M3, and every facet
+* combination that becomes a crawlable URL is another near-duplicate
+* competing with the canonical product pages this links to.
+*/
+function Show$2() {
+	const { category, breadcrumbs, children, products, seo } = usePage().props;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: seo.title,
+		children: [
+			/* @__PURE__ */ jsxs(Head, { children: [
+				/* @__PURE__ */ jsx("meta", {
+					name: "description",
+					content: seo.description
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					name: "robots",
+					content: seo.robots
+				}),
+				/* @__PURE__ */ jsx("link", {
+					rel: "canonical",
+					href: seo.canonical
+				})
+			] }),
+			/* @__PURE__ */ jsx("nav", {
+				"aria-label": "Breadcrumb",
+				className: "mb-6 text-[13px] text-[var(--vc-neutral-600)]",
+				children: /* @__PURE__ */ jsx("ol", {
+					className: "flex flex-wrap items-center gap-2",
+					children: breadcrumbs.map((crumb, index) => /* @__PURE__ */ jsxs("li", {
+						className: "flex items-center gap-2",
+						children: [index < breadcrumbs.length - 1 ? /* @__PURE__ */ jsx(Link, {
+							href: crumb.url,
+							className: "underline underline-offset-4",
+							children: crumb.name
+						}) : /* @__PURE__ */ jsx("span", {
+							"aria-current": "page",
+							children: crumb.name
+						}), index < breadcrumbs.length - 1 ? /* @__PURE__ */ jsx("span", {
+							"aria-hidden": "true",
+							children: "/"
+						}) : null]
+					}, crumb.url))
+				})
+			}),
+			/* @__PURE__ */ jsxs("header", {
+				className: "mb-10 border-b-2 border-[var(--vc-text)] pb-6",
+				children: [/* @__PURE__ */ jsx("h1", {
+					className: "mb-2 text-[38px] leading-[1.05]",
+					children: category.name
+				}), category.description ? /* @__PURE__ */ jsx("p", {
+					className: "max-w-[62ch] text-[var(--vc-neutral-700)]",
+					children: category.description
+				}) : null]
+			}),
+			children.length > 0 ? /* @__PURE__ */ jsx("nav", {
+				"aria-label": "Subcategories",
+				className: "mb-10",
+				children: /* @__PURE__ */ jsx("ul", {
+					className: "flex flex-wrap gap-2",
+					children: children.map((child) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
+						href: `/categories/${child.slug}`,
+						className: "inline-block border-2 border-[var(--vc-divider)] px-4 py-2 text-[14px] hover:border-[var(--vc-text)]",
+						children: child.name
+					}) }, child.slug))
+				})
+			}) : null,
+			products.data.length === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+				title: "Nothing listed here yet",
+				body: "No seller is currently offering anything in this category. Products appear here as soon as one does."
+			}) : /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsxs("p", {
+				className: "mb-4 text-[13px] text-[var(--vc-neutral-600)]",
+				children: [
+					products.total,
+					" ",
+					products.total === 1 ? "product" : "products"
+				]
+			}), /* @__PURE__ */ jsx("ul", {
+				className: "grid gap-[var(--vc-grid-gap)] [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]",
+				children: products.data.map((product) => /* @__PURE__ */ jsx("li", {
+					className: "bg-[var(--vc-surface)]",
+					children: /* @__PURE__ */ jsxs(Link, {
+						href: `/products/${product.slug}`,
+						className: "block p-4",
+						children: [product.brand ? /* @__PURE__ */ jsx("span", {
+							className: "mb-1 block text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+							children: product.brand
+						}) : null, /* @__PURE__ */ jsx("span", {
+							className: "block text-[15px] font-semibold underline underline-offset-4",
+							children: product.title
+						})]
+					})
+				}, product.slug))
+			})] })
+		]
+	});
+}
+//#endregion
 //#region resources/js/storefront/pages/Home.tsx
 var Home_exports = /* @__PURE__ */ __exportAll({ default: () => Home });
 /**
@@ -833,6 +935,233 @@ function Home() {
 			})
 		}) : /* @__PURE__ */ jsx(CardGridSkeleton, { count: 8 })
 	] });
+}
+//#endregion
+//#region resources/js/design-system/patterns/StructuredData.tsx
+/**
+* Emits JSON-LD the server assembled.
+*
+* The shape is built in PHP from database rows and passed through
+* untouched — deliberately, so no component can add a rating or a price
+* the catalogue cannot support. Nothing here decides what to claim.
+*/
+function StructuredData({ documents }) {
+	if (documents.length === 0) return null;
+	return /* @__PURE__ */ jsx(Head, { children: documents.map((document, index) => /* @__PURE__ */ jsx("script", {
+		type: "application/ld+json",
+		dangerouslySetInnerHTML: { __html: JSON.stringify(document) }
+	}, index)) });
+}
+//#endregion
+//#region resources/js/storefront/pages/Product/Show.tsx
+var Show_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Show$1 });
+/**
+* The canonical product page.
+*
+* Product photography is full colour — the monochrome of the design system
+* is chrome, never the goods. Cart is M4, so the action is honestly
+* disabled rather than pretending to work.
+*/
+function Show$1() {
+	const { product, breadcrumbs, media, specifications, variants, offers, priceRange, seo, structuredData } = usePage().props;
+	const [selectedImage, setSelectedImage] = useState(0);
+	const [selectedVariant, setSelectedVariant] = useState(null);
+	const visibleOffers = selectedVariant ? offers.filter((offer) => offer.variantPublicId === selectedVariant) : offers;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: seo.title,
+		children: [
+			/* @__PURE__ */ jsxs(Head, { children: [
+				/* @__PURE__ */ jsx("meta", {
+					name: "description",
+					content: seo.description
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					name: "robots",
+					content: seo.robots
+				}),
+				/* @__PURE__ */ jsx("link", {
+					rel: "canonical",
+					href: seo.canonical
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:title",
+					content: seo.ogTitle
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:description",
+					content: seo.description
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:type",
+					content: seo.ogType
+				}),
+				/* @__PURE__ */ jsx("meta", {
+					property: "og:url",
+					content: seo.ogUrl
+				}),
+				seo.ogImage ? /* @__PURE__ */ jsx("meta", {
+					property: "og:image",
+					content: seo.ogImage
+				}) : null
+			] }),
+			/* @__PURE__ */ jsx(StructuredData, { documents: structuredData }),
+			/* @__PURE__ */ jsx("nav", {
+				"aria-label": "Breadcrumb",
+				className: "mb-6 text-[13px] text-[var(--vc-neutral-600)]",
+				children: /* @__PURE__ */ jsx("ol", {
+					className: "flex flex-wrap items-center gap-2",
+					children: breadcrumbs.map((crumb, index) => /* @__PURE__ */ jsxs("li", {
+						className: "flex items-center gap-2",
+						children: [index < breadcrumbs.length - 1 ? /* @__PURE__ */ jsx(Link, {
+							href: crumb.url,
+							className: "underline underline-offset-4",
+							children: crumb.name
+						}) : /* @__PURE__ */ jsx("span", {
+							"aria-current": "page",
+							children: crumb.name
+						}), index < breadcrumbs.length - 1 ? /* @__PURE__ */ jsx("span", {
+							"aria-hidden": "true",
+							children: "/"
+						}) : null]
+					}, crumb.url))
+				})
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]",
+				children: [/* @__PURE__ */ jsx("section", {
+					"aria-label": "Product images",
+					children: media.length === 0 ? /* @__PURE__ */ jsx("div", {
+						className: "flex aspect-square items-center justify-center border-2 border-[var(--vc-divider)] text-[13px] text-[var(--vc-neutral-600)]",
+						children: "No photographs yet"
+					}) : /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("img", {
+						src: media[selectedImage]?.url ?? media[0]?.url,
+						alt: media[selectedImage]?.alt ?? product.title,
+						width: media[selectedImage]?.width ?? void 0,
+						height: media[selectedImage]?.height ?? void 0,
+						className: "aspect-square w-full bg-[var(--vc-surface)] object-contain"
+					}), media.length > 1 ? /* @__PURE__ */ jsx("ul", {
+						className: "mt-3 flex flex-wrap gap-2",
+						children: media.map((image, index) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("button", {
+							type: "button",
+							"aria-label": `Show image ${index + 1} of ${media.length}`,
+							"aria-current": index === selectedImage,
+							onClick: () => setSelectedImage(index),
+							className: ["h-[64px] w-[64px] border-2 p-[2px]", index === selectedImage ? "border-[var(--vc-text)]" : "border-transparent hover:border-[var(--vc-neutral-400)]"].join(" "),
+							children: /* @__PURE__ */ jsx("img", {
+								src: image.url,
+								alt: "",
+								className: "h-full w-full object-contain"
+							})
+						}) }, image.url))
+					}) : null] })
+				}), /* @__PURE__ */ jsxs("section", { children: [
+					product.brand ? /* @__PURE__ */ jsx("p", {
+						className: "mb-1 text-[13px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+						children: product.brand.name
+					}) : null,
+					/* @__PURE__ */ jsx("h1", {
+						className: "mb-4 text-[38px] leading-[1.1]",
+						children: product.title
+					}),
+					priceRange ? /* @__PURE__ */ jsxs("p", {
+						className: "vc-tabular mb-6 text-[28px] font-extrabold",
+						children: [priceRange.isSingle ? priceRange.from : `${priceRange.from} – ${priceRange.to}`, /* @__PURE__ */ jsxs("span", {
+							className: "ml-2 align-middle text-[13px] font-normal text-[var(--vc-neutral-600)]",
+							children: [
+								"from ",
+								offers.length,
+								" ",
+								offers.length === 1 ? "seller" : "sellers"
+							]
+						})]
+					}) : null,
+					product.description ? /* @__PURE__ */ jsx("p", {
+						className: "mb-6 max-w-[62ch] text-[var(--vc-neutral-700)]",
+						children: product.description
+					}) : null,
+					variants.length > 0 ? /* @__PURE__ */ jsxs("fieldset", {
+						className: "mb-6",
+						children: [/* @__PURE__ */ jsx("legend", {
+							className: "mb-2 text-[12px] text-[var(--vc-neutral-700)]",
+							children: "Choose an option"
+						}), /* @__PURE__ */ jsx("div", {
+							className: "flex flex-wrap gap-2",
+							children: variants.map((variant) => /* @__PURE__ */ jsxs("button", {
+								type: "button",
+								disabled: !variant.hasOffer,
+								"aria-pressed": selectedVariant === variant.publicId,
+								onClick: () => setSelectedVariant(selectedVariant === variant.publicId ? null : variant.publicId),
+								className: [
+									"min-h-[44px] border-2 px-4 py-2 text-[14px]",
+									selectedVariant === variant.publicId ? "border-[var(--vc-text)] bg-[var(--vc-surface)]" : "border-[var(--vc-divider)]",
+									variant.hasOffer ? "hover:border-[var(--vc-text)]" : "cursor-not-allowed opacity-45"
+								].join(" "),
+								children: [variant.name, variant.hasOffer ? "" : " — unavailable"]
+							}, variant.publicId))
+						})]
+					}) : null,
+					/* @__PURE__ */ jsx("h2", {
+						className: "mb-3 text-[20px]",
+						children: visibleOffers.length === 1 ? "Seller" : "Sellers"
+					}),
+					visibleOffers.length === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+						title: "No seller is listing this right now",
+						body: "Nobody currently offers this product. It stays in the catalogue, so a listing can appear again at any time."
+					}) : /* @__PURE__ */ jsx("ul", {
+						className: "border-t-2 border-[var(--vc-text)]",
+						children: visibleOffers.map((offer) => /* @__PURE__ */ jsxs("li", {
+							className: "flex flex-wrap items-center gap-4 border-b border-[var(--vc-divider)] py-4",
+							children: [/* @__PURE__ */ jsxs("span", {
+								className: "flex-1",
+								children: [/* @__PURE__ */ jsx("span", {
+									className: "vc-tabular block text-[20px] font-bold",
+									children: offer.price
+								}), /* @__PURE__ */ jsxs("span", {
+									className: "block text-[13px] text-[var(--vc-neutral-600)]",
+									children: [
+										offer.conditionLabel,
+										" ·",
+										" ",
+										offer.seller.storeSlug ? /* @__PURE__ */ jsx(Link, {
+											href: `/stores/${offer.seller.storeSlug}`,
+											className: "underline underline-offset-4",
+											children: offer.seller.storeName
+										}) : offer.seller.storeName,
+										" ",
+										"· dispatches in ",
+										offer.handlingDays,
+										" ",
+										offer.handlingDays === 1 ? "day" : "days"
+									]
+								})]
+							}), /* @__PURE__ */ jsx(Button, {
+								variant: "secondary",
+								disabled: true,
+								title: "Buying opens soon",
+								children: "Buying opens soon"
+							})]
+						}, offer.publicId))
+					})
+				] })]
+			}),
+			specifications.length > 0 ? /* @__PURE__ */ jsxs("section", {
+				className: "mt-12 max-w-[720px]",
+				children: [/* @__PURE__ */ jsx("h2", {
+					className: "mb-4 text-[22px]",
+					children: "Specifications"
+				}), /* @__PURE__ */ jsx("dl", {
+					className: "border-t-2 border-[var(--vc-text)]",
+					children: specifications.map((specification) => /* @__PURE__ */ jsxs("div", {
+						className: "flex gap-6 border-b border-[var(--vc-divider)] py-3 text-[14px]",
+						children: [/* @__PURE__ */ jsx("dt", {
+							className: "w-[220px] shrink-0 text-[var(--vc-neutral-600)]",
+							children: specification.name
+						}), /* @__PURE__ */ jsx("dd", { children: specification.value })]
+					}, specification.name))
+				})]
+			}) : null
+		]
+	});
 }
 //#endregion
 //#region resources/js/storefront/pages/Store/Show.tsx
@@ -962,7 +1291,9 @@ createServer((page) => createInertiaApp({
 			"./pages/Auth/Register.tsx": Register_exports,
 			"./pages/Auth/ResetPassword.tsx": ResetPassword_exports,
 			"./pages/Auth/VerifyEmail.tsx": VerifyEmail_exports,
+			"./pages/Category/Show.tsx": Show_exports$2,
 			"./pages/Home.tsx": Home_exports,
+			"./pages/Product/Show.tsx": Show_exports$1,
 			"./pages/Store/Show.tsx": Show_exports
 		}))[`./pages/${name}.tsx`];
 	},

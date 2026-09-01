@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Modules\Catalog\Http\Controllers\HomeController;
+use App\Modules\Catalog\Http\Controllers\PublicCategoryController;
+use App\Modules\Catalog\Http\Controllers\PublicProductController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
 use App\Modules\Identity\Http\Controllers\LoginController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
@@ -20,6 +22,14 @@ Route::get('/', HomeController::class)->name('home');
 // else is a 404 rather than an empty shell, so a suspended store leaves no
 // trace in search results.
 Route::get('/stores/{slug}', PublicStoreController::class)->name('stores.show');
+
+/*
+ * The canonical product page: one per product, never one per offer. Four
+ * sellers listing the same kettle must not become four competing pages
+ * splitting the authority of one.
+ */
+Route::get('/products/{slug}', PublicProductController::class)->name('products.show');
+Route::get('/categories/{slug}', PublicCategoryController::class)->name('categories.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('register', [RegisterController::class, 'show'])->name('register');
