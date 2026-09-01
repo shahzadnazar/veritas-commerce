@@ -13,11 +13,12 @@ result.
 
 ## 2. Final SHA
 
-`b9a138467d6c989b88acea0eb8349b4eb037da96`
+`7e1bd30` — the commit carrying this report. The last code commit is
+`b9a138467d6c989b88acea0eb8349b4eb037da96`.
 
 ## 3. M4 commit range
 
-`4db0a78..b9a1384` — ten commits, oldest first. Nothing was force-pushed
+`4db0a78..7e1bd30` — eleven commits, oldest first. Nothing was force-pushed
 and no published history was rewritten.
 
 | SHA       | Subject                                                         |
@@ -32,6 +33,7 @@ and no published history was rewritten.
 | `f149a39` | feat: add customer, seller and admin order read surfaces        |
 | `4a3f64e` | test: complete the M4 traceability and regression coverage      |
 | `b9a1384` | ci: exercise the M4 commerce path on the built image            |
+| `7e1bd30` | docs: add the M4 completion report                              |
 
 ## 4. Total tests and assertions
 
