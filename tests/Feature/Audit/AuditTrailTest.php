@@ -48,6 +48,24 @@ final class AuditTrailTest extends TestCase
     }
 
     #[Test]
+    public function opening_a_review_records_who_picked_it_up(): void
+    {
+        $admin = $this->makeAdmin(AdminRole::SellerOperations);
+        $application = SellerApplication::factory()->create();
+
+        $this->actingAs($admin, 'admin')
+            ->post("/admin/applications/{$application->public_id}/review")
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'seller.application.review_started',
+            'actor_type' => 'admin',
+            'actor_id' => $admin->id,
+            'subject_id' => $application->id,
+        ]);
+    }
+
+    #[Test]
     public function a_rejection_records_the_reason_verbatim(): void
     {
         $admin = $this->makeAdmin(AdminRole::SellerOperations);

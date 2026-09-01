@@ -28,6 +28,13 @@ Read them in order:
 | 12 | [Quality, observability & delivery](12-quality-observability-delivery.md) | Testing pyramid, CI/CD, monitoring, backups, runbooks. |
 | 13 | [Roadmap & decision register](13-roadmap-and-decisions.md) | Milestones, definition of done, the three decisions taken, and the nine that still need an owner. |
 
+## Milestone reports
+
+| Milestone | Report | State |
+|---|---|---|
+| M0 | [M0-REPORT.md](M0-REPORT.md) | Accepted — executable foundation, schema, invariants |
+| M1 | [M1-REPORT.md](M1-REPORT.md) | Identity, seller onboarding, store setup, governance |
+
 ## Decisions taken so far
 
 | # | Decision | Outcome |

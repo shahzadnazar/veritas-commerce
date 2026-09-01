@@ -6,6 +6,7 @@ namespace App\Modules\AdminPortal\Http\Controllers;
 
 use App\Modules\AdminPortal\Http\Requests\DecisionRequest;
 use App\Modules\AdminPortal\Queries\SellerApplicationQueue;
+use App\Modules\Audit\Actions\RecordAuditEvent;
 use App\Modules\Identity\Enums\AdminPermission;
 use App\Modules\Identity\Models\AdminUser;
 use App\Modules\Sellers\Actions\ApproveSellerApplication;
@@ -35,6 +36,7 @@ final class SellerApplicationController
         private readonly ApproveSellerApplication $approve,
         private readonly RejectSellerApplication $reject,
         private readonly RequestApplicationChanges $requestChanges,
+        private readonly RecordAuditEvent $audit,
     ) {}
 
     public function index(Request $request): Response
@@ -155,6 +157,17 @@ final class SellerApplicationController
             to: SellerApplicationStatus::UnderReview,
             actorType: 'admin',
             actorId: $admin->id,
+        );
+
+        // Who picked an application up is part of the record, not just who
+        // decided it: an application that sat with one reviewer for a week
+        // should say so.
+        ($this->audit)(
+            action: 'seller.application.review_started',
+            actorType: 'admin',
+            actorId: $admin->id,
+            subjectType: SellerApplication::class,
+            subjectId: $application->id,
         );
 
         return back()->with('success', 'Review started.');
