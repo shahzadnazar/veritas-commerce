@@ -22,6 +22,32 @@ use App\Modules\Stores\Models\Store;
 trait StocksOffers
 {
     /**
+     * Stock an offer that already exists.
+     *
+     * The search and discovery suites build their own offers and only need
+     * them to have units; this keeps them from reimplementing the ledger
+     * dance.
+     */
+    protected function stockOffer(Offer $offer, int $onHand): InventoryBalance
+    {
+        $location = InventoryLocation::query()->firstOrCreate(
+            ['seller_account_id' => $offer->seller_account_id, 'is_default' => true],
+            ['name' => 'Default'],
+        );
+
+        $balance = InventoryBalance::query()->firstOrCreate(
+            ['offer_id' => $offer->id, 'inventory_location_id' => $location->id],
+            ['on_hand' => 0],
+        );
+
+        if ($onHand > 0) {
+            app(AdjustInventory::class)->openingStock($offer, $onHand, 'seller', 1);
+        }
+
+        return $balance->refresh();
+    }
+
+    /**
      * @return array{seller: SellerAccount, store: Store, offer: Offer, location: InventoryLocation, balance: InventoryBalance}
      */
     protected function stockedOffer(int $onHand, ?SellerAccount $seller = null, ?Store $store = null): array

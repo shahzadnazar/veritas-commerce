@@ -24,4 +24,26 @@ final class CategoryFactory extends Factory
             'position' => 0,
         ];
     }
+
+    /**
+     * Derive path and depth the way SaveCategory does.
+     *
+     * `ancestorIds()` reads the stored path, so a factory-built child with
+     * no path reports no ancestors — and every test about category
+     * inheritance or descendant listings silently measures a flat tree
+     * instead of the one it built.
+     */
+    public function configure(): self
+    {
+        return $this->afterCreating(function (Category $category): void {
+            $parent = $category->parent_id === null
+                ? null
+                : Category::query()->find($category->parent_id);
+
+            $category->forceFill([
+                'depth' => $parent === null ? 0 : $parent->depth + 1,
+                'path' => ($parent === null ? '' : rtrim((string) $parent->path, '/')).'/'.$category->id,
+            ])->save();
+        });
+    }
 }

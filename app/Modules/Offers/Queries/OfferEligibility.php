@@ -9,6 +9,7 @@ use App\Modules\Offers\Enums\OfferStatus;
 use App\Modules\Offers\Models\Offer;
 use App\Modules\Sellers\Enums\SellerStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Whether an offer may be shown to a customer — decided once, here.
@@ -25,8 +26,13 @@ use Illuminate\Database\Eloquent\Builder;
  *   4. The offer itself is published.
  *   5. The offer names a variant that still belongs to that product.
  *
- * Stock is deliberately absent: an out-of-stock offer is a different
- * condition from an ineligible one, and M3 owns the difference.
+ * Stock is deliberately NOT one of the five. An out-of-stock offer is a
+ * different condition from an ineligible one — the product still has a
+ * page, still ranks, and still says who sells it — so availability is
+ * composed on top rather than folded in. `queryWithAvailability()` and
+ * `buyable()` are how a caller asks for the stricter question, and the
+ * separation is what lets the storefront show "out of stock" instead of
+ * pretending the listing does not exist.
  */
 final class OfferEligibility
 {
@@ -52,6 +58,37 @@ final class OfferEligibility
             ->whereHas('store', function (Builder $store): void {
                 $store->getQuery()->where('stores.is_open', true);
             });
+    }
+
+    /**
+     * Eligible offers, each carrying how many units are actually sellable.
+     *
+     * One left join rather than a lookup per offer: a category page asks
+     * this for every card on it, and §42 rules out a per-result inventory
+     * query. `available` is the balance's generated column, so the number
+     * is the database's own arithmetic.
+     *
+     * @return Builder<Offer>
+     */
+    public function queryWithAvailability(): Builder
+    {
+        return $this->query()
+            ->leftJoin('inventory_balances', 'inventory_balances.offer_id', '=', 'offers.id')
+            ->select('offers.*')
+            ->addSelect(DB::raw('coalesce(inventory_balances.available, 0) as available_stock'));
+    }
+
+    /**
+     * Eligible AND buyable right now.
+     *
+     * The narrower question, for the surfaces that should only offer what
+     * a customer could actually put in a basket.
+     *
+     * @return Builder<Offer>
+     */
+    public function buyable(): Builder
+    {
+        return $this->queryWithAvailability()->whereRaw('coalesce(inventory_balances.available, 0) > 0');
     }
 
     /** @return Builder<Offer> */
