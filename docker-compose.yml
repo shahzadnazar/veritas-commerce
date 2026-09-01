@@ -1,8 +1,9 @@
 # Local development environment.
 #
-# Postgres and Redis are the two services the application genuinely needs;
-# there is no queue broker, search cluster or object store here because M0
-# does not use one. They arrive when the milestone that needs them does.
+# Postgres, Redis, the application, the asset server and a queue worker.
+# There is no search cluster or object store here: development uses the
+# local disk and the Postgres search adapter, and both sit behind the same
+# interfaces the production drivers do.
 
 services:
     app:
@@ -23,6 +24,35 @@ services:
             redis:
                 condition: service_healthy
         command: php artisan serve --host=0.0.0.0 --port=8000
+
+    # Horizon rather than a bare `queue:work`, because the supervisors are
+    # the point: five queues with their own pools, so image processing
+    # cannot delay a payment webhook. It reads config/horizon.php, which is
+    # the same file production uses.
+    horizon:
+        build:
+            context: .
+            dockerfile: docker/app.Dockerfile
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        environment:
+            DB_HOST: postgres
+            REDIS_HOST: redis
+            QUEUE_CONNECTION: redis
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        command: php artisan horizon
+        healthcheck:
+            test: ['CMD', 'php', 'artisan', 'horizon:status']
+            interval: 15s
+            timeout: 10s
+            retries: 5
+            start_period: 30s
+        restart: unless-stopped
 
     vite:
         build:

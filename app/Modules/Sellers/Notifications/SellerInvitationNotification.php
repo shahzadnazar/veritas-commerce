@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Sellers\Notifications;
 
+use App\Support\Queues;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,6 +19,7 @@ use Illuminate\Support\Carbon;
  */
 final class SellerInvitationNotification extends Notification implements ShouldQueue
 {
+    // Mail has its own workers, so a slow provider delays nothing else.
     use Queueable;
 
     public function __construct(
@@ -25,7 +27,9 @@ final class SellerInvitationNotification extends Notification implements ShouldQ
         public readonly string $invitationPublicId,
         public readonly string $token,
         public readonly Carbon $expiresAt,
-    ) {}
+    ) {
+        $this->onQueue(Queues::EMAILS);
+    }
 
     /** @return array<int, string> */
     public function via(object $notifiable): array

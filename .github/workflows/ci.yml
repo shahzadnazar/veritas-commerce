@@ -174,6 +174,33 @@ jobs:
                   curl -sD - -o /dev/null http://127.0.0.1:8000/admin/login | grep -qi 'X-Robots-Tag: noindex'
                   ! curl -sD - -o /dev/null http://127.0.0.1:8000/ | grep -qi 'X-Robots-Tag'
 
+            - name: Redis answers and the application can reach it
+              run: |
+                  docker compose exec -T redis redis-cli ping | grep -q PONG
+                  docker compose exec -T app php artisan tinker --execute \
+                      'echo Illuminate\Support\Facades\Redis::connection()->ping() ? "redis reachable" : "redis unreachable";' \
+                      | grep -q 'redis reachable'
+
+            - name: Every queue is drained by a worker
+              run: |
+                  docker compose up -d horizon
+                  docker compose exec -T app php artisan horizon:status
+
+                  # horizon:status says a supervisor is alive. This says
+                  # work is actually picked up — a queue nobody listens to
+                  # looks perfectly healthy from the dispatching side.
+                  if ! docker compose exec -T app php artisan queues:smoke --timeout=60; then
+                      docker compose logs horizon | tail -50
+                      exit 1
+                  fi
+
+            # Retry and failure behaviour itself is covered against a real
+            # Redis by tests/Feature/Infrastructure/QueueRuntimeTest in the
+            # backend job. What the image has to prove is that the failed
+            # table is there to receive one.
+            - name: Failed jobs are recordable in the built image
+              run: docker compose exec -T app php artisan queue:failed
+
             - name: Test database exists
               run: docker compose exec -T postgres psql -U veritas -lqt | grep -q veritas_test
 

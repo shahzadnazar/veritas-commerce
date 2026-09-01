@@ -44,6 +44,14 @@ enum AdminPermission: string
     case ManageStaff = 'staff.manage';
     case ResetAdminMfa = 'staff.reset_mfa';
 
+    /**
+     * The queue dashboard.
+     *
+     * It exposes job payloads, which carry ids and email addresses, so it
+     * is not something every admin role gets by default.
+     */
+    case ViewQueues = 'platform.queues.view';
+
     public function label(): string
     {
         return $this->value;

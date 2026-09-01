@@ -41,6 +41,7 @@ enum AdminRole: string
                 AdminPermission::ViewOrders,
                 AdminPermission::ViewPayments,
                 AdminPermission::ManageOperationalSettings,
+                AdminPermission::ViewQueues,
             ],
 
             // Governs sellers. Deliberately holds no finance or catalogue

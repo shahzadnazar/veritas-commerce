@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sellers\Notifications;
 
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
+use App\Support\Queues;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,13 +19,16 @@ use Illuminate\Notifications\Notification;
  */
 final class SellerApplicationDecided extends Notification implements ShouldQueue
 {
+    // Mail has its own workers, so a slow provider delays nothing else.
     use Queueable;
 
     public function __construct(
         public readonly string $reference,
         public readonly SellerApplicationStatus $status,
         public readonly ?string $reason = null,
-    ) {}
+    ) {
+        $this->onQueue(Queues::EMAILS);
+    }
 
     /** @return array<int, string> */
     public function via(object $notifiable): array

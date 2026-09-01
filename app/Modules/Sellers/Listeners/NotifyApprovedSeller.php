@@ -9,6 +9,7 @@ use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Events\SellerApproved;
 use App\Modules\Sellers\Models\SellerApplication;
 use App\Modules\Sellers\Notifications\SellerApplicationDecided;
+use App\Support\Queues;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
@@ -22,6 +23,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 final class NotifyApprovedSeller implements ShouldQueue
 {
+    /** It sends an email, so it belongs with the email workers. */
+    public string $queue = Queues::EMAILS;
+
     public function handle(SellerApproved $event): void
     {
         $user = User::query()->find($event->ownerUserId);
