@@ -1,12 +1,17 @@
 {
   "\u0000rolldown/runtime.js": [],
+  "resources/js/design-system/generated/statuses.ts": [],
   "resources/js/design-system/layout/StorefrontLayout.tsx": [],
   "resources/js/design-system/layout/Wordmark.tsx": [],
   "resources/js/design-system/patterns/AuthCard.tsx": [],
+  "resources/js/design-system/patterns/ProductCard.tsx": [],
   "resources/js/design-system/patterns/States.tsx": [],
   "resources/js/design-system/patterns/StructuredData.tsx": [],
   "resources/js/design-system/primitives/Button.tsx": [],
   "resources/js/design-system/primitives/Field.tsx": [],
+  "resources/js/design-system/primitives/StatusBadge.tsx": [],
+  "resources/js/design-system/statusTone.ts": [],
+  "resources/js/storefront/components/DiscoveryFilters.tsx": [],
   "resources/js/storefront/pages/Account/Profile.tsx": [],
   "resources/js/storefront/pages/Auth/ForgotPassword.tsx": [],
   "resources/js/storefront/pages/Auth/Login.tsx": [],
@@ -16,6 +21,7 @@
   "resources/js/storefront/pages/Category/Show.tsx": [],
   "resources/js/storefront/pages/Home.tsx": [],
   "resources/js/storefront/pages/Product/Show.tsx": [],
+  "resources/js/storefront/pages/Search/Index.tsx": [],
   "resources/js/storefront/pages/Store/Show.tsx": [],
   "resources/js/storefront/ssr.tsx": []
 }

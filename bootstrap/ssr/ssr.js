@@ -1,4 +1,4 @@
-import { Head, Link, createInertiaApp, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useId, useState } from "react";
 import createServer from "@inertiajs/react/server";
@@ -187,6 +187,14 @@ function Input({ invalid = false, className = "", ...rest }) {
 		...rest,
 		"aria-invalid": invalid || void 0,
 		className: `${CONTROL_BASE} ${borderFor(invalid)} ${className}`
+	});
+}
+function Select({ invalid = false, className = "", children, ...rest }) {
+	return /* @__PURE__ */ jsx("select", {
+		...rest,
+		"aria-invalid": invalid || void 0,
+		className: `${CONTROL_BASE} ${borderFor(invalid)} ${className}`,
+		children
 	});
 }
 //#endregion
@@ -786,25 +794,835 @@ function CardGridSkeleton({ count = 8 }) {
 	});
 }
 //#endregion
+//#region resources/js/design-system/generated/statuses.ts
+var STATUS_PRESENTATION = {
+	"seller_application": {
+		"draft": {
+			"tone": "inactive",
+			"label": "Draft"
+		},
+		"submitted": {
+			"tone": "pending",
+			"label": "Submitted"
+		},
+		"under_review": {
+			"tone": "pending",
+			"label": "Under review"
+		},
+		"changes_requested": {
+			"tone": "pending",
+			"label": "Changes requested"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		}
+	},
+	"seller": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"suspended": {
+			"tone": "critical",
+			"label": "Suspended"
+		},
+		"closed": {
+			"tone": "inactive",
+			"label": "Closed"
+		}
+	},
+	"seller_invitation": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"accepted": {
+			"tone": "neutral",
+			"label": "Accepted"
+		},
+		"revoked": {
+			"tone": "critical",
+			"label": "Revoked"
+		},
+		"expired": {
+			"tone": "inactive",
+			"label": "Expired"
+		}
+	},
+	"product": {
+		"draft": {
+			"tone": "inactive",
+			"label": "Draft"
+		},
+		"pending_review": {
+			"tone": "pending",
+			"label": "Pending review"
+		},
+		"changes_requested": {
+			"tone": "pending",
+			"label": "Changes requested"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"published": {
+			"tone": "neutral",
+			"label": "Published"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"suspended": {
+			"tone": "critical",
+			"label": "Suspended"
+		},
+		"archived": {
+			"tone": "inactive",
+			"label": "Archived"
+		}
+	},
+	"offer": {
+		"draft": {
+			"tone": "inactive",
+			"label": "Draft"
+		},
+		"pending_review": {
+			"tone": "pending",
+			"label": "Pending review"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"published": {
+			"tone": "neutral",
+			"label": "Published"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"suspended": {
+			"tone": "critical",
+			"label": "Suspended"
+		},
+		"archived": {
+			"tone": "inactive",
+			"label": "Archived"
+		}
+	},
+	"marketplace_order": {
+		"pending_payment": {
+			"tone": "pending",
+			"label": "Pending payment"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"partially_shipped": {
+			"tone": "pending",
+			"label": "Partially shipped"
+		},
+		"shipped": {
+			"tone": "pending",
+			"label": "Shipped"
+		},
+		"partially_delivered": {
+			"tone": "pending",
+			"label": "Partially delivered"
+		},
+		"delivered": {
+			"tone": "neutral",
+			"label": "Delivered"
+		},
+		"completed": {
+			"tone": "neutral",
+			"label": "Completed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		},
+		"partially_refunded": {
+			"tone": "critical",
+			"label": "Partially refunded"
+		},
+		"refunded": {
+			"tone": "critical",
+			"label": "Refunded"
+		}
+	},
+	"seller_order": {
+		"pending_payment": {
+			"tone": "pending",
+			"label": "Pending payment"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"confirmed": {
+			"tone": "pending",
+			"label": "Confirmed"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"packed": {
+			"tone": "pending",
+			"label": "Packed"
+		},
+		"shipped": {
+			"tone": "pending",
+			"label": "Shipped"
+		},
+		"delivered": {
+			"tone": "neutral",
+			"label": "Delivered"
+		},
+		"completed": {
+			"tone": "neutral",
+			"label": "Completed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		},
+		"partially_refunded": {
+			"tone": "critical",
+			"label": "Partially refunded"
+		},
+		"refunded": {
+			"tone": "critical",
+			"label": "Refunded"
+		},
+		"disputed": {
+			"tone": "critical",
+			"label": "Disputed"
+		}
+	},
+	"payment": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"authorized": {
+			"tone": "neutral",
+			"label": "Authorized"
+		},
+		"captured": {
+			"tone": "neutral",
+			"label": "Captured"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
+		},
+		"refunded": {
+			"tone": "critical",
+			"label": "Refunded"
+		},
+		"partially_refunded": {
+			"tone": "critical",
+			"label": "Partially refunded"
+		}
+	},
+	"payout": {
+		"requested": {
+			"tone": "pending",
+			"label": "Requested"
+		},
+		"under_review": {
+			"tone": "pending",
+			"label": "Under review"
+		},
+		"approved": {
+			"tone": "neutral",
+			"label": "Approved"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		}
+	},
+	"ledger_entry_status": {
+		"pending": {
+			"tone": "pending",
+			"label": "Pending"
+		},
+		"clearing": {
+			"tone": "pending",
+			"label": "Clearing"
+		},
+		"available": {
+			"tone": "neutral",
+			"label": "Available"
+		},
+		"reserved_for_payout": {
+			"tone": "pending",
+			"label": "Reserved for payout"
+		},
+		"paid": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"reversed": {
+			"tone": "critical",
+			"label": "Reversed"
+		}
+	},
+	"ledger_entry_type": {
+		"sale_earning": {
+			"tone": "neutral",
+			"label": "Sale earning"
+		},
+		"commission": {
+			"tone": "inactive",
+			"label": "Commission"
+		},
+		"refund_reversal": {
+			"tone": "inactive",
+			"label": "Refund reversal"
+		},
+		"adjustment": {
+			"tone": "critical",
+			"label": "Adjustment"
+		},
+		"payout_reservation": {
+			"tone": "pending",
+			"label": "Payout reservation"
+		},
+		"payout": {
+			"tone": "inactive",
+			"label": "Payout"
+		},
+		"reversal": {
+			"tone": "neutral",
+			"label": "Reversal"
+		}
+	},
+	"inventory_movement_reason": {
+		"opening_stock": {
+			"tone": "neutral",
+			"label": "Opening stock"
+		},
+		"restock_received": {
+			"tone": "neutral",
+			"label": "Restock received"
+		},
+		"count_correction": {
+			"tone": "pending",
+			"label": "Count correction"
+		},
+		"damaged": {
+			"tone": "critical",
+			"label": "Damaged"
+		},
+		"lost": {
+			"tone": "critical",
+			"label": "Lost"
+		},
+		"returned_to_supplier": {
+			"tone": "critical",
+			"label": "Returned to supplier"
+		},
+		"manual_edit": {
+			"tone": "pending",
+			"label": "Manual edit"
+		},
+		"other": {
+			"tone": "pending",
+			"label": "Other"
+		},
+		"admin_adjustment": {
+			"tone": "critical",
+			"label": "Platform adjustment"
+		},
+		"order_reservation": {
+			"tone": "pending",
+			"label": "Reserved for an order"
+		},
+		"reservation_release": {
+			"tone": "neutral",
+			"label": "Reservation released"
+		},
+		"reservation_expired": {
+			"tone": "pending",
+			"label": "Reservation expired"
+		},
+		"sale_completed": {
+			"tone": "inactive",
+			"label": "Sale completed"
+		},
+		"order_cancelled": {
+			"tone": "neutral",
+			"label": "Order cancelled"
+		},
+		"refund_restock": {
+			"tone": "neutral",
+			"label": "Refund restock"
+		}
+	},
+	"inventory_reservation": {
+		"held": {
+			"tone": "pending",
+			"label": "Held"
+		},
+		"consumed": {
+			"tone": "neutral",
+			"label": "Consumed"
+		},
+		"released": {
+			"tone": "inactive",
+			"label": "Released"
+		},
+		"expired": {
+			"tone": "critical",
+			"label": "Expired"
+		}
+	},
+	"stock": {
+		"in_stock": {
+			"tone": "neutral",
+			"label": "In stock"
+		},
+		"low_stock": {
+			"tone": "pending",
+			"label": "Low stock"
+		},
+		"out_of_stock": {
+			"tone": "critical",
+			"label": "Out of stock"
+		}
+	}
+};
+//#endregion
+//#region resources/js/design-system/statusTone.ts
+/**
+* The single status → tone lookup for the whole product.
+*
+* Phase 6 of the design review found this mapping duplicated three times,
+* once per application, and warned that the first status added after
+* handoff would only reach one of them. There is now one source: the PHP
+* enums, exported to `generated/statuses.ts` by `php artisan statuses:export`
+* and verified in CI by StatusPresentationTest.
+*
+* Never write a per-screen lookup table. Never add a fifth tone — the
+* system is mono, so status is carried by fill weight and label, not hue.
+*/
+function statusPresentation(domain, value) {
+	const found = STATUS_PRESENTATION[domain]?.[value];
+	if (found) return found;
+	return {
+		tone: "inactive",
+		label: value
+	};
+}
+//#endregion
+//#region resources/js/design-system/primitives/StatusBadge.tsx
+/**
+* Four semantic fills, no hue.
+*
+* Critical is an accent tint with deep accent text (the base accent is
+* chrome-only below 18px — it clears 3:1, not 4.5:1). Pending is a dashed
+* outline with no fill. Neutral is ink on surface: in a mono system, done
+* is quiet. Inactive drops to 45%.
+*/
+var TONE_CLASSES = {
+	neutral: "bg-[var(--vc-surface)] text-[var(--vc-text)]",
+	pending: "border border-dashed border-[var(--vc-neutral-400)] text-[var(--vc-neutral-700)]",
+	critical: "bg-[var(--vc-accent-100)] text-[var(--vc-accent-800)]",
+	inactive: "bg-[var(--vc-surface)] text-[var(--vc-text)] opacity-45"
+};
+function StatusBadge({ domain, value, className = "" }) {
+	const { tone, label } = statusPresentation(domain, value);
+	return /* @__PURE__ */ jsx("span", {
+		"data-tone": tone,
+		className: `inline-block px-2 py-[3px] text-[11px] font-semibold tracking-[0.04em] whitespace-nowrap ${TONE_CLASSES[tone]} ${className}`,
+		children: label
+	});
+}
+//#endregion
+//#region resources/js/design-system/patterns/ProductCard.tsx
+/**
+* One product, everywhere it is listed.
+*
+* Search, category pages and store pages all render this — §29 forbids
+* three implementations that drift. It computes nothing: the price string,
+* the range and the stock state all arrive decided by the server, so a
+* card and the product page it links to cannot quote different numbers.
+*
+* Commerce photography stays in full colour; the Modernist system's
+* greyscale applies to chrome, not to the goods.
+*/
+function ProductCard({ product, position, onSelect }) {
+	const outOfStock = product.stockState === "out_of_stock";
+	return /* @__PURE__ */ jsx("article", {
+		className: "flex flex-col",
+		children: /* @__PURE__ */ jsxs(Link, {
+			href: `/products/${product.slug}`,
+			className: "group flex flex-col gap-3",
+			onClick: () => {
+				if (onSelect && position !== void 0) onSelect(product, position);
+			},
+			children: [/* @__PURE__ */ jsx("div", {
+				className: "aspect-square border-2 border-[var(--vc-text)] bg-[var(--vc-surface)]",
+				children: product.imageUrl ? /* @__PURE__ */ jsx("img", {
+					src: product.imageUrl,
+					alt: product.imageAlt ?? "",
+					loading: "lazy",
+					className: "h-full w-full object-cover"
+				}) : /* @__PURE__ */ jsx("div", {
+					className: "flex h-full w-full items-center justify-center text-[12px] text-[var(--vc-neutral-600)]",
+					children: "No photograph yet"
+				})
+			}), /* @__PURE__ */ jsxs("div", {
+				className: "flex flex-col gap-1",
+				children: [
+					product.brand ? /* @__PURE__ */ jsx("span", {
+						className: "text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+						children: product.brand
+					}) : null,
+					/* @__PURE__ */ jsx("h3", {
+						className: "text-[15px] leading-snug font-semibold underline-offset-4 group-hover:underline",
+						children: product.title
+					}),
+					product.price === "" ? /* @__PURE__ */ jsx("span", {
+						className: "text-[13px] text-[var(--vc-neutral-600)]",
+						children: "No sellers yet"
+					}) : /* @__PURE__ */ jsxs("span", {
+						className: "vc-tabular text-[15px]",
+						children: [product.hasPriceRange ? "From " : "", product.price]
+					}),
+					/* @__PURE__ */ jsxs("div", {
+						className: "mt-1 flex flex-wrap items-center gap-2",
+						children: [outOfStock ? /* @__PURE__ */ jsx(StatusBadge, {
+							domain: "stock",
+							value: product.stockState
+						}) : null, product.offerCount > 1 ? /* @__PURE__ */ jsxs("span", {
+							className: "text-[12px] text-[var(--vc-neutral-600)]",
+							children: [product.offerCount, " sellers"]
+						}) : null]
+					})
+				]
+			})]
+		})
+	});
+}
+/** The grid every listing page lays its cards out on. */
+function ProductGrid({ products, onSelect }) {
+	return /* @__PURE__ */ jsx("div", {
+		className: "grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4",
+		children: products.map((product, index) => /* @__PURE__ */ jsx(ProductCard, {
+			product,
+			position: index + 1,
+			...onSelect ? { onSelect } : {}
+		}, product.slug))
+	});
+}
+//#endregion
+//#region resources/js/design-system/patterns/StructuredData.tsx
+/**
+* Emits JSON-LD the server assembled.
+*
+* The shape is built in PHP from database rows and passed through
+* untouched — deliberately, so no component can add a rating or a price
+* the catalogue cannot support. Nothing here decides what to claim.
+*/
+function StructuredData({ documents }) {
+	if (documents.length === 0) return null;
+	return /* @__PURE__ */ jsx(Head, { children: documents.map((document, index) => /* @__PURE__ */ jsx("script", {
+		type: "application/ld+json",
+		dangerouslySetInnerHTML: { __html: JSON.stringify(document) }
+	}, index)) });
+}
+//#endregion
+//#region resources/js/storefront/components/DiscoveryFilters.tsx
+/**
+* The filter rail, driven entirely by the URL.
+*
+* Every control is a link in disguise: changing one pushes a new query
+* string and the server decides what it means. Nothing is filtered in the
+* browser, so a result set can be shared, bookmarked and crawled — which a
+* client-side filter cannot.
+*
+* The facets come from the server too: which attributes a category offers
+* is the catalogue's decision, not this component's.
+*/
+function DiscoveryFilters({ url, facets, applied }) {
+	const push = (changes) => {
+		const next = {
+			q: applied.q,
+			brand: applied.brand,
+			condition: applied.condition,
+			attributes: applied.attributes,
+			in_stock: applied.in_stock,
+			min_price: applied.min_price,
+			max_price: applied.max_price,
+			sort: applied.sort,
+			...changes,
+			page: "1"
+		};
+		router.get(url, next, {
+			preserveScroll: true,
+			preserveState: true
+		});
+	};
+	const toggle = (list, value) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+	return /* @__PURE__ */ jsxs("aside", {
+		className: "flex flex-col gap-8",
+		"aria-label": "Filters",
+		children: [
+			applied.hasFilters ? /* @__PURE__ */ jsx(Button, {
+				variant: "ghost",
+				onClick: () => router.get(url, { q: applied.q }),
+				children: "Clear all filters"
+			}) : null,
+			/* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsx("h2", {
+				className: "mb-3 text-[13px] tracking-[0.08em] uppercase",
+				children: "Price"
+			}), /* @__PURE__ */ jsxs("form", {
+				className: "flex items-end gap-2",
+				onSubmit: (event) => {
+					event.preventDefault();
+					const data = new FormData(event.currentTarget);
+					push({
+						min_price: String(data.get("min_price") ?? ""),
+						max_price: String(data.get("max_price") ?? "")
+					});
+				},
+				children: [
+					/* @__PURE__ */ jsx(Field, {
+						label: "From",
+						children: ({ id }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							name: "min_price",
+							defaultValue: applied.min_price,
+							inputMode: "decimal"
+						})
+					}),
+					/* @__PURE__ */ jsx(Field, {
+						label: "To",
+						children: ({ id }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							name: "max_price",
+							defaultValue: applied.max_price,
+							inputMode: "decimal"
+						})
+					}),
+					/* @__PURE__ */ jsx(Button, {
+						type: "submit",
+						variant: "secondary",
+						children: "Go"
+					})
+				]
+			})] }),
+			facets.availability && facets.availability.length > 0 ? /* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsx("h2", {
+				className: "mb-3 text-[13px] tracking-[0.08em] uppercase",
+				children: "Availability"
+			}), facets.availability.map((option) => /* @__PURE__ */ jsxs("label", {
+				className: "flex items-center gap-2 py-1 text-[14px]",
+				children: [
+					/* @__PURE__ */ jsx("input", {
+						type: "checkbox",
+						checked: option.selected,
+						onChange: () => push({ in_stock: !applied.in_stock })
+					}),
+					option.label,
+					/* @__PURE__ */ jsxs("span", {
+						className: "text-[12px] text-[var(--vc-neutral-600)]",
+						children: [
+							"(",
+							option.count,
+							")"
+						]
+					})
+				]
+			}, option.value))] }) : null,
+			facets.brand && facets.brand.length > 0 ? /* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsx("h2", {
+				className: "mb-3 text-[13px] tracking-[0.08em] uppercase",
+				children: "Brand"
+			}), facets.brand.map((option) => /* @__PURE__ */ jsxs("label", {
+				className: "flex items-center gap-2 py-1 text-[14px]",
+				children: [
+					/* @__PURE__ */ jsx("input", {
+						type: "checkbox",
+						checked: option.selected,
+						onChange: () => push({ brand: toggle(applied.brand, option.value) })
+					}),
+					option.label,
+					/* @__PURE__ */ jsxs("span", {
+						className: "text-[12px] text-[var(--vc-neutral-600)]",
+						children: [
+							"(",
+							option.count,
+							")"
+						]
+					})
+				]
+			}, option.value))] }) : null,
+			facets.condition && facets.condition.length > 0 ? /* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsx("h2", {
+				className: "mb-3 text-[13px] tracking-[0.08em] uppercase",
+				children: "Condition"
+			}), facets.condition.map((option) => /* @__PURE__ */ jsxs("label", {
+				className: "flex items-center gap-2 py-1 text-[14px]",
+				children: [
+					/* @__PURE__ */ jsx("input", {
+						type: "checkbox",
+						checked: option.selected,
+						onChange: () => push({ condition: toggle(applied.condition, option.value) })
+					}),
+					option.label,
+					/* @__PURE__ */ jsxs("span", {
+						className: "text-[12px] text-[var(--vc-neutral-600)]",
+						children: [
+							"(",
+							option.count,
+							")"
+						]
+					})
+				]
+			}, option.value))] }) : null,
+			(facets.attributes ?? []).map((facet) => /* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsxs("h2", {
+				className: "mb-3 text-[13px] tracking-[0.08em] uppercase",
+				children: [facet.name, facet.unit ? ` (${facet.unit})` : ""]
+			}), facet.options.map((option) => /* @__PURE__ */ jsxs("label", {
+				className: "flex items-center gap-2 py-1 text-[14px]",
+				children: [/* @__PURE__ */ jsx("input", {
+					type: "checkbox",
+					checked: (applied.attributes[facet.code] ?? []).includes(option.value),
+					onChange: () => push({ attributes: {
+						...applied.attributes,
+						[facet.code]: toggle(applied.attributes[facet.code] ?? [], option.value)
+					} })
+				}), option.label]
+			}, option.value))] }, facet.code))
+		]
+	});
+}
+/** The sort control, shared by every listing page. */
+function SortSelect({ url, applied, sorts }) {
+	return /* @__PURE__ */ jsx(Field, {
+		label: "Sort by",
+		children: ({ id }) => /* @__PURE__ */ jsx(Select, {
+			id,
+			value: applied.sort,
+			onChange: (event) => router.get(url, {
+				q: applied.q,
+				brand: applied.brand,
+				condition: applied.condition,
+				attributes: applied.attributes,
+				in_stock: applied.in_stock,
+				min_price: applied.min_price,
+				max_price: applied.max_price,
+				sort: event.target.value
+			}, { preserveScroll: true }),
+			children: sorts.map((sort) => /* @__PURE__ */ jsx("option", {
+				value: sort.value,
+				children: sort.label
+			}, sort.value))
+		})
+	});
+}
+/** Page links, server-side paged. */
+function Pagination({ url, applied, page, lastPage }) {
+	if (lastPage <= 1) return null;
+	const go = (target) => {
+		router.get(url, {
+			q: applied.q,
+			brand: applied.brand,
+			condition: applied.condition,
+			attributes: applied.attributes,
+			in_stock: applied.in_stock,
+			min_price: applied.min_price,
+			max_price: applied.max_price,
+			sort: applied.sort,
+			page: String(target)
+		}, { preserveScroll: false });
+	};
+	return /* @__PURE__ */ jsxs("nav", {
+		className: "mt-12 flex items-center gap-4",
+		"aria-label": "Pagination",
+		children: [
+			/* @__PURE__ */ jsx(Button, {
+				variant: "secondary",
+				disabled: page <= 1,
+				onClick: () => go(page - 1),
+				children: "Previous"
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "vc-tabular text-[13px] text-[var(--vc-neutral-600)]",
+				children: [
+					"Page ",
+					page,
+					" of ",
+					lastPage
+				]
+			}),
+			/* @__PURE__ */ jsx(Button, {
+				variant: "secondary",
+				disabled: page >= lastPage,
+				onClick: () => go(page + 1),
+				children: "Next"
+			})
+		]
+	});
+}
+//#endregion
 //#region resources/js/storefront/pages/Category/Show.tsx
 var Show_exports$2 = /* @__PURE__ */ __exportAll({ default: () => Show$2 });
 /**
-* A category page.
+* A category as a real discovery page.
 *
-* Deliberately thin: filtering and facets belong to M3, and every facet
-* combination that becomes a crawlable URL is another near-duplicate
-* competing with the canonical product pages this links to.
+* Filters and sorting are URL state, so every view is linkable — but only
+* the clean first page is indexable. Six hundred crawlable permutations of
+* one category is how a catalogue disappears from search results, which is
+* why the robots directive comes from the server rather than from here.
 */
 function Show$2() {
-	const { category, breadcrumbs, children, products, seo } = usePage().props;
+	const { category, breadcrumbs, children, results, facets, applied, sorts, seo } = usePage().props;
+	const url = `/categories/${category.slug}`;
 	return /* @__PURE__ */ jsxs(StorefrontLayout, {
 		title: seo.title,
 		children: [
 			/* @__PURE__ */ jsxs(Head, { children: [
-				/* @__PURE__ */ jsx("meta", {
+				seo.description ? /* @__PURE__ */ jsx("meta", {
 					name: "description",
 					content: seo.description
-				}),
+				}) : null,
 				/* @__PURE__ */ jsx("meta", {
 					name: "robots",
 					content: seo.robots
@@ -814,6 +1632,16 @@ function Show$2() {
 					href: seo.canonical
 				})
 			] }),
+			/* @__PURE__ */ jsx(StructuredData, { documents: [{
+				"@context": "https://schema.org",
+				"@type": "BreadcrumbList",
+				itemListElement: breadcrumbs.map((crumb, index) => ({
+					"@type": "ListItem",
+					position: index + 1,
+					name: crumb.name,
+					item: crumb.url
+				}))
+			}] }),
 			/* @__PURE__ */ jsx("nav", {
 				"aria-label": "Breadcrumb",
 				className: "mb-6 text-[13px] text-[var(--vc-neutral-600)]",
@@ -821,69 +1649,73 @@ function Show$2() {
 					className: "flex flex-wrap items-center gap-2",
 					children: breadcrumbs.map((crumb, index) => /* @__PURE__ */ jsxs("li", {
 						className: "flex items-center gap-2",
-						children: [index < breadcrumbs.length - 1 ? /* @__PURE__ */ jsx(Link, {
+						children: [index > 0 ? /* @__PURE__ */ jsx("span", {
+							"aria-hidden": "true",
+							children: "/"
+						}) : null, /* @__PURE__ */ jsx(Link, {
 							href: crumb.url,
 							className: "underline underline-offset-4",
 							children: crumb.name
-						}) : /* @__PURE__ */ jsx("span", {
-							"aria-current": "page",
-							children: crumb.name
-						}), index < breadcrumbs.length - 1 ? /* @__PURE__ */ jsx("span", {
-							"aria-hidden": "true",
-							children: "/"
-						}) : null]
+						})]
 					}, crumb.url))
 				})
 			}),
 			/* @__PURE__ */ jsxs("header", {
-				className: "mb-10 border-b-2 border-[var(--vc-text)] pb-6",
+				className: "mb-8",
 				children: [/* @__PURE__ */ jsx("h1", {
-					className: "mb-2 text-[38px] leading-[1.05]",
+					className: "text-[32px] leading-tight",
 					children: category.name
 				}), category.description ? /* @__PURE__ */ jsx("p", {
-					className: "max-w-[62ch] text-[var(--vc-neutral-700)]",
+					className: "mt-2 max-w-[68ch] text-[15px] text-[var(--vc-neutral-700)]",
 					children: category.description
 				}) : null]
 			}),
 			children.length > 0 ? /* @__PURE__ */ jsx("nav", {
 				"aria-label": "Subcategories",
-				className: "mb-10",
-				children: /* @__PURE__ */ jsx("ul", {
-					className: "flex flex-wrap gap-2",
-					children: children.map((child) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(Link, {
-						href: `/categories/${child.slug}`,
-						className: "inline-block border-2 border-[var(--vc-divider)] px-4 py-2 text-[14px] hover:border-[var(--vc-text)]",
-						children: child.name
-					}) }, child.slug))
-				})
+				className: "mb-10 flex flex-wrap gap-2",
+				children: children.map((child) => /* @__PURE__ */ jsx(Link, {
+					href: `/categories/${child.slug}`,
+					className: "border-2 border-[var(--vc-text)] px-3 py-2 text-[14px] hover:bg-[var(--vc-surface)]",
+					children: child.name
+				}, child.slug))
 			}) : null,
-			products.data.length === 0 ? /* @__PURE__ */ jsx(EmptyState, {
-				title: "Nothing listed here yet",
-				body: "No seller is currently offering anything in this category. Products appear here as soon as one does."
-			}) : /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsxs("p", {
-				className: "mb-4 text-[13px] text-[var(--vc-neutral-600)]",
-				children: [
-					products.total,
-					" ",
-					products.total === 1 ? "product" : "products"
-				]
-			}), /* @__PURE__ */ jsx("ul", {
-				className: "grid gap-[var(--vc-grid-gap)] [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]",
-				children: products.data.map((product) => /* @__PURE__ */ jsx("li", {
-					className: "bg-[var(--vc-surface)]",
-					children: /* @__PURE__ */ jsxs(Link, {
-						href: `/products/${product.slug}`,
-						className: "block p-4",
-						children: [product.brand ? /* @__PURE__ */ jsx("span", {
-							className: "mb-1 block text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
-							children: product.brand
-						}) : null, /* @__PURE__ */ jsx("span", {
-							className: "block text-[15px] font-semibold underline underline-offset-4",
-							children: product.title
+			/* @__PURE__ */ jsxs("div", {
+				className: "grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]",
+				children: [/* @__PURE__ */ jsx(DiscoveryFilters, {
+					url,
+					facets,
+					applied
+				}), /* @__PURE__ */ jsxs("div", { children: [
+					/* @__PURE__ */ jsxs("div", {
+						className: "mb-6 flex flex-wrap items-end justify-between gap-4",
+						children: [/* @__PURE__ */ jsxs("p", {
+							className: "vc-tabular text-[13px] text-[var(--vc-neutral-600)]",
+							children: [
+								results.total,
+								" ",
+								results.total === 1 ? "product" : "products"
+							]
+						}), /* @__PURE__ */ jsx("div", {
+							className: "min-w-[200px]",
+							children: /* @__PURE__ */ jsx(SortSelect, {
+								url,
+								applied,
+								sorts
+							})
 						})]
+					}),
+					results.data.length === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+						title: "Nothing here yet",
+						body: applied.hasFilters ? "No products match these filters. Removing one may help." : "No products are listed in this category at the moment."
+					}) : /* @__PURE__ */ jsx(ProductGrid, { products: results.data }),
+					/* @__PURE__ */ jsx(Pagination, {
+						url,
+						applied,
+						page: results.page,
+						lastPage: results.lastPage
 					})
-				}, product.slug))
-			})] })
+				] })]
+			})
 		]
 	});
 }
@@ -935,22 +1767,6 @@ function Home() {
 			})
 		}) : /* @__PURE__ */ jsx(CardGridSkeleton, { count: 8 })
 	] });
-}
-//#endregion
-//#region resources/js/design-system/patterns/StructuredData.tsx
-/**
-* Emits JSON-LD the server assembled.
-*
-* The shape is built in PHP from database rows and passed through
-* untouched — deliberately, so no component can add a rating or a price
-* the catalogue cannot support. Nothing here decides what to claim.
-*/
-function StructuredData({ documents }) {
-	if (documents.length === 0) return null;
-	return /* @__PURE__ */ jsx(Head, { children: documents.map((document, index) => /* @__PURE__ */ jsx("script", {
-		type: "application/ld+json",
-		dangerouslySetInnerHTML: { __html: JSON.stringify(document) }
-	}, index)) });
 }
 //#endregion
 //#region resources/js/storefront/pages/Product/Show.tsx
@@ -1164,17 +1980,170 @@ function Show$1() {
 	});
 }
 //#endregion
+//#region resources/js/storefront/pages/Search/Index.tsx
+var Index_exports = /* @__PURE__ */ __exportAll({ default: () => Index });
+/**
+* Customer search.
+*
+* The URL is the state. Everything — the query, the filters, the sort, the
+* page — round-trips through it, so a result set can be shared and
+* reloaded, and the server does the searching. It is deliberately
+* noindex: a search URL records what one person typed once.
+*/
+function Index() {
+	const { results, facets, applied, sorts, suggestion, seo } = usePage().props;
+	const [query, setQuery] = useState(applied.q);
+	const recordClick = (product, position) => {
+		fetch("/search/click", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]")?.content ?? ""
+			},
+			body: JSON.stringify({
+				product: product.slug,
+				position,
+				query: applied.q
+			}),
+			keepalive: true
+		}).catch(() => {});
+	};
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: seo.title,
+		children: [
+			/* @__PURE__ */ jsxs(Head, { children: [/* @__PURE__ */ jsx("meta", {
+				name: "robots",
+				content: seo.robots
+			}), /* @__PURE__ */ jsx("link", {
+				rel: "canonical",
+				href: seo.canonical
+			})] }),
+			/* @__PURE__ */ jsxs("form", {
+				className: "mb-8 flex max-w-[560px] items-end gap-3",
+				onSubmit: (event) => {
+					event.preventDefault();
+					router.get("/search", { q: query });
+				},
+				children: [/* @__PURE__ */ jsx("div", {
+					className: "flex-1",
+					children: /* @__PURE__ */ jsx(Field, {
+						label: "Search the catalogue",
+						children: ({ id }) => /* @__PURE__ */ jsx(Input, {
+							id,
+							type: "search",
+							value: query,
+							onChange: (event) => setQuery(event.target.value)
+						})
+					})
+				}), /* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					variant: "primary",
+					children: "Search"
+				})]
+			}),
+			applied.q !== "" ? /* @__PURE__ */ jsxs("p", {
+				className: "mb-6 text-[15px]",
+				children: [
+					/* @__PURE__ */ jsx("span", {
+						className: "vc-tabular",
+						children: results.total
+					}),
+					" ",
+					results.total === 1 ? "result" : "results",
+					" for",
+					" ",
+					/* @__PURE__ */ jsxs("span", {
+						className: "font-semibold",
+						children: [
+							"“",
+							applied.q,
+							"”"
+						]
+					})
+				]
+			}) : null,
+			results.total === 0 ? /* @__PURE__ */ jsxs("div", {
+				className: "max-w-[62ch]",
+				children: [
+					/* @__PURE__ */ jsx(EmptyState, {
+						title: applied.q === "" ? "Search the catalogue" : "Nothing matched",
+						body: applied.q === "" ? "Type what you are looking for. You can also browse by category." : "No products matched that search."
+					}),
+					suggestion ? /* @__PURE__ */ jsxs("p", {
+						className: "mt-4 text-[15px]",
+						children: [
+							"Did you mean",
+							" ",
+							/* @__PURE__ */ jsx(Link, {
+								href: `/search?q=${encodeURIComponent(suggestion)}`,
+								className: "font-semibold underline underline-offset-4",
+								children: suggestion
+							}),
+							"?"
+						]
+					}) : null,
+					applied.hasFilters ? /* @__PURE__ */ jsxs("p", {
+						className: "mt-4 text-[15px]",
+						children: [
+							"Your filters may be the reason.",
+							" ",
+							/* @__PURE__ */ jsx(Link, {
+								href: `/search?q=${encodeURIComponent(applied.q)}`,
+								className: "font-semibold underline underline-offset-4",
+								children: "Search without them"
+							}),
+							"."
+						]
+					}) : null
+				]
+			}) : /* @__PURE__ */ jsxs("div", {
+				className: "grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]",
+				children: [/* @__PURE__ */ jsx(DiscoveryFilters, {
+					url: "/search",
+					facets,
+					applied
+				}), /* @__PURE__ */ jsxs("div", { children: [
+					/* @__PURE__ */ jsx("div", {
+						className: "mb-6 flex justify-end",
+						children: /* @__PURE__ */ jsx("div", {
+							className: "min-w-[200px]",
+							children: /* @__PURE__ */ jsx(SortSelect, {
+								url: "/search",
+								applied,
+								sorts
+							})
+						})
+					}),
+					/* @__PURE__ */ jsx(ProductGrid, {
+						products: results.data,
+						onSelect: recordClick
+					}),
+					/* @__PURE__ */ jsx(Pagination, {
+						url: "/search",
+						applied,
+						page: results.page,
+						lastPage: results.lastPage
+					})
+				] })]
+			})
+		]
+	});
+}
+//#endregion
 //#region resources/js/storefront/pages/Store/Show.tsx
 var Show_exports = /* @__PURE__ */ __exportAll({ default: () => Show });
 /**
 * The public store page.
 *
-* The catalogue belongs to M2, so the product area carries an honest empty
-* state rather than placeholder cards — a page that looks finished but
-* shows nothing real is worse than one that says what it is.
+* The grid is the same discovery engine, cards and sorting as search and
+* category pages, scoped to this seller — so a product cannot appear here
+* on different terms from the rest of the site. Another seller's offer has
+* no path into this listing: the scope is applied in the query, not
+* filtered afterwards.
 */
 function Show() {
-	const { store, seo } = usePage().props;
+	const { store, results, applied, sorts, seo } = usePage().props;
+	const url = `/stores/${store.slug}`;
 	return /* @__PURE__ */ jsxs(StorefrontLayout, {
 		title: seo.title,
 		children: [
@@ -1235,13 +2204,35 @@ function Show() {
 			}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "grid gap-10 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]",
-				children: [/* @__PURE__ */ jsxs("section", { children: [/* @__PURE__ */ jsx("h2", {
-					className: "mb-5 text-[24px]",
-					children: "Products"
-				}), /* @__PURE__ */ jsx(EmptyState, {
-					title: "No products listed yet",
-					body: "This seller has not published anything to the marketplace catalogue. Their listings will appear here once they do."
-				})] }), /* @__PURE__ */ jsxs("aside", {
+				children: [/* @__PURE__ */ jsxs("section", { children: [
+					/* @__PURE__ */ jsxs("div", {
+						className: "mb-5 flex flex-wrap items-end justify-between gap-4",
+						children: [/* @__PURE__ */ jsxs("h2", {
+							className: "text-[24px]",
+							children: ["Products", results.total > 0 ? /* @__PURE__ */ jsx("span", {
+								className: "vc-tabular ml-2 text-[15px] text-[var(--vc-neutral-600)]",
+								children: results.total
+							}) : null]
+						}), results.total > 1 ? /* @__PURE__ */ jsx("div", {
+							className: "min-w-[200px]",
+							children: /* @__PURE__ */ jsx(SortSelect, {
+								url,
+								applied,
+								sorts
+							})
+						}) : null]
+					}),
+					results.data.length === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+						title: "No products listed yet",
+						body: "This seller has not published anything to the marketplace catalogue. Their listings will appear here once they do."
+					}) : /* @__PURE__ */ jsx(ProductGrid, { products: results.data }),
+					/* @__PURE__ */ jsx(Pagination, {
+						url,
+						applied,
+						page: results.page,
+						lastPage: results.lastPage
+					})
+				] }), /* @__PURE__ */ jsxs("aside", {
 					className: "flex flex-col gap-6 text-[14px]",
 					children: [
 						store.shippingPolicy ? /* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {
@@ -1294,6 +2285,7 @@ createServer((page) => createInertiaApp({
 			"./pages/Category/Show.tsx": Show_exports$2,
 			"./pages/Home.tsx": Home_exports,
 			"./pages/Product/Show.tsx": Show_exports$1,
+			"./pages/Search/Index.tsx": Index_exports,
 			"./pages/Store/Show.tsx": Show_exports
 		}))[`./pages/${name}.tsx`];
 	},

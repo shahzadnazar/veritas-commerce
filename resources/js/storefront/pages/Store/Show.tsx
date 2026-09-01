@@ -1,6 +1,10 @@
 import { Head, usePage } from '@inertiajs/react';
 import { StorefrontLayout } from '../../../design-system/layout/StorefrontLayout';
 import { EmptyState } from '../../../design-system/patterns/States';
+import { ProductGrid } from '../../../design-system/patterns/ProductCard';
+import type { ProductCardData } from '../../../design-system/patterns/ProductCard';
+import { Pagination, SortSelect } from '../../components/DiscoveryFilters';
+import type { AppliedFilters, Facets } from '../../components/DiscoveryFilters';
 import type { SharedPageProps } from '../../../shared/types';
 
 interface StoreShowProps extends SharedPageProps {
@@ -14,6 +18,16 @@ interface StoreShowProps extends SharedPageProps {
         isOpen: boolean;
         shipsFrom: string;
     };
+    results: {
+        data: ProductCardData[];
+        total: number;
+        page: number;
+        lastPage: number;
+        perPage: number;
+    };
+    facets: Facets;
+    applied: AppliedFilters;
+    sorts: { value: string; label: string }[];
     seo: {
         title: string;
         description: string;
@@ -28,12 +42,16 @@ interface StoreShowProps extends SharedPageProps {
 /**
  * The public store page.
  *
- * The catalogue belongs to M2, so the product area carries an honest empty
- * state rather than placeholder cards — a page that looks finished but
- * shows nothing real is worse than one that says what it is.
+ * The grid is the same discovery engine, cards and sorting as search and
+ * category pages, scoped to this seller — so a product cannot appear here
+ * on different terms from the rest of the site. Another seller's offer has
+ * no path into this listing: the scope is applied in the query, not
+ * filtered afterwards.
  */
 export default function Show() {
-    const { store, seo } = usePage<StoreShowProps>().props;
+    const { store, results, applied, sorts, seo } = usePage<StoreShowProps>().props;
+
+    const url = `/stores/${store.slug}`;
 
     return (
         <StorefrontLayout title={seo.title}>
@@ -69,10 +87,36 @@ export default function Show() {
 
             <div className="grid gap-10 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <section>
-                    <h2 className="mb-5 text-[24px]">Products</h2>
-                    <EmptyState
-                        title="No products listed yet"
-                        body="This seller has not published anything to the marketplace catalogue. Their listings will appear here once they do."
+                    <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+                        <h2 className="text-[24px]">
+                            Products
+                            {results.total > 0 ? (
+                                <span className="vc-tabular ml-2 text-[15px] text-[var(--vc-neutral-600)]">
+                                    {results.total}
+                                </span>
+                            ) : null}
+                        </h2>
+                        {results.total > 1 ? (
+                            <div className="min-w-[200px]">
+                                <SortSelect url={url} applied={applied} sorts={sorts} />
+                            </div>
+                        ) : null}
+                    </div>
+
+                    {results.data.length === 0 ? (
+                        <EmptyState
+                            title="No products listed yet"
+                            body="This seller has not published anything to the marketplace catalogue. Their listings will appear here once they do."
+                        />
+                    ) : (
+                        <ProductGrid products={results.data} />
+                    )}
+
+                    <Pagination
+                        url={url}
+                        applied={applied}
+                        page={results.page}
+                        lastPage={results.lastPage}
                     />
                 </section>
 

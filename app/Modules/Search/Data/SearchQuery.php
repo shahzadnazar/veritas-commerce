@@ -39,6 +39,15 @@ final readonly class SearchQuery
         public int $perPage = 24,
         /** Restricts results to one seller, for a store page. */
         public ?int $sellerAccountId = null,
+        /**
+         * Whether the category came from the route rather than the customer.
+         *
+         * On /categories/kettles the category is the page's identity, not
+         * a filter someone applied — which matters for indexability: a
+         * clean category page is the canonical thing and should rank,
+         * while /search?category=kettles is a permutation and should not.
+         */
+        public bool $scopeIsIntrinsic = false,
     ) {}
 
     public function hasPhrase(): bool
@@ -46,10 +55,10 @@ final readonly class SearchQuery
         return trim($this->phrase) !== '';
     }
 
-    /** Whether anything narrows the result set beyond the query itself. */
+    /** Whether the customer narrowed this beyond the page they are on. */
     public function hasFilters(): bool
     {
-        return $this->categoryId !== null
+        return ($this->categoryId !== null && ! $this->scopeIsIntrinsic)
             || $this->brandIds !== []
             || $this->minPriceMinor !== null
             || $this->maxPriceMinor !== null
@@ -72,6 +81,7 @@ final readonly class SearchQuery
             page: 1,
             perPage: $this->perPage,
             sellerAccountId: $this->sellerAccountId,
+            scopeIsIntrinsic: $this->scopeIsIntrinsic,
         );
     }
 }

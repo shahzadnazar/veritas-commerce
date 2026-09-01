@@ -19,6 +19,7 @@ enum InteractionEventType: string
     case ProductViewed = 'product_viewed';
     case ProductVariantSelected = 'product_variant_selected';
     case SellerStoreViewed = 'seller_store_viewed';
+    case CategoryViewed = 'category_viewed';
     case CartItemAdded = 'cart_item_added';
     case CartItemRemoved = 'cart_item_removed';
     case CheckoutStarted = 'checkout_started';
@@ -31,7 +32,8 @@ enum InteractionEventType: string
     public function affinityWeight(): int
     {
         return match ($this) {
-            self::ProductViewed, self::SellerStoreViewed, self::ProductVariantSelected => 1,
+            self::ProductViewed, self::SellerStoreViewed, self::ProductVariantSelected,
+            self::CategoryViewed => 1,
             self::SearchResultClicked => 2,
             self::CartItemAdded => 4,
             self::CartItemRemoved => -2,
@@ -54,6 +56,7 @@ enum InteractionEventType: string
             self::ProductViewed => 'Product viewed',
             self::ProductVariantSelected => 'Variant selected',
             self::SellerStoreViewed => 'Store viewed',
+            self::CategoryViewed => 'Category viewed',
             self::CartItemAdded => 'Added to cart',
             self::CartItemRemoved => 'Removed from cart',
             self::CheckoutStarted => 'Checkout started',

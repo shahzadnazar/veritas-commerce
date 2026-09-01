@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Catalog\Http\Controllers\HomeController;
 use App\Modules\Catalog\Http\Controllers\PublicCategoryController;
 use App\Modules\Catalog\Http\Controllers\PublicProductController;
+use App\Modules\Catalog\Http\Controllers\SearchController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
 use App\Modules\Identity\Http\Controllers\LoginController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
@@ -29,6 +30,17 @@ Route::get('/stores/{slug}', PublicStoreController::class)->name('stores.show');
  * splitting the authority of one.
  */
 Route::get('/products/{slug}', PublicProductController::class)->name('products.show');
+
+/*
+ * Search. Never indexable — a search URL records what one person typed
+ * once, and letting crawlers enumerate that space produces infinite thin
+ * pages competing with the category pages that should rank.
+ */
+Route::get('/search', SearchController::class)->name('search');
+Route::get('/search/suggestions', [SearchController::class, 'suggestions'])
+    ->middleware('throttle:60,1')->name('search.suggestions');
+Route::post('/search/click', [SearchController::class, 'click'])
+    ->middleware('throttle:120,1')->name('search.click');
 Route::get('/categories/{slug}', PublicCategoryController::class)->name('categories.show');
 
 Route::middleware('guest')->group(function (): void {

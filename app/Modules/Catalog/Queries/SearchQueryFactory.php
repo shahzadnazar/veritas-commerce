@@ -58,6 +58,9 @@ final class SearchQueryFactory
             page: max(1, (int) $request->integer('page', 1)),
             perPage: self::PER_PAGE,
             sellerAccountId: $sellerAccountId,
+            // A category or store reached by its own URL is the page, not
+            // a filter applied to one.
+            scopeIsIntrinsic: $category !== null || $sellerAccountId !== null,
         );
     }
 

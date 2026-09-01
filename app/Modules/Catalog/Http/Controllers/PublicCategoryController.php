@@ -5,24 +5,36 @@ declare(strict_types=1);
 namespace App\Modules\Catalog\Http\Controllers;
 
 use App\Modules\Catalog\Models\Category;
-use App\Modules\Catalog\Models\Product;
-use App\Modules\Offers\Queries\OfferEligibility;
+use App\Modules\Catalog\Queries\BuildDiscoveryPage;
+use App\Modules\Catalog\Queries\SearchQueryFactory;
+use App\Modules\Catalog\Support\Indexability;
+use App\Modules\Events\Actions\RecordInteraction;
+use App\Modules\Events\Enums\InteractionEventType;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * A category page: its children, and the products beneath it.
+ * A category as a real discovery page.
  *
- * Deliberately thin. Faceted filtering belongs to M3, and every facet
- * combination that becomes a crawlable URL is another near-duplicate page
- * competing with the canonical one — so the foundation is laid without
- * opening that door.
+ * The same engine, cards and facets as search, with the category as a
+ * fixed constraint rather than a filter the customer chose. Multiple
+ * sellers of one product still produce one card: the catalogue is
+ * canonical, and a listing page that showed a card per offer would be
+ * three routes to the same product competing with each other.
+ *
+ * Only visible categories resolve. A hidden category is a 404 rather than
+ * an empty page, so retiring part of the taxonomy actually retires it.
  */
 final class PublicCategoryController
 {
-    public function __construct(private readonly OfferEligibility $eligibility) {}
+    public function __construct(
+        private readonly SearchQueryFactory $queries,
+        private readonly BuildDiscoveryPage $page,
+        private readonly RecordInteraction $interactions,
+    ) {}
 
-    public function __invoke(string $slug): Response
+    public function __invoke(Request $request, string $slug): Response
     {
         $category = Category::query()
             ->with('children')
@@ -32,73 +44,63 @@ final class PublicCategoryController
 
         abort_if($category === null, 404);
 
-        $lineage = $category->ancestorIds() ?: [$category->id];
-        $ancestors = Category::query()->whereIn('id', $lineage)->orderBy('depth')->get();
-
-        // Everything at or beneath this category, found by path prefix
-        // rather than a recursive walk.
-        $descendantIds = Category::query()
-            ->where('path', 'like', rtrim((string) $category->path, '/').'%')
-            ->pluck('id');
-
-        $products = Product::query()
-            ->published()
-            ->with(['brand', 'media'])
-            ->whereIn('category_id', $descendantIds)
-            // Only products somebody is actually selling. A category page
-            // full of unbuyable entries is worse than a shorter one.
-            ->whereIn('id', $this->eligibility->query()->select('product_id'))
-            ->orderBy('title')
-            ->paginate(24)
-            ->withQueryString();
+        $query = ($this->queries)($request, $category);
+        $page = ($this->page)($query);
 
         $base = rtrim((string) config('veritas.identity.public_url'), '/');
         $canonical = $base.'/categories/'.$category->slug;
 
+        $this->interactions->record($request, InteractionEventType::CategoryViewed, payload: [
+            'context' => 'category',
+            'category' => $category->slug,
+            'results' => $page['results']['total'],
+        ]);
+
         return Inertia::render('Category/Show', [
+            ...$page,
             'category' => [
                 'name' => $category->name,
                 'slug' => $category->slug,
                 'description' => $category->description,
             ],
-            'breadcrumbs' => $ancestors
-                ->map(fn (Category $ancestor): array => [
-                    'name' => $ancestor->name,
-                    'url' => '/categories/'.$ancestor->slug,
-                ])
-                ->all(),
+            'breadcrumbs' => $this->breadcrumbs($category),
             'children' => $category->children
                 ->where('is_visible', true)
-                ->map(fn (Category $child): array => [
+                ->map(static fn (Category $child): array => [
                     'name' => $child->name,
                     'slug' => $child->slug,
                 ])
                 ->values()
                 ->all(),
-            'products' => [
-                'data' => array_map(
-                    static fn (Product $product): array => [
-                        'title' => $product->title,
-                        'slug' => $product->slug,
-                        'brand' => $product->brand?->name,
-                    ],
-                    $products->items(),
-                ),
-                'currentPage' => $products->currentPage(),
-                'lastPage' => $products->lastPage(),
-                'total' => $products->total(),
-            ],
             'seo' => [
                 'title' => $category->seo_title ?? $category->name,
-                'description' => $category->seo_description
-                    ?? $category->description
-                    ?? $category->name.' on '.config('veritas.identity.display_name').'.',
-                'canonical' => $canonical,
-                // Page two and beyond, and any query string, stay out of
-                // the index: the canonical page is the one that should
-                // rank, not a hundred permutations of it.
-                'robots' => $products->currentPage() === 1 ? 'index, follow' : 'noindex, follow',
+                'description' => $category->seo_description ?? $category->description,
+                ...Indexability::forListing($canonical, $query),
             ],
         ]);
+    }
+
+    /**
+     * The lineage, root first.
+     *
+     * Read from the stored path in one query rather than walked parent by
+     * parent: §27 rules out loading the category tree recursively on every
+     * request, and a breadcrumb is the most common place that happens.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function breadcrumbs(Category $category): array
+    {
+        $lineage = $category->ancestorIds() ?: [$category->id];
+
+        return Category::query()
+            ->whereIn('id', $lineage)
+            ->orderBy('depth')
+            ->get(['name', 'slug'])
+            ->map(static fn (Category $ancestor): array => [
+                'name' => $ancestor->name,
+                'url' => '/categories/'.$ancestor->slug,
+            ])
+            ->all();
     }
 }

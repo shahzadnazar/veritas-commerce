@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Modules\Catalog\Support\Indexability;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,6 +49,19 @@ final class SecurityHeaders
         // product, so it must not carry this.
         if ($request->is('admin', 'admin/*', 'seller', 'seller/*')) {
             $headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
+        /*
+         * Search results, as a header rather than only a meta tag.
+         *
+         * The `<meta name="robots">` a page renders only reaches a crawler
+         * when SSR is on. A header reaches it either way, and is honoured
+         * for non-HTML responses too — so the noindex on search survives a
+         * misconfigured SSR process, which is exactly when an accidental
+         * index of the whole search space would happen.
+         */
+        if ($request->is('search', 'search/*')) {
+            $headers->set('X-Robots-Tag', Indexability::NOINDEX);
         }
 
         if ($request->secure()) {
