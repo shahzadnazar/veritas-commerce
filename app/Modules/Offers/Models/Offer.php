@@ -7,6 +7,7 @@ namespace App\Modules\Offers\Models;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Inventory\Models\InventoryBalance;
+use App\Modules\Offers\Enums\OfferCondition;
 use App\Modules\Offers\Enums\OfferStatus;
 use App\Modules\Sellers\Concerns\BelongsToSellerAccount;
 use App\Modules\Sellers\Models\SellerAccount;
@@ -37,7 +38,7 @@ use Illuminate\Support\Carbon;
  * @property int $product_id
  * @property int|null $product_variant_id
  * @property string $seller_sku
- * @property string $condition
+ * @property OfferCondition $condition
  * @property int $price_minor
  * @property int|null $compare_at_price_minor
  * @property string $currency
@@ -89,6 +90,7 @@ final class Offer extends Model
     {
         return [
             'status' => OfferStatus::class,
+            'condition' => OfferCondition::class,
             'price_minor' => 'integer',
             'compare_at_price_minor' => 'integer',
             'published_at' => 'datetime',
