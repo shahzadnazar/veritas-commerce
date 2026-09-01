@@ -6,11 +6,14 @@ namespace App\Modules\Catalog\Models;
 
 use App\Support\HasPublicId;
 use Database\Factories\CategoryFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 
 /**
@@ -26,8 +29,13 @@ use Illuminate\Support\Carbon;
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $seo_title
+ * @property string|null $seo_description
+ * @property string|null $path
+ * @property int $depth
  * @property-read Category|null $parent
  * @property-read Collection<int, Category> $children
+ * @property-read Collection<int, Attribute> $attributes
  */
 final class Category extends Model
 {
@@ -38,11 +46,14 @@ final class Category extends Model
 
     protected $table = 'categories';
 
-    protected $fillable = ['parent_id', 'name', 'slug', 'description', 'is_visible', 'position'];
+    protected $fillable = [
+        'parent_id', 'name', 'slug', 'description', 'is_visible', 'position',
+        'seo_title', 'seo_description', 'path', 'depth',
+    ];
 
     protected function casts(): array
     {
-        return ['is_visible' => 'boolean'];
+        return ['is_visible' => 'boolean', 'depth' => 'integer'];
     }
 
     /** @return BelongsTo<Category, $this> */
@@ -54,6 +65,66 @@ final class Category extends Model
     /** @return HasMany<Category, $this> */
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id')->orderBy('position');
+    }
+
+    /** @return BelongsToMany<Attribute, $this> */
+    public function attributes(): BelongsToMany
+    {
+        return $this->belongsToMany(Attribute::class, 'category_attributes')
+            ->withPivot(['is_required', 'is_variant_defining', 'position'])
+            ->withTimestamps()
+            ->orderBy('category_attributes.position');
+    }
+
+    /**
+     * The ids from the root down to and including this category.
+     *
+     * Read from the stored path rather than walked, so a breadcrumb costs
+     * nothing and a query for "everything under Electronics" is a prefix
+     * match instead of a recursive join.
+     *
+     * @return array<int, int>
+     */
+    public function ancestorIds(): array
+    {
+        return array_values(array_filter(array_map(
+            static fn (string $segment): int => (int) $segment,
+            explode('/', trim((string) $this->path, '/')),
+        )));
+    }
+
+    /**
+     * Every attribute this category asks for, its own and its ancestors'.
+     *
+     * Inheritance is the point of the tree: "Colour" declared on Clothing
+     * should not be re-declared on every garment type beneath it. A child's
+     * own assignment wins, so it can make an inherited attribute required.
+     *
+     * @return Collection<int, Attribute>
+     */
+    public function effectiveAttributes(): Collection
+    {
+        $lineage = $this->ancestorIds();
+
+        if ($lineage === []) {
+            $lineage = [$this->id];
+        }
+
+        /** @var Collection<int, Attribute> $attributes */
+        $attributes = Attribute::query()
+            ->where('is_active', true)
+            ->whereHas('categories', function (Builder $query) use ($lineage): void {
+                $query->whereIn('categories.id', $lineage);
+            })
+            // The pivot rows for this lineage only: a child's own
+            // assignment is what makes an inherited attribute required.
+            ->with(['options', 'categories' => function (Relation $query) use ($lineage): void {
+                $query->whereIn('categories.id', $lineage);
+            }])
+            ->orderBy('position')
+            ->get();
+
+        return $attributes;
     }
 }
