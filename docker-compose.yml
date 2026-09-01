@@ -54,6 +54,24 @@ services:
             start_period: 30s
         restart: unless-stopped
 
+    # The storefront is server-rendered, so a crawler's first request must
+    # return complete HTML — title, canonical link and JSON-LD included.
+    # That work happens in this process, not in the PHP one, which is why
+    # it is a service rather than a flag. Optional locally (the app falls
+    # back to client rendering when INERTIA_SSR_ENABLED is off); required
+    # wherever the SEO output is being checked.
+    ssr:
+        build:
+            context: .
+            dockerfile: docker/node.Dockerfile
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+            - node-modules:/var/www/html/node_modules
+        ports:
+            - '${SSR_PORT:-13714}:13714'
+        command: node bootstrap/ssr/ssr.js
+
     vite:
         build:
             context: .
@@ -61,7 +79,7 @@ services:
         working_dir: /var/www/html
         volumes:
             - .:/var/www/html
-            - /var/www/html/node_modules
+            - node-modules:/var/www/html/node_modules
         ports:
             - '${VITE_PORT:-5173}:5173'
         command: npm run dev -- --host 0.0.0.0
@@ -99,3 +117,8 @@ services:
 volumes:
     postgres-data:
     redis-data:
+    # Named rather than anonymous: the SSR bundle imports React at
+    # runtime, so the process serving it needs the same install the build
+    # container made. An anonymous volume per container gave each one an
+    # empty directory.
+    node-modules:

@@ -148,7 +148,17 @@ jobs:
                   docker compose up -d postgres redis
                   docker compose run --rm app composer install --no-interaction --prefer-dist
                   docker compose run --rm app php artisan key:generate
-                  docker compose up -d app
+
+                  # The storefront is server-rendered, so the SEO smoke
+                  # below needs the SSR process as well as the PHP one.
+                  # Enabled here rather than in .env.example because a
+                  # developer without the bundle built should still get a
+                  # working page.
+                  echo 'INERTIA_SSR_ENABLED=true' >> .env
+                  echo 'INERTIA_SSR_URL=http://ssr:13714' >> .env
+
+                  docker compose run --rm vite sh -c 'npm ci && npm run build:ssr'
+                  docker compose up -d ssr app
                   docker compose ps
 
             - name: Wait for the application to answer
@@ -201,11 +211,20 @@ jobs:
                   ' | tr -d '\r\n')
 
                   body=$(curl -fsS "http://127.0.0.1:8000/products/${slug}")
+
+                  # Server-rendered, so all of this is in the first
+                  # response — which is the only one a crawler makes.
+                  test "$(echo "$body" | grep -c '<title')" = "1"
+                  echo "$body" | grep -q 'Aeris Cordless Kettle'
                   echo "$body" | grep -q 'rel="canonical"'
                   echo "$body" | grep -q 'application/ld+json'
+                  echo "$body" | grep -q '"@type":"Product"'
                   # Truthfulness, not presence: nothing may claim a rating
-                  # the database cannot support.
+                  # or a review the database cannot support.
                   ! echo "$body" | grep -q 'aggregateRating'
+                  ! echo "$body" | grep -q '"review"'
+                  # A storefront page is indexable; the portals are not.
+                  ! curl -sD - -o /dev/null "http://127.0.0.1:8000/products/${slug}" | grep -qi 'X-Robots-Tag'
                   # An unpublished product has no page at all.
                   test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/products/not-a-real-product)" = "404"
 
