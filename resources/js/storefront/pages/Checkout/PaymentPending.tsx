@@ -4,42 +4,43 @@ import { AddressBlock, OrderTotals } from '../../../design-system/patterns/Order
 import { StatusBadge } from '../../../design-system/primitives/StatusBadge';
 import type { MarketplaceOrderView } from '../../../shared/commerce';
 import type { SharedPageProps } from '../../../shared/types';
+import { PaymentPanel, type PaymentState } from '../../components/PaymentPanel';
 
 interface PaymentPendingProps extends SharedPageProps {
     order: MarketplaceOrderView;
-    paymentStatus: { state: string; headline: string; detail: string };
+    payment: PaymentState;
+    endpoints: { prepare: string; status: string };
 }
 
 /**
- * The M4 handoff.
+ * Where a customer pays, and where they find out whether it worked.
  *
- * Deliberately NOT a confirmation page. The order exists, the totals are
- * final and the stock is held — and no money has moved. Saying "thank you
- * for your order" here would be a claim the platform cannot support, and
- * the customer would find out it was untrue at the least convenient
- * possible moment.
+ * Deliberately not a confirmation page until it has earned the word. The
+ * order exists, the totals are final and the stock is held; whether money
+ * moved is a separate fact, and it arrives from the server rather than
+ * from the payment form. Saying "thank you for your order" a moment early
+ * is a claim the platform cannot support, and the customer would discover
+ * it was untrue at the least convenient possible moment.
  *
- * M5 attaches a provider to this boundary. Until then the page's only job
- * is to be exact about where the purchase stands.
+ * The heading follows the same rule: it reads from the server's state, so
+ * a paid order does not sit under the word "Payment".
  */
 export default function PaymentPending() {
-    const { order, paymentStatus } = usePage<PaymentPendingProps>().props;
+    const { order, payment, endpoints } = usePage<PaymentPendingProps>().props;
 
     return (
         <StorefrontLayout title={`Order ${order.reference}`}>
             <p className="mb-2 text-[13px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase">
                 Order {order.reference}
             </p>
-            <h1 className="mb-3 text-[42px]">Awaiting payment</h1>
+            <h1 className="mb-3 text-[42px]">{payment.isPaid ? 'Order confirmed' : 'Payment'}</h1>
 
-            <div role="status" className="mb-10 border-2 border-[var(--vc-text)] px-5 py-4">
-                <p className="text-[16px] font-semibold">{paymentStatus.headline}</p>
-                <p className="mt-1 text-[14px] text-[var(--vc-neutral-700)]">
-                    {paymentStatus.detail}
-                </p>
-                {order.paymentExpiresAt ? (
-                    <p className="mt-2 text-[13px]">
-                        Held until{' '}
+            <div className="mb-10">
+                <PaymentPanel payment={payment} endpoints={endpoints} reference={order.reference} />
+
+                {order.paymentExpiresAt && !payment.isPaid ? (
+                    <p className="mt-3 text-[13px] text-[var(--vc-neutral-700)]">
+                        Your items are held until{' '}
                         <time dateTime={order.paymentExpiresAt} className="font-semibold">
                             {new Date(order.paymentExpiresAt).toLocaleString()}
                         </time>

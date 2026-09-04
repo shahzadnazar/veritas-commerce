@@ -1,6 +1,8 @@
 import { Head, Link, createInertiaApp, router, useForm, usePage } from "@inertiajs/react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import createServer from "@inertiajs/react/server";
 import ReactDOMServer from "react-dom/server";
 //#region \0rolldown/runtime.js
@@ -481,6 +483,72 @@ var STATUS_PRESENTATION = {
 		"partially_refunded": {
 			"tone": "critical",
 			"label": "Partially refunded"
+		}
+	},
+	"payment_attempt": {
+		"created": {
+			"tone": "pending",
+			"label": "Started"
+		},
+		"requires_payment_method": {
+			"tone": "pending",
+			"label": "Awaiting payment details"
+		},
+		"requires_action": {
+			"tone": "pending",
+			"label": "Awaiting confirmation"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"succeeded": {
+			"tone": "neutral",
+			"label": "Paid"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
+		},
+		"cancelled": {
+			"tone": "inactive",
+			"label": "Cancelled"
+		}
+	},
+	"refund": {
+		"requested": {
+			"tone": "pending",
+			"label": "Requested"
+		},
+		"processing": {
+			"tone": "pending",
+			"label": "Processing"
+		},
+		"succeeded": {
+			"tone": "critical",
+			"label": "Refunded"
+		},
+		"failed": {
+			"tone": "inactive",
+			"label": "Refund failed"
+		}
+	},
+	"provider_event": {
+		"received": {
+			"tone": "pending",
+			"label": "Received"
+		},
+		"processed": {
+			"tone": "neutral",
+			"label": "Processed"
+		},
+		"ignored": {
+			"tone": "inactive",
+			"label": "Not applicable"
+		},
+		"failed": {
+			"tone": "critical",
+			"label": "Failed"
 		}
 	},
 	"payout": {
@@ -2901,22 +2969,269 @@ function newKey() {
 	return `k${Date.now()}${Math.random().toString(36).slice(2, 10)}`;
 }
 //#endregion
+//#region resources/js/storefront/components/PaymentPanel.tsx
+var csrf = () => document.querySelector("meta[name=\"csrf-token\"]")?.content ?? "";
+/** Stripe's own loader is cached per key: never call it twice for one. */
+var stripeCache = /* @__PURE__ */ new Map();
+function stripeFor(key) {
+	const cached = stripeCache.get(key);
+	if (cached) return cached;
+	const loading = loadStripe(key);
+	stripeCache.set(key, loading);
+	return loading;
+}
+/**
+* The card form, and the machinery that refuses to believe it.
+*
+* The important part of this component is what it does after Stripe says
+* a payment succeeded: nothing. It polls the platform's own status
+* endpoint and shows what that says. A confirmation rendered from
+* Stripe's client-side result would be a claim built on a value a
+* customer can rewrite in a console, and the moment it is wrong is the
+* moment a marketplace ships goods for free.
+*
+* So there are two clocks here. Stripe's, which tells the customer their
+* card details were accepted, and the platform's, which tells them their
+* order is paid — and only the second one produces the word "confirmed".
+*/
+function PaymentPanel({ payment, endpoints, reference }) {
+	const [state, setState] = useState(payment);
+	const [prepared, setPrepared] = useState(null);
+	const [stripe, setStripe] = useState(null);
+	const [problem, setProblem] = useState(null);
+	const [preparing, setPreparing] = useState(false);
+	const [waiting, setWaiting] = useState(() => payment.state === "processing" || typeof window !== "undefined" && window.location.search.includes("payment_intent"));
+	const poll = useRef(null);
+	const readStatus = useCallback(async () => {
+		try {
+			const response = await fetch(endpoints.status, { headers: { Accept: "application/json" } });
+			if (!response.ok) return null;
+			const body = await response.json();
+			setState(body.payment);
+			return body.payment;
+		} catch {
+			return null;
+		}
+	}, [endpoints.status]);
+	/**
+	* Ask the server, repeatedly, until it has something terminal to say.
+	*
+	* The webhook that decides the outcome arrives on its own schedule, so
+	* the page waits rather than guessing. It gives up after two minutes
+	* and says so plainly instead of spinning forever — the order is still
+	* held, and the customer can reload.
+	*/
+	const runPolling = useCallback(() => {
+		let elapsed = 0;
+		const tick = async () => {
+			const next = await readStatus();
+			elapsed += 2;
+			if (next?.isPaid || next?.state === "failed" || next?.state === "cancelled") {
+				setWaiting(false);
+				return;
+			}
+			if (elapsed >= 120) {
+				setWaiting(false);
+				setProblem("We have not heard back yet. Your order is still held — reload this page in a moment, and do not pay again.");
+				return;
+			}
+			poll.current = window.setTimeout(() => void tick(), 2e3);
+		};
+		poll.current = window.setTimeout(() => void tick(), 1e3);
+	}, [readStatus]);
+	const waitForOutcome = useCallback(() => {
+		setWaiting(true);
+		runPolling();
+	}, [runPolling]);
+	useEffect(() => {
+		if (!waiting) return;
+		runPolling();
+		return () => {
+			if (poll.current !== null) window.clearTimeout(poll.current);
+		};
+	}, []);
+	const prepare = useCallback(async () => {
+		setPreparing(true);
+		setProblem(null);
+		try {
+			const response = await fetch(endpoints.prepare, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+					"X-CSRF-TOKEN": csrf()
+				},
+				body: "{}"
+			});
+			const body = await response.json();
+			if (body.payment) setState(body.payment);
+			if (!response.ok) {
+				setProblem(body.message ?? "Payment could not be started. Please try again.");
+				return;
+			}
+			const ready = body;
+			setPrepared(ready);
+			if (ready.provider === "stripe" && ready.publishableKey && ready.clientSecret) setStripe(stripeFor(ready.publishableKey));
+		} catch {
+			setProblem("We could not reach the payment service. Your order and items are still held — please try again in a moment.");
+		} finally {
+			setPreparing(false);
+		}
+	}, [endpoints.prepare]);
+	if (state.isPaid) return /* @__PURE__ */ jsx(Outcome, {
+		tone: "settled",
+		state,
+		reference
+	});
+	if (!state.canPay) return /* @__PURE__ */ jsx(Outcome, {
+		tone: "closed",
+		state,
+		reference
+	});
+	return /* @__PURE__ */ jsxs("section", {
+		"aria-labelledby": "payment-heading",
+		className: "border-2 border-[var(--vc-text)] p-6",
+		children: [
+			/* @__PURE__ */ jsx("h2", {
+				id: "payment-heading",
+				className: "mb-1 text-[22px]",
+				children: state.canRetry ? "Try another payment method" : "Pay for this order"
+			}),
+			/* @__PURE__ */ jsx("p", {
+				role: "status",
+				className: "mb-5 text-[14px] text-[var(--vc-neutral-700)]",
+				children: waiting ? "Checking with your bank…" : state.detail
+			}),
+			problem ? /* @__PURE__ */ jsx("p", {
+				role: "alert",
+				className: "mb-5 border-2 border-[var(--vc-accent)] px-4 py-3 text-[14px]",
+				children: problem
+			}) : null,
+			prepared && stripe && prepared.clientSecret ? /* @__PURE__ */ jsx(Elements, {
+				stripe,
+				options: {
+					clientSecret: prepared.clientSecret,
+					appearance: { variables: {
+						borderRadius: "0px",
+						fontFamily: "inherit"
+					} }
+				},
+				children: /* @__PURE__ */ jsx(CardForm, {
+					amount: prepared.amount.formatted,
+					returnUrl: prepared.returnUrl,
+					onSubmitted: waitForOutcome,
+					onProblem: setProblem,
+					disabled: waiting
+				})
+			}) : /* @__PURE__ */ jsxs(Fragment, { children: [prepared && !prepared.clientSecret ? /* @__PURE__ */ jsx("p", {
+				className: "mb-4 text-[14px]",
+				children: "Card payments are not configured for this environment."
+			}) : null, /* @__PURE__ */ jsx(Button, {
+				variant: "primary",
+				block: true,
+				loading: preparing,
+				loadingLabel: "Preparing payment…",
+				onClick: () => void prepare(),
+				children: state.canRetry ? "Try again" : "Continue to payment"
+			})] })
+		]
+	});
+}
+/**
+* The card fields, and the one button that talks to Stripe.
+*
+* `redirect: 'if_required'` keeps the customer on the page unless their
+* bank insists on a challenge. Either way the result Stripe hands back is
+* used for one thing only — deciding whether to show an error — and the
+* order's status comes from the poll that follows.
+*/
+function CardForm({ amount, returnUrl, onSubmitted, onProblem, disabled }) {
+	const stripe = useStripe();
+	const elements = useElements();
+	const [submitting, setSubmitting] = useState(false);
+	const submit = async () => {
+		if (!stripe || !elements) return;
+		setSubmitting(true);
+		const result = await stripe.confirmPayment({
+			elements,
+			confirmParams: { return_url: returnUrl },
+			redirect: "if_required"
+		});
+		setSubmitting(false);
+		if (result.error) {
+			onProblem(result.error.message ?? "Those payment details could not be used.");
+			return;
+		}
+		onSubmitted();
+	};
+	return /* @__PURE__ */ jsxs("form", {
+		onSubmit: (event) => {
+			event.preventDefault();
+			submit();
+		},
+		children: [
+			/* @__PURE__ */ jsx("div", {
+				className: "mb-5",
+				children: /* @__PURE__ */ jsx(PaymentElement, {})
+			}),
+			/* @__PURE__ */ jsx(Button, {
+				type: "submit",
+				variant: "primary",
+				block: true,
+				loading: submitting || disabled,
+				loadingLabel: "Confirming with your bank…",
+				disabled: !stripe,
+				children: `Pay ${amount}`
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "mt-3 text-[13px] text-[var(--vc-neutral-600)]",
+				children: "Your card details go straight to our payment provider. This shop never sees or stores them."
+			})
+		]
+	});
+}
+function Outcome({ tone, state, reference }) {
+	return /* @__PURE__ */ jsxs("section", {
+		role: "status",
+		className: ["border-2 p-6", tone === "settled" ? "border-[var(--vc-text)]" : "border-[var(--vc-neutral-400)]"].join(" "),
+		children: [
+			/* @__PURE__ */ jsx("h2", {
+				className: "mb-1 text-[22px]",
+				children: state.headline
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "text-[14px] text-[var(--vc-neutral-700)]",
+				children: state.detail
+			}),
+			tone === "settled" ? /* @__PURE__ */ jsx("p", {
+				className: "mt-4 text-[13px]",
+				children: /* @__PURE__ */ jsx("a", {
+					href: `/account/orders/${reference}`,
+					className: "underline underline-offset-4",
+					children: "Track this order"
+				})
+			}) : null
+		]
+	});
+}
+//#endregion
 //#region resources/js/storefront/pages/Checkout/PaymentPending.tsx
 var PaymentPending_exports = /* @__PURE__ */ __exportAll({ default: () => PaymentPending });
 /**
-* The M4 handoff.
+* Where a customer pays, and where they find out whether it worked.
 *
-* Deliberately NOT a confirmation page. The order exists, the totals are
-* final and the stock is held — and no money has moved. Saying "thank you
-* for your order" here would be a claim the platform cannot support, and
-* the customer would find out it was untrue at the least convenient
-* possible moment.
+* Deliberately not a confirmation page until it has earned the word. The
+* order exists, the totals are final and the stock is held; whether money
+* moved is a separate fact, and it arrives from the server rather than
+* from the payment form. Saying "thank you for your order" a moment early
+* is a claim the platform cannot support, and the customer would discover
+* it was untrue at the least convenient possible moment.
 *
-* M5 attaches a provider to this boundary. Until then the page's only job
-* is to be exact about where the purchase stands.
+* The heading follows the same rule: it reads from the server's state, so
+* a paid order does not sit under the word "Payment".
 */
 function PaymentPending() {
-	const { order, paymentStatus } = usePage().props;
+	const { order, payment, endpoints } = usePage().props;
 	return /* @__PURE__ */ jsxs(StorefrontLayout, {
 		title: `Order ${order.reference}`,
 		children: [
@@ -2926,34 +3241,27 @@ function PaymentPending() {
 			}),
 			/* @__PURE__ */ jsx("h1", {
 				className: "mb-3 text-[42px]",
-				children: "Awaiting payment"
+				children: payment.isPaid ? "Order confirmed" : "Payment"
 			}),
 			/* @__PURE__ */ jsxs("div", {
-				role: "status",
-				className: "mb-10 border-2 border-[var(--vc-text)] px-5 py-4",
-				children: [
-					/* @__PURE__ */ jsx("p", {
-						className: "text-[16px] font-semibold",
-						children: paymentStatus.headline
-					}),
-					/* @__PURE__ */ jsx("p", {
-						className: "mt-1 text-[14px] text-[var(--vc-neutral-700)]",
-						children: paymentStatus.detail
-					}),
-					order.paymentExpiresAt ? /* @__PURE__ */ jsxs("p", {
-						className: "mt-2 text-[13px]",
-						children: [
-							"Held until",
-							" ",
-							/* @__PURE__ */ jsx("time", {
-								dateTime: order.paymentExpiresAt,
-								className: "font-semibold",
-								children: new Date(order.paymentExpiresAt).toLocaleString()
-							}),
-							"."
-						]
-					}) : null
-				]
+				className: "mb-10",
+				children: [/* @__PURE__ */ jsx(PaymentPanel, {
+					payment,
+					endpoints,
+					reference: order.reference
+				}), order.paymentExpiresAt && !payment.isPaid ? /* @__PURE__ */ jsxs("p", {
+					className: "mt-3 text-[13px] text-[var(--vc-neutral-700)]",
+					children: [
+						"Your items are held until",
+						" ",
+						/* @__PURE__ */ jsx("time", {
+							dateTime: order.paymentExpiresAt,
+							className: "font-semibold",
+							children: new Date(order.paymentExpiresAt).toLocaleString()
+						}),
+						"."
+					]
+				}) : null]
 			}),
 			/* @__PURE__ */ jsxs("div", {
 				className: "grid gap-14 lg:grid-cols-[1fr_320px]",

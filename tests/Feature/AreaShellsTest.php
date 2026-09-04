@@ -133,7 +133,10 @@ final class AreaShellsTest extends TestCase
         $response = $this->get('/');
 
         $response->assertHeader('X-Frame-Options', 'DENY');
-        $response->assertHeader('Content-Security-Policy', "frame-ancestors 'none'");
+        $response->assertHeader(
+            'Content-Security-Policy',
+            "frame-ancestors 'none'; frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+        );
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->assertHeader('Permissions-Policy');

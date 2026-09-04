@@ -33,6 +33,27 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class SecurityHeaders
 {
+    /**
+     * The policy, one directive at a time.
+     *
+     * `frame-src` is here because of Stripe, and it is a tightening rather
+     * than a loosening: with no directive at all a page could frame
+     * anything, and enumerating the two Stripe origins Elements actually
+     * uses — js.stripe.com for the card fields, hooks.stripe.com for the
+     * 3-D Secure challenge — closes that to everything else. Naming them
+     * is the whole point; a wildcard, or `unsafe-*` anywhere, would buy the
+     * integration at the cost of the policy meaning anything (§59).
+     *
+     * `script-src` is still deliberately absent, for the reason the class
+     * docblock gives: enumerating script sources needs a nonce pipeline
+     * this application does not have, and a `script-src` loose enough to
+     * pass Vite would be a directive that permits what it claims to stop.
+     */
+    private const CONTENT_POLICY = [
+        "frame-ancestors 'none'",
+        "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
@@ -40,7 +61,7 @@ final class SecurityHeaders
         $headers = $response->headers;
 
         $headers->set('X-Frame-Options', 'DENY');
-        $headers->set('Content-Security-Policy', "frame-ancestors 'none'");
+        $headers->set('Content-Security-Policy', implode('; ', self::CONTENT_POLICY));
         $headers->set('X-Content-Type-Options', 'nosniff');
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
