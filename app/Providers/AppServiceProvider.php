@@ -31,6 +31,8 @@ use App\Modules\Offers\Events\OfferUpdated;
 use App\Modules\Payments\Adapters\FakePaymentProvider;
 use App\Modules\Payments\Adapters\StripePaymentProvider;
 use App\Modules\Payments\Contracts\PaymentProvider;
+use App\Modules\Payments\Events\PaymentSucceeded;
+use App\Modules\Payments\Listeners\AnnouncePaidOrder;
 use App\Modules\Search\Adapters\PostgresSearchIndex;
 use App\Modules\Search\Contracts\IndexableProductSource;
 use App\Modules\Search\Contracts\SearchIndex;
@@ -150,6 +152,16 @@ final class AppServiceProvider extends ServiceProvider
             ProductChangesRequested::class,
             ProductSuspended::class,
         ], NotifyProposingSeller::class);
+
+        /*
+         * The only announcement that money arrived.
+         *
+         * PaymentSucceeded is dispatched after the payment transaction
+         * commits, and once per payment however many times the provider
+         * redelivers the event, so this is where a customer receipt and a
+         * seller's "new order" both come from — and from nowhere else.
+         */
+        Event::listen(PaymentSucceeded::class, [AnnouncePaidOrder::class, 'handle']);
 
         // Models live in module namespaces (App\Modules\Orders\Models\...),
         // so the default factory guess does not apply. Factories stay in one
