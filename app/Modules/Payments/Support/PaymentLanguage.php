@@ -22,7 +22,19 @@ final class PaymentLanguage
 {
     public static function forCustomer(?ProviderFailure $failure): string
     {
-        return match ($failure?->code) {
+        return self::forCode($failure?->code);
+    }
+
+    /**
+     * The same sentence, from a code already recorded on an attempt.
+     *
+     * The stored code is the provider's; the sentence is the platform's.
+     * Nothing here echoes the code back to the customer — a decline reason
+     * is a signal a card tester tunes the next attempt with.
+     */
+    public static function forCode(?string $code): string
+    {
+        return match ($code) {
             'card_declined', 'do_not_honor' => 'Your payment could not be completed. '
                 .'Please try another payment method.',
             'insufficient_funds' => 'Your payment could not be completed. '

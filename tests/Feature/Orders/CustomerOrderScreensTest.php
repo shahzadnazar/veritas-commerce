@@ -216,11 +216,10 @@ final class CustomerOrderScreensTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Checkout/PaymentPending')
-                ->where('paymentStatus.state', 'awaiting_payment')
-                ->where(
-                    'paymentStatus.headline',
-                    'Your order has been prepared, but payment has not yet been completed.',
-                )
+                ->where('payment.state', 'awaiting_payment')
+                ->where('payment.headline', 'Your order is ready to pay for.')
+                ->where('payment.isPaid', false)
+                ->where('payment.canPay', true)
                 ->where('order.status', 'pending_payment')
                 ->where('order.grandTotal.minor', 7_500));
     }

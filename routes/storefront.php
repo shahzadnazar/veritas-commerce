@@ -9,6 +9,7 @@ use App\Modules\Catalog\Http\Controllers\PublicProductController;
 use App\Modules\Catalog\Http\Controllers\SearchController;
 use App\Modules\Catalog\Http\Controllers\SitemapController;
 use App\Modules\Checkout\Http\Controllers\CheckoutController;
+use App\Modules\Checkout\Http\Controllers\OrderPaymentController;
 use App\Modules\Checkout\Http\Controllers\PaymentPendingController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
 use App\Modules\Identity\Http\Controllers\LoginController;
@@ -83,6 +84,26 @@ Route::get('checkout', [CheckoutController::class, 'show'])->name('checkout');
 // off the shelf, and a loop hitting it would hold a seller's whole stock.
 Route::post('checkout', [CheckoutController::class, 'store'])->middleware('throttle:20,1')->name('checkout.store');
 Route::get('checkout/{reference}/payment', PaymentPendingController::class)->name('checkout.payment');
+
+/*
+ * The payment itself.
+ *
+ * Neither endpoint can mark anything paid — `prepare` asks the provider
+ * for a payment whose amount comes from the order, and `status` reports
+ * what verified provider events already wrote. PaymentAuthorityTest fails
+ * the build if any route reaches the paid transition.
+ *
+ * Ownership is resolved per request from the session, so the reference in
+ * the URL is never on its own enough. Preparation is throttled harder than
+ * polling: it is the one that talks to Stripe.
+ */
+Route::post('checkout/{reference}/payment/prepare', [OrderPaymentController::class, 'prepare'])
+    ->middleware('throttle:20,1')
+    ->name('checkout.payment.prepare');
+
+Route::get('checkout/{reference}/payment/status', [OrderPaymentController::class, 'status'])
+    ->middleware('throttle:120,1')
+    ->name('checkout.payment.status');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('register', [RegisterController::class, 'show'])->name('register');
