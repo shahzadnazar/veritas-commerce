@@ -69,6 +69,20 @@ enum AdminPermission: string
     case IssueRefunds = 'orders.refund';
     case ViewPayments = 'payments.view';
 
+    /*
+     * The provider's own record of a payment, and the events it sent.
+     *
+     * Separate from `payments.view` because they answer different
+     * questions. "Did this order pay?" is a support question and the
+     * attempt status answers it. "What exactly did Stripe send us at
+     * 03:14?" is an incident question, and the payload behind it carries
+     * provider identifiers, addresses and a description of the payment
+     * method — so it is held by the roles that reconcile money, not by
+     * everyone who can look an order up.
+     */
+    case ViewPaymentsSensitive = 'payments.view_sensitive';
+    case ViewProviderEvents = 'payments.events.view';
+
     // Money
     case ManageCommission = 'commission.manage';
     case ViewSellerEarnings = 'earnings.view';

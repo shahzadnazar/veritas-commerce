@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Actions;
 
+use App\Modules\Ledger\Actions\PostLedgerEntry;
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
 use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Ledger\Models\SellerLedgerEntry;
@@ -18,6 +19,7 @@ use App\Modules\Payments\Models\PaymentTransaction;
 use App\Modules\Payments\Models\PlatformRevenueEntry;
 use App\Modules\Payments\Models\Refund;
 use App\Modules\Payments\Models\RefundAllocation;
+use App\Modules\Sellers\Models\SellerAccount;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,7 +42,10 @@ use Illuminate\Support\Str;
  */
 final class FinalizeRefund
 {
-    public function __construct(private readonly PaymentProvider $provider) {}
+    public function __construct(
+        private readonly PaymentProvider $provider,
+        private readonly PostLedgerEntry $ledger,
+    ) {}
 
     /**
      * @param  ProviderRefund|null  $known  the provider's answer, when the caller already has it
@@ -132,15 +137,29 @@ final class FinalizeRefund
         }
     }
 
+    /**
+     * The seller's side of the reversal, through the ledger's own action.
+     *
+     * Not a hand-written insert. PostLedgerEntry is the only thing that
+     * knows how a running balance is taken — it locks the seller's last
+     * row rather than an aggregate, which PostgreSQL will not lock at all
+     * — and duplicating that here would be a second, quietly different
+     * ledger. It also carries the exactly-once guarantee: the source key
+     * is unique, so a refund event delivered three times posts one
+     * reversal and the later calls get the row that already exists.
+     *
+     * Status is PENDING and available_at stays null. A reversal is not
+     * money the seller may withdraw; it is money being taken back.
+     */
     private function reverseSellerEarning(Refund $refund, RefundAllocation $allocation, int $sellerAccountId): void
     {
         if ($allocation->earning_reversed_minor === 0) {
             return;
         }
 
-        $key = "refund:{$refund->id}:earning:{$allocation->order_item_id}";
+        $seller = SellerAccount::query()->find($sellerAccountId);
 
-        if (SellerLedgerEntry::query()->withoutGlobalScopes()->where('source_key', $key)->exists()) {
+        if ($seller === null) {
             return;
         }
 
@@ -150,30 +169,20 @@ final class FinalizeRefund
             ->where('source_key', "sale:{$allocation->order_item_id}")
             ->first();
 
-        $balanceBefore = (int) SellerLedgerEntry::query()
-            ->withoutGlobalScopes()
-            ->where('seller_account_id', $sellerAccountId)
-            ->lockForUpdate()
-            ->sum('amount_minor');
-
-        SellerLedgerEntry::query()->insertOrIgnore([
-            'public_id' => (string) Str::ulid(),
-            'seller_account_id' => $sellerAccountId,
-            'type' => LedgerEntryType::RefundReversal->value,
-            'status' => LedgerEntryStatus::Pending->value,
-            'currency' => $allocation->currency,
+        ($this->ledger)(
+            seller: $seller,
+            type: LedgerEntryType::RefundReversal,
             // Negative: a reversal is a debit against the seller.
-            'amount_minor' => -$allocation->earning_reversed_minor,
-            'balance_after_minor' => $balanceBefore - $allocation->earning_reversed_minor,
-            'seller_order_id' => $allocation->seller_order_id,
-            'order_item_id' => $allocation->order_item_id,
+            amountMinor: -$allocation->earning_reversed_minor,
+            status: LedgerEntryStatus::Pending,
+            sellerOrderId: $allocation->seller_order_id,
+            orderItemId: $allocation->order_item_id,
             // The original stays exactly as it was. This points at it.
-            'reverses_entry_id' => $original?->id,
-            'available_at' => null,
-            'note' => "Refund {$refund->reference}",
-            'source_key' => $key,
-            'created_at' => now(),
-        ]);
+            reversesEntryId: $original?->id,
+            note: "Refund {$refund->reference}",
+            currency: $allocation->currency,
+            sourceKey: "refund:{$refund->id}:earning:{$allocation->order_item_id}",
+        );
     }
 
     private function reverseCommission(Refund $refund, RefundAllocation $allocation, int $sellerAccountId): void

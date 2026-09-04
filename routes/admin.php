@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
 use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
 use App\Modules\AdminPortal\Http\Controllers\AdminOrderController;
+use App\Modules\AdminPortal\Http\Controllers\AdminPaymentController;
 use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
@@ -128,6 +129,23 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:orders.view')->name('index');
                 Route::get('{reference}', [AdminOrderController::class, 'show'])
                     ->middleware('admin.can:orders.view')->name('show');
+            });
+
+            /*
+             * Payments. `payments.view` opens the screens; issuing a
+             * refund is its own permission because it is the one action in
+             * the application that takes money back out of the platform's
+             * account, and the raw provider events sit behind a third —
+             * "did this order pay" and "what exactly did Stripe send at
+             * 03:14" are different questions with different audiences.
+             */
+            Route::prefix('payments')->name('payments.')->group(function (): void {
+                Route::get('/', [AdminPaymentController::class, 'index'])
+                    ->middleware('admin.can:payments.view')->name('index');
+                Route::get('{reference}', [AdminPaymentController::class, 'show'])
+                    ->middleware('admin.can:payments.view')->name('show');
+                Route::post('{reference}/refunds', [AdminPaymentController::class, 'refund'])
+                    ->middleware(['admin.can:orders.refund', 'throttle:30,1'])->name('refund');
             });
 
             Route::prefix('inventory')->name('inventory.')->group(function (): void {

@@ -41,6 +41,7 @@ enum AdminRole: string
                 AdminPermission::ViewOrders,
                 AdminPermission::ViewOrdersSensitive,
                 AdminPermission::ViewPayments,
+                AdminPermission::ViewProviderEvents,
                 AdminPermission::ManageOperationalSettings,
                 AdminPermission::ViewQueues,
                 // Can see the catalogue and move a proposal through
@@ -100,6 +101,8 @@ enum AdminRole: string
                 AdminPermission::ViewOrdersSensitive,
                 AdminPermission::IssueRefunds,
                 AdminPermission::ViewPayments,
+                AdminPermission::ViewPaymentsSensitive,
+                AdminPermission::ViewProviderEvents,
                 AdminPermission::ManageCommission,
                 AdminPermission::ViewSellerEarnings,
                 AdminPermission::DecidePayouts,
