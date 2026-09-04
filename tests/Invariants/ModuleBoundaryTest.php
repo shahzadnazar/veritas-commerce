@@ -149,6 +149,16 @@ final class ModuleBoundaryTest extends TestCase
              */
             'Checkout' => ['Cart', 'Offers', 'Catalog', 'Orders', 'Inventory', 'Identity', 'Payments', 'Stores'],
             'Orders' => ['Identity', 'Offers', 'Catalog'],
+            /*
+             * Payment is the moment an order's money becomes real, so the
+             * payment module reads the order it is settling and writes the
+             * obligations that settlement creates. The Ledger read is the
+             * idempotency check that stops a replayed event posting a
+             * second earning; the write still goes through Ledger's own
+             * PostLedgerEntry, which remains the only thing that inserts a
+             * ledger row.
+             */
+            'Payments' => ['Orders', 'Ledger', 'Sellers'],
             'Payouts' => ['Ledger'],
             'Ledger' => ['Orders'],
             'Stores' => ['Sellers'],

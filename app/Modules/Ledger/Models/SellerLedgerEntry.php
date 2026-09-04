@@ -40,6 +40,7 @@ use RuntimeException;
  * @property int|null $reverses_entry_id
  * @property Carbon|null $available_at
  * @property string|null $note
+ * @property string|null $source_key
  * @property Carbon $created_at
  */
 final class SellerLedgerEntry extends Model
@@ -65,7 +66,8 @@ final class SellerLedgerEntry extends Model
     protected $fillable = [
         'seller_account_id', 'type', 'status', 'currency', 'amount_minor',
         'balance_after_minor', 'seller_order_id', 'order_item_id',
-        'payout_request_id', 'reverses_entry_id', 'available_at', 'note', 'created_at',
+        'payout_request_id', 'reverses_entry_id', 'available_at', 'note',
+        'source_key', 'created_at',
     ];
 
     protected function casts(): array

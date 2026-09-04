@@ -224,6 +224,34 @@ return [
      * because the jobs are idempotent by design (see App\Support\Queues).
      */
     'defaults' => [
+        /*
+         * Payments first, and alone.
+         *
+         * §65: a backlog of emails, images or search writes must never be
+         * able to delay a payment finalizing. Its own supervisor means its
+         * own processes, so nothing else can occupy them.
+         *
+         * More tries and a longer backoff than `critical`: a provider event
+         * that cannot be processed is not lost work to be dropped after two
+         * attempts — it is money that has moved, and it stays retryable
+         * until a person has seen it (§63, §64).
+         */
+        'payments' => [
+            'connection' => 'redis',
+            'queue' => [Queues::PAYMENTS],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'minProcesses' => 1,
+            'maxProcesses' => 3,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 8,
+            'backoff' => [5, 15, 60, 300, 900],
+            'timeout' => 60,
+            'nice' => 0,
+        ],
+
         'critical' => [
             'connection' => 'redis',
             'queue' => [Queues::CRITICAL],
@@ -314,6 +342,7 @@ return [
 
     'environments' => [
         'production' => [
+            'payments' => ['maxProcesses' => 6, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
             'critical' => ['maxProcesses' => 10, 'balanceMaxShift' => 2, 'balanceCooldown' => 3],
             'emails' => ['maxProcesses' => 6],
             'catalogue' => ['maxProcesses' => 8],
@@ -322,6 +351,7 @@ return [
         ],
 
         'staging' => [
+            'payments' => ['maxProcesses' => 2],
             'critical' => ['maxProcesses' => 3],
             'emails' => ['maxProcesses' => 2],
             'catalogue' => ['maxProcesses' => 3],

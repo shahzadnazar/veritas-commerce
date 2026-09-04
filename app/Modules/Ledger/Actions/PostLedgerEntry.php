@@ -35,6 +35,13 @@ final class PostLedgerEntry
         ?Carbon $availableAt = null,
         ?string $note = null,
         string $currency = 'USD',
+        /**
+         * The event that caused this entry, unique across the ledger.
+         *
+         * Posting is exactly-once by unique index rather than by a check
+         * that races: a retried payment job finds the row already there.
+         */
+        ?string $sourceKey = null,
     ): SellerLedgerEntry {
         $expected = $type->expectedSign();
 
@@ -44,9 +51,20 @@ final class PostLedgerEntry
             );
         }
 
+        if ($sourceKey !== null) {
+            $existing = SellerLedgerEntry::query()
+                ->withoutGlobalScopes()
+                ->where('source_key', $sourceKey)
+                ->first();
+
+            if ($existing !== null) {
+                return $existing;
+            }
+        }
+
         return CurrentSeller::actingAs($seller->id, fn (): SellerLedgerEntry => DB::transaction(function () use (
             $seller, $type, $amountMinor, $status, $sellerOrderId, $orderItemId,
-            $payoutRequestId, $reversesEntryId, $availableAt, $note, $currency
+            $payoutRequestId, $reversesEntryId, $availableAt, $note, $currency, $sourceKey
         ): SellerLedgerEntry {
             $previous = SellerLedgerEntry::query()
                 ->where('seller_account_id', $seller->id)
@@ -61,10 +79,19 @@ final class PostLedgerEntry
 
             $resolvedStatus = $status ?? $this->defaultStatusFor($type);
 
-            // Earnings clear; everything else is immediate.
+            /*
+             * When this money becomes withdrawable.
+             *
+             * An entry that is CLEARING has a deadline, derived from the
+             * seller's own clearing period rather than a literal. An entry
+             * that is merely PENDING does not: at payment time the goods
+             * have not shipped, so there is no clock to start, and writing
+             * one would let a seller withdraw against an order that has not
+             * left the warehouse. The clock starts at delivery (M6).
+             */
             $resolvedAvailableAt = $availableAt;
 
-            if ($resolvedAvailableAt === null) {
+            if ($resolvedAvailableAt === null && $resolvedStatus !== LedgerEntryStatus::Pending) {
                 $resolvedAvailableAt = $type === LedgerEntryType::SaleEarning
                     ? now()->addDays($seller->clearingPeriodDays())
                     : now();
@@ -83,6 +110,7 @@ final class PostLedgerEntry
                 'reverses_entry_id' => $reversesEntryId,
                 'available_at' => $resolvedAvailableAt,
                 'note' => $note,
+                'source_key' => $sourceKey,
                 'created_at' => now(),
             ]);
         }));

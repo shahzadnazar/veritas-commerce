@@ -18,6 +18,17 @@ namespace App\Support;
  */
 final class Queues
 {
+    /**
+     * Verified provider events, and nothing else.
+     *
+     * Its own lane rather than sharing `critical` because the failure mode
+     * is different: a payment event that cannot be processed must stay
+     * visible and retryable, and mixing it with inventory sweeps makes a
+     * backlog of one look like a backlog of the other. §65 — a queue of
+     * emails must never be able to delay a payment finalizing.
+     */
+    public const PAYMENTS = 'payments';
+
     /** Money and state transitions: never queued behind anything. */
     public const CRITICAL = 'critical';
 
@@ -46,6 +57,7 @@ final class Queues
     public static function all(): array
     {
         return [
+            self::PAYMENTS,
             self::CRITICAL,
             self::EMAILS,
             self::CATALOGUE,
