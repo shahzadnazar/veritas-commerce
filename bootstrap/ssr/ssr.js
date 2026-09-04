@@ -989,7 +989,7 @@ var Show_exports$3 = /* @__PURE__ */ __exportAll({ default: () => OrderShow });
 * a single merged list would mislead them about that.
 */
 function OrderShow() {
-	const { order } = usePage().props;
+	const { order, payment } = usePage().props;
 	return /* @__PURE__ */ jsxs(StorefrontLayout, {
 		title: `Order ${order.reference}`,
 		children: [
@@ -1026,6 +1026,28 @@ function OrderShow() {
 					order.sellerOrders.length,
 					" ",
 					order.sellerOrders.length === 1 ? "seller" : "sellers"
+				]
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				role: "status",
+				className: "mb-10 border-2 border-[var(--vc-text)] px-5 py-4",
+				children: [
+					/* @__PURE__ */ jsx("p", {
+						className: "text-[16px] font-semibold",
+						children: payment.headline
+					}),
+					/* @__PURE__ */ jsx("p", {
+						className: "mt-1 text-[14px] text-[var(--vc-neutral-700)]",
+						children: payment.detail
+					}),
+					payment.canPay ? /* @__PURE__ */ jsx("p", {
+						className: "mt-3 text-[13px]",
+						children: /* @__PURE__ */ jsx(Link, {
+							href: `/checkout/${order.reference}/payment`,
+							className: "font-semibold underline underline-offset-4",
+							children: payment.canRetry ? "Try paying again" : "Complete your payment"
+						})
+					}) : null
 				]
 			}),
 			/* @__PURE__ */ jsxs("div", {

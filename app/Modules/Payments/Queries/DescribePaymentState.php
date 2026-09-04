@@ -7,6 +7,7 @@ namespace App\Modules\Payments\Queries;
 use App\Modules\Orders\Enums\MarketplaceOrderStatus;
 use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Payments\Enums\PaymentAttemptStatus;
+use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Models\PaymentAttempt;
 use App\Modules\Payments\Support\PaymentLanguage;
 
@@ -166,6 +167,33 @@ final class DescribePaymentState
                 'isPaid' => false,
             ],
         };
+    }
+
+    /**
+     * What a seller is allowed to know about the customer's payment.
+     *
+     * Two facts: whether the money cleared, and when. A seller needs the
+     * first to know they may ship and the second to reconcile; they have
+     * no business with the provider's reference, the card's description,
+     * a decline code, or anything else about how their customer paid —
+     * §27 and §51 draw that line, and the shape of this return value is
+     * what keeps it drawn.
+     *
+     * @return array{isPaid: bool, paidAt: string|null}
+     */
+    public function forSeller(MarketplaceOrder $order): array
+    {
+        /** @var Payment|null $payment */
+        $payment = Payment::query()
+            ->where('marketplace_order_id', $order->id)
+            ->orderByDesc('id')
+            ->first();
+
+        return [
+            'isPaid' => $order->status !== MarketplaceOrderStatus::PendingPayment
+                && $order->status !== MarketplaceOrderStatus::Cancelled,
+            'paidAt' => $payment?->captured_at?->toIso8601String(),
+        ];
     }
 
     private function latestAttempt(MarketplaceOrder $order): ?PaymentAttempt

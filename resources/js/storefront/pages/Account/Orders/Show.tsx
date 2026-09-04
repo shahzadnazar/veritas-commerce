@@ -4,9 +4,11 @@ import { AddressBlock, OrderTotals } from '../../../../design-system/patterns/Or
 import { StatusBadge } from '../../../../design-system/primitives/StatusBadge';
 import type { MarketplaceOrderView } from '../../../../shared/commerce';
 import type { SharedPageProps } from '../../../../shared/types';
+import type { PaymentState } from '../../../components/PaymentPanel';
 
 interface OrderShowProps extends SharedPageProps {
     order: MarketplaceOrderView;
+    payment: PaymentState;
 }
 
 /**
@@ -23,7 +25,7 @@ interface OrderShowProps extends SharedPageProps {
  * a single merged list would mislead them about that.
  */
 export default function OrderShow() {
-    const { order } = usePage<OrderShowProps>().props;
+    const { order, payment } = usePage<OrderShowProps>().props;
 
     return (
         <StorefrontLayout title={`Order ${order.reference}`}>
@@ -52,6 +54,28 @@ export default function OrderShow() {
                 {' · '}
                 {order.sellerOrders.length} {order.sellerOrders.length === 1 ? 'seller' : 'sellers'}
             </p>
+
+            {/*
+             * What happened to the money, in the same words the payment
+             * page used — one source, so a customer is never told two
+             * different things about one payment. No provider reference,
+             * no decline code: those are the operator's, not theirs.
+             */}
+            <div role="status" className="mb-10 border-2 border-[var(--vc-text)] px-5 py-4">
+                <p className="text-[16px] font-semibold">{payment.headline}</p>
+                <p className="mt-1 text-[14px] text-[var(--vc-neutral-700)]">{payment.detail}</p>
+
+                {payment.canPay ? (
+                    <p className="mt-3 text-[13px]">
+                        <Link
+                            href={`/checkout/${order.reference}/payment`}
+                            className="font-semibold underline underline-offset-4"
+                        >
+                            {payment.canRetry ? 'Try paying again' : 'Complete your payment'}
+                        </Link>
+                    </p>
+                ) : null}
+            </div>
 
             <div className="grid gap-14 lg:grid-cols-[1fr_320px]">
                 <div>

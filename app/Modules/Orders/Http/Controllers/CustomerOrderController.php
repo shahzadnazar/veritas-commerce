@@ -7,6 +7,7 @@ namespace App\Modules\Orders\Http\Controllers;
 use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Orders\Models\SellerOrder;
 use App\Modules\Orders\Queries\BuildOrderDetail;
+use App\Modules\Payments\Queries\DescribePaymentState;
 use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,7 +28,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final class CustomerOrderController
 {
-    public function __construct(private readonly BuildOrderDetail $detail) {}
+    public function __construct(
+        private readonly BuildOrderDetail $detail,
+        private readonly DescribePaymentState $payment,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -70,6 +74,10 @@ final class CustomerOrderController
             // took from the seller: that is the seller's business and the
             // platform's, and none of the customer's.
             'order' => ($this->detail)($order, withFinance: false),
+            // The same words the payment page uses, from the same source,
+            // so a customer is never told two different things about one
+            // payment. No provider identifiers, no decline codes (§53).
+            'payment' => ($this->payment)($order),
             'sellerOrderStatuses' => SellerOrder::query()
                 ->withoutGlobalScopes()
                 ->where('marketplace_order_id', $order->id)

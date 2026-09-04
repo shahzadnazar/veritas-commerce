@@ -29,6 +29,16 @@ enum InteractionEventType: string
     case PurchaseCompleted = 'purchase_completed';
 
     /**
+     * A payment the provider refused.
+     *
+     * Recorded because a marketplace that cannot see its decline rate
+     * cannot tell a provider problem from a pricing one — and because a
+     * checkout that converts and then fails at the card is a different
+     * failure from one that never got there.
+     */
+    case PaymentFailed = 'payment_failed';
+
+    /**
      * Relative weight when building affinity scores. Kept with the event so
      * the offline job and any future model read one definition.
      */
@@ -48,6 +58,9 @@ enum InteractionEventType: string
             self::CheckoutValidationFailed => 3,
             self::CheckoutOrderCreated => 8,
             self::PurchaseCompleted => 10,
+            // Intent, and strong intent: they reached for a card. It is
+            // simply not a purchase.
+            self::PaymentFailed => 4,
             self::SearchPerformed => 0,
         };
     }
@@ -73,6 +86,7 @@ enum InteractionEventType: string
             self::CheckoutValidationFailed => 'Checkout validation failed',
             self::CheckoutOrderCreated => 'Order created',
             self::PurchaseCompleted => 'Purchase completed',
+            self::PaymentFailed => 'Payment failed',
         };
     }
 }

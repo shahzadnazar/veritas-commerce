@@ -18,6 +18,7 @@ use App\Modules\Catalog\Listeners\KeepSearchIndexCurrent;
 use App\Modules\Catalog\Listeners\NotifyProposingSeller;
 use App\Modules\Catalog\Queries\BuildIndexableProduct;
 use App\Modules\Events\Listeners\RecordCartActivity;
+use App\Modules\Events\Listeners\RecordPaymentActivity;
 use App\Modules\Inventory\Events\InventoryAdjusted;
 use App\Modules\Inventory\Events\InventoryDepleted;
 use App\Modules\Inventory\Events\InventoryLow;
@@ -31,6 +32,7 @@ use App\Modules\Offers\Events\OfferUpdated;
 use App\Modules\Payments\Adapters\FakePaymentProvider;
 use App\Modules\Payments\Adapters\StripePaymentProvider;
 use App\Modules\Payments\Contracts\PaymentProvider;
+use App\Modules\Payments\Events\PaymentFailed;
 use App\Modules\Payments\Events\PaymentSucceeded;
 use App\Modules\Payments\Listeners\AnnouncePaidOrder;
 use App\Modules\Search\Adapters\PostgresSearchIndex;
@@ -162,6 +164,13 @@ final class AppServiceProvider extends ServiceProvider
          * seller's "new order" both come from — and from nowhere else.
          */
         Event::listen(PaymentSucceeded::class, [AnnouncePaidOrder::class, 'handle']);
+
+        // The same two events, into the behavioural stream. A purchase is
+        // recorded per seller, because that is the question the table is
+        // asked. The payment module announces; only this listener knows
+        // analytics exist.
+        Event::listen(PaymentSucceeded::class, [RecordPaymentActivity::class, 'succeeded']);
+        Event::listen(PaymentFailed::class, [RecordPaymentActivity::class, 'failed']);
 
         // Models live in module namespaces (App\Modules\Orders\Models\...),
         // so the default factory guess does not apply. Factories stay in one

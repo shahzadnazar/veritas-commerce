@@ -38,6 +38,16 @@ final class RecordInteraction
         array $payload = [],
         ?int $offerId = null,
         ?int $valueMinor = null,
+        /**
+         * The customer, when the request cannot say who they are.
+         *
+         * Most events are recorded in the customer's own request and the
+         * session answers this. A payment is decided by a webhook, in a
+         * queued job with no session at all, so the order carries the
+         * attribution instead — otherwise every purchase in the stream
+         * would be anonymous.
+         */
+        ?int $userId = null,
     ): void {
         $productId ??= $subjectType === 'product' && $subjectPublicId !== null
             ? $this->productIdFor($subjectPublicId)
@@ -52,7 +62,7 @@ final class RecordInteraction
         $job = new RecordInteractionEvent(
             eventId: (string) Str::ulid(),
             type: $type,
-            userId: $user === null ? null : (int) $user->getAuthIdentifier(),
+            userId: $userId ?? ($user === null ? null : (int) $user->getAuthIdentifier()),
             // Present for a signed-in customer too: it is what stitches
             // their behaviour before signing in to their behaviour after.
             anonymousSessionId: AnonymousSession::idFor($request),

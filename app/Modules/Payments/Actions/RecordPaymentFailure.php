@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Actions;
 
+use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Payments\Contracts\PaymentProvider;
 use App\Modules\Payments\Enums\PaymentAttemptStatus;
+use App\Modules\Payments\Events\PaymentFailed;
 use App\Modules\Payments\Models\PaymentAttempt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 /**
  * Records that a payment did not go through.
@@ -86,6 +89,24 @@ final class RecordPaymentFailure
                         ? null
                         : mb_substr($providerPayment->failure->message, 0, 500),
                 ])->save();
+
+                /** @var MarketplaceOrder|null $order */
+                $order = MarketplaceOrder::query()->find($locked->marketplace_order_id);
+
+                if ($order !== null) {
+                    $event = new PaymentFailed(
+                        marketplaceOrderId: $order->id,
+                        orderReference: $order->reference,
+                        amountMinor: $locked->amount_minor,
+                        currency: $locked->currency,
+                        failureCode: $providerPayment->failure?->code,
+                        userId: $order->user_id,
+                    );
+
+                    // After commit, like every other announcement: a
+                    // decline that rolled back is not a decline.
+                    DB::afterCommit(static fn () => Event::dispatch($event));
+                }
             }
 
             return $moved;

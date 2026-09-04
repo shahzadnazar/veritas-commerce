@@ -14,6 +14,12 @@ interface ShowProps extends SharedPageProps {
         shippingAddress: AddressSnapshot;
     };
     fulfilment: { actionable: boolean; reason: string | null };
+    /**
+     * Two facts and no more. A seller needs to know the money cleared and
+     * when; how the customer paid is between the customer and the
+     * provider.
+     */
+    payment: { isPaid: boolean; paidAt: string | null };
     canSeeFinance: boolean;
 }
 
@@ -29,7 +35,7 @@ interface ShowProps extends SharedPageProps {
  * changed since then does not change what this order is worth.
  */
 export default function Show() {
-    const { sellerOrder, parent, fulfilment, canSeeFinance } = usePage<ShowProps>().props;
+    const { sellerOrder, parent, fulfilment, payment, canSeeFinance } = usePage<ShowProps>().props;
 
     return (
         <SellerLayout title={sellerOrder.reference}>
@@ -60,6 +66,27 @@ export default function Show() {
                 >
                     <p className="font-semibold">Awaiting payment</p>
                     <p className="text-[var(--vc-neutral-700)]">{fulfilment.reason}</p>
+                </div>
+            ) : payment.isPaid ? (
+                <div
+                    role="status"
+                    className="mb-8 border-2 border-[var(--vc-text)] px-5 py-4 text-[14px]"
+                >
+                    <p className="font-semibold">Paid — you can prepare this order.</p>
+                    <p className="text-[var(--vc-neutral-700)]">
+                        {payment.paidAt ? (
+                            <>
+                                The customer&rsquo;s payment cleared{' '}
+                                <time dateTime={payment.paidAt}>
+                                    {new Date(payment.paidAt).toLocaleString()}
+                                </time>
+                                . Your earnings become available for payout after delivery and the
+                                clearing period.
+                            </>
+                        ) : (
+                            'Your earnings become available for payout after delivery and the clearing period.'
+                        )}
+                    </p>
                 </div>
             ) : null}
 

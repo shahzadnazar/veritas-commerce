@@ -184,11 +184,16 @@ final class FinalizePayment
 
             ($this->obligations)($order);
 
-            $sellerOrderIds = SellerOrder::query()
+            $lines = SellerOrder::query()
                 ->withoutGlobalScopes()
                 ->where('marketplace_order_id', $order->id)
-                ->pluck('id')
-                ->map(static fn (mixed $id): int => (int) $id)
+                ->orderBy('position')
+                ->get()
+                ->map(static fn (SellerOrder $sellerOrder): array => [
+                    'sellerOrderId' => (int) $sellerOrder->id,
+                    'sellerAccountId' => (int) $sellerOrder->seller_account_id,
+                    'valueMinor' => (int) $sellerOrder->order_total_minor,
+                ])
                 ->all();
 
             $event = new PaymentSucceeded(
@@ -196,7 +201,8 @@ final class FinalizePayment
                 orderReference: $order->reference,
                 amountMinor: $providerPayment->settledAmountMinor(),
                 currency: $providerPayment->currency,
-                sellerOrderIds: $sellerOrderIds,
+                lines: $lines,
+                userId: $order->user_id,
             );
 
             // After commit: a confirmation email must never describe a

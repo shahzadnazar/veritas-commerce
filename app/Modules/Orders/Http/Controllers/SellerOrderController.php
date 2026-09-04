@@ -9,6 +9,7 @@ use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Orders\Models\OrderItem;
 use App\Modules\Orders\Models\SellerOrder;
 use App\Modules\Orders\Queries\BuildOrderDetail;
+use App\Modules\Payments\Queries\DescribePaymentState;
 use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Sellers\Enums\SellerPermission;
 use App\Support\Money;
@@ -36,7 +37,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final class SellerOrderController
 {
-    public function __construct(private readonly BuildOrderDetail $detail) {}
+    public function __construct(
+        private readonly BuildOrderDetail $detail,
+        private readonly DescribePaymentState $payment,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -175,6 +179,13 @@ final class SellerOrderController
                     ? 'This order cannot be packed or shipped until payment is confirmed.'
                     : null,
             ],
+            /*
+             * Two facts and no more: whether the money cleared, and when.
+             * A seller needs the first to know they may ship and the
+             * second to reconcile — and has no business with the
+             * provider's reference, the card, or how their customer paid.
+             */
+            'payment' => $this->payment->forSeller($parent),
             'canSeeFinance' => $withFinance,
         ]);
     }
