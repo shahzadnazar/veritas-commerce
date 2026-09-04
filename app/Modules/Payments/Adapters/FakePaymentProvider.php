@@ -192,6 +192,42 @@ final class FakePaymentProvider implements PaymentProvider
         ];
     }
 
+    /**
+     * Move a refund to a new state, the way a provider does when a bank
+     * finally answers hours after the request.
+     */
+    public function settleRefund(string $reference, RefundStatus $status, ?ProviderFailure $failure = null): ProviderRefund
+    {
+        $existing = $this->refunds[$reference] ?? throw new ProviderUnavailable("No fake refund {$reference}.");
+
+        return $this->refunds[$reference] = new ProviderRefund(
+            provider: self::NAME,
+            reference: $reference,
+            status: $status,
+            amountMinor: $existing->amountMinor,
+            currency: $existing->currency,
+            providerStatus: $status->value,
+            failure: $status === RefundStatus::Failed ? $failure : null,
+        );
+    }
+
+    /**
+     * The refund as the provider would put it in an event body.
+     *
+     * @return array<string, mixed>
+     */
+    public function refundObject(string $reference): array
+    {
+        $r = $this->refunds[$reference];
+
+        return [
+            'id' => $r->reference,
+            'status' => $r->providerStatus ?? $r->status->value,
+            'amount' => $r->amountMinor,
+            'currency' => strtolower($r->currency),
+        ];
+    }
+
     /* ---------------------------------------------------------------- *
      * The contract.
      * ---------------------------------------------------------------- */

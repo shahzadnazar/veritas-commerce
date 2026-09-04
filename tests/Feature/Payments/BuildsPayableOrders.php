@@ -70,6 +70,32 @@ trait BuildsPayableOrders
         return $event;
     }
 
+    /**
+     * The provider's own word about a refund, delivered as a signed event.
+     *
+     * §43: the request that asked for a refund is not the final authority,
+     * so the refund path has to be exercisable the same way the payment
+     * path is — through the endpoint, with a signature.
+     */
+    protected function deliverRefundEvent(string $type, string $refundReference, ?string $eventId = null): ProviderWebhookEvent
+    {
+        $provider = $this->provider();
+
+        $signed = $provider->signedEvent($type, $provider->refundObject($refundReference), $eventId);
+
+        $this->call(
+            'POST',
+            '/webhooks/payments',
+            server: ['HTTP_STRIPE_SIGNATURE' => $signed['signature'], 'CONTENT_TYPE' => 'application/json'],
+            content: $signed['payload'],
+        );
+
+        /** @var ProviderWebhookEvent $event */
+        $event = ProviderWebhookEvent::query()->where('event_id', $signed['event']['id'])->firstOrFail();
+
+        return $event;
+    }
+
     /** The whole happy path: prepare, settle at the provider, deliver success. */
     protected function payFor(MarketplaceOrder $order, ?int $capturedMinor = null): string
     {

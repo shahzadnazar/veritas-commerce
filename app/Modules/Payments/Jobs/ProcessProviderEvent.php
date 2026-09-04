@@ -151,7 +151,17 @@ final class ProcessProviderEvent implements ShouldQueue
              * than taken from the payload. The event says "look again";
              * what is true comes from asking.
              */
-            $this->isPaymentSuccess($event->type) => tap(true, static fn () => $finalize($reference, $event->id)),
+            /*
+             * Success and progress take the same path, because the path
+             * re-reads the provider rather than believing the event: a
+             * `processing` notification that arrives when the payment has
+             * already succeeded finalizes it, and one that arrives while
+             * it really is processing moves the attempt and stops there.
+             * Reading the event's name to decide the outcome is exactly
+             * the mistake this design exists to avoid.
+             */
+            $this->isPaymentSuccess($event->type),
+            $this->isPaymentProgress($event->type) => tap(true, static fn () => $finalize($reference, $event->id)),
             $this->isPaymentFailure($event->type) => tap(true, static fn () => $recordFailure($reference, $event->id)),
             $this->isRefundEvent($event->type) => tap(true, static fn () => $finalizeRefund($reference, $event->id)),
             default => false,
@@ -169,6 +179,22 @@ final class ProcessProviderEvent implements ShouldQueue
     private function isPaymentSuccess(string $type): bool
     {
         return in_array($type, ['payment_intent.succeeded', 'payment.captured'], true);
+    }
+
+    /**
+     * The intent moved, without being decided.
+     *
+     * Recorded so the customer's page can say "processing" honestly
+     * rather than showing a pay button for a payment already in flight
+     * (§25). None of these can mark an order paid on their own.
+     */
+    private function isPaymentProgress(string $type): bool
+    {
+        return in_array($type, [
+            'payment_intent.processing',
+            'payment_intent.requires_action',
+            'payment_intent.amount_capturable_updated',
+        ], true);
     }
 
     private function isPaymentFailure(string $type): bool
