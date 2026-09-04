@@ -28,8 +28,9 @@ use App\Modules\Media\Stores\FilesystemObjectStore;
 use App\Modules\Offers\Events\OfferActivated;
 use App\Modules\Offers\Events\OfferSuspended;
 use App\Modules\Offers\Events\OfferUpdated;
-use App\Modules\Payments\Contracts\PaymentGateway;
-use App\Modules\Payments\Gateways\FakePaymentGateway;
+use App\Modules\Payments\Adapters\FakePaymentProvider;
+use App\Modules\Payments\Adapters\StripePaymentProvider;
+use App\Modules\Payments\Contracts\PaymentProvider;
 use App\Modules\Search\Adapters\PostgresSearchIndex;
 use App\Modules\Search\Contracts\IndexableProductSource;
 use App\Modules\Search\Contracts\SearchIndex;
@@ -42,6 +43,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use RuntimeException;
+use Stripe\StripeClient;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -63,10 +65,29 @@ final class AppServiceProvider extends ServiceProvider
         // sees the interface and the flat document, never a Catalog model.
         $this->app->bind(IndexableProductSource::class, BuildIndexableProduct::class);
 
-        $this->app->bind(PaymentGateway::class, function (): PaymentGateway {
-            return match (config('veritas.providers.payment')) {
-                default => new FakePaymentGateway,
-            };
+        /*
+         * The payment port.
+         *
+         * A singleton because the fake driver holds its payments in memory
+         * and a test that prepared one has to be able to settle it — with a
+         * fresh instance per resolve, the second half of every payment test
+         * would be talking to a provider that had never heard of the first.
+         *
+         * The Stripe client is built here and nowhere else, so the secret
+         * key exists in exactly one place in the application.
+         */
+        $this->app->singleton(PaymentProvider::class, function (): PaymentProvider {
+            if (config('veritas.payments.provider') !== 'stripe') {
+                return new FakePaymentProvider;
+            }
+
+            return new StripePaymentProvider(
+                new StripeClient([
+                    'api_key' => (string) config('veritas.payments.stripe.secret'),
+                    'stripe_version' => (string) config('veritas.payments.stripe.api_version'),
+                ]),
+                (string) config('veritas.payments.stripe.webhook_secret'),
+            );
         });
     }
 

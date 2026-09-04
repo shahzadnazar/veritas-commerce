@@ -8,13 +8,13 @@ use App\Modules\Ledger\Actions\PostLedgerEntry;
 use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Ledger\Models\SellerLedgerEntry;
 use App\Modules\Payments\Actions\RecordWebhookEvent;
-use App\Modules\Payments\Contracts\PaymentGateway;
-use App\Modules\Payments\Data\WebhookEvent;
-use App\Modules\Payments\Gateways\FakePaymentGateway;
+use App\Modules\Payments\Adapters\FakePaymentProvider;
+use App\Modules\Payments\Contracts\PaymentProvider;
+use App\Modules\Payments\Data\ProviderEvent;
+use App\Modules\Payments\Exceptions\ProviderSignatureInvalid;
 use App\Modules\Payments\Models\ProviderWebhookEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -31,12 +31,13 @@ final class WebhookIdempotencyTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function event(string $id = 'evt_001'): WebhookEvent
+    private function event(string $id = 'evt_001'): ProviderEvent
     {
-        return new WebhookEvent(
+        return new ProviderEvent(
             provider: 'fake',
             eventId: $id,
             type: 'payment.captured',
+            objectReference: 'pi_'.$id,
             payload: ['id' => $id, 'type' => 'payment.captured', 'amount_minor' => 32_800],
         );
     }
@@ -60,7 +61,7 @@ final class WebhookIdempotencyTest extends TestCase
         ['seller' => $seller] = $this->makeSeller();
 
         // The handler shape: only act when the event is new.
-        $handle = function (WebhookEvent $event) use ($seller): bool {
+        $handle = function (ProviderEvent $event) use ($seller): bool {
             if (app(RecordWebhookEvent::class)($event) === null) {
                 return false;
             }
@@ -99,48 +100,49 @@ final class WebhookIdempotencyTest extends TestCase
     {
         app(RecordWebhookEvent::class)($this->event('evt_shared'));
 
-        $other = new WebhookEvent('other', 'evt_shared', 'payment.captured', ['id' => 'evt_shared']);
+        $other = new ProviderEvent('other', 'evt_shared', 'payment.captured', 'pi_x', ['id' => 'evt_shared']);
 
         $this->assertNotNull(app(RecordWebhookEvent::class)($other));
         $this->assertSame(2, ProviderWebhookEvent::query()->count());
     }
 
     #[Test]
-    public function an_unsigned_webhook_is_rejected(): void
+    public function an_unsigned_event_is_rejected(): void
     {
-        /** @var FakePaymentGateway $gateway */
-        $gateway = app(PaymentGateway::class);
+        /** @var FakePaymentProvider $provider */
+        $provider = app(PaymentProvider::class);
         $payload = (string) json_encode(['id' => 'evt_x', 'type' => 'payment.captured'], JSON_THROW_ON_ERROR);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('signature verification failed');
+        // Constructing a ProviderEvent is the act of asserting the event is
+        // genuine, so a bad signature must not produce one at all.
+        $this->expectException(ProviderSignatureInvalid::class);
 
-        $gateway->parseWebhook($payload, 'not-the-signature');
+        $provider->parseEvent($payload, 'not-the-signature');
     }
 
     #[Test]
-    public function a_correctly_signed_webhook_is_parsed(): void
+    public function a_correctly_signed_event_is_parsed(): void
     {
-        /** @var FakePaymentGateway $gateway */
-        $gateway = app(PaymentGateway::class);
-        $payload = (string) json_encode(['id' => 'evt_ok', 'type' => 'payment.captured'], JSON_THROW_ON_ERROR);
+        /** @var FakePaymentProvider $provider */
+        $provider = app(PaymentProvider::class);
+        $signed = $provider->signedEvent('payment_intent.succeeded', ['id' => 'pi_ok'], 'evt_ok');
 
-        $event = $gateway->parseWebhook($payload, $gateway->sign($payload));
+        $event = $provider->parseEvent($signed['payload'], $signed['signature']);
 
         $this->assertSame('evt_ok', $event->eventId);
-        $this->assertSame('payment.captured', $event->type);
+        $this->assertSame('payment_intent.succeeded', $event->type);
+        $this->assertSame('pi_ok', $event->objectReference);
     }
 
     #[Test]
-    public function the_capture_path_is_idempotent_by_key(): void
+    public function preparing_a_payment_twice_with_one_key_yields_one_payment(): void
     {
-        /** @var FakePaymentGateway $gateway */
-        $gateway = app(PaymentGateway::class);
+        /** @var FakePaymentProvider $provider */
+        $provider = app(PaymentProvider::class);
 
-        $a = $gateway->capture('VC-24081', 32_800, 'USD', 'VC-24081:capture');
-        $b = $gateway->capture('VC-24081', 32_800, 'USD', 'VC-24081:capture');
+        $a = $provider->preparePayment(32_800, 'USD', 'VC-24081:1');
+        $b = $provider->preparePayment(32_800, 'USD', 'VC-24081:1');
 
-        $this->assertTrue($a->succeeded);
-        $this->assertSame($a->chargeId, $b->chargeId, 'The same key yields the same charge, never a second one.');
+        $this->assertSame($a->reference, $b->reference, 'One key, one provider payment — never a second.');
     }
 }

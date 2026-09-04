@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Models;
 
+use App\Modules\Payments\Enums\ProviderEventStatus;
 use Database\Factories\ProviderWebhookEventFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,11 @@ use Illuminate\Support\Carbon;
  * @property string $provider
  * @property string $event_id
  * @property string $type
+ * @property string|null $object_reference
+ * @property ProviderEventStatus $status
+ * @property int $attempts
+ * @property string|null $signature_fingerprint
+ * @property Carbon|null $failed_at
  * @property array<string, mixed> $payload
  * @property Carbon $received_at
  * @property Carbon|null $processed_at
@@ -37,15 +43,20 @@ final class ProviderWebhookEvent extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'provider', 'event_id', 'type', 'payload', 'received_at', 'processed_at', 'error',
+        'provider', 'event_id', 'type', 'object_reference', 'status', 'attempts',
+        'payload', 'signature_fingerprint', 'received_at', 'processed_at',
+        'failed_at', 'error',
     ];
 
     protected function casts(): array
     {
         return [
             'payload' => 'array',
+            'status' => ProviderEventStatus::class,
+            'attempts' => 'integer',
             'received_at' => 'datetime',
             'processed_at' => 'datetime',
+            'failed_at' => 'datetime',
         ];
     }
 }

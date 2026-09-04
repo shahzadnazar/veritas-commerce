@@ -15,7 +15,10 @@ use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Offers\Enums\OfferStatus;
 use App\Modules\Orders\Enums\MarketplaceOrderStatus;
 use App\Modules\Orders\Enums\SellerOrderStatus;
+use App\Modules\Payments\Enums\PaymentAttemptStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Enums\ProviderEventStatus;
+use App\Modules\Payments\Enums\RefundStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
 use App\Modules\Sellers\Enums\InvitationStatus;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
@@ -54,6 +57,9 @@ final class StatusRegistry
             'marketplace_order' => MarketplaceOrderStatus::class,
             'seller_order' => SellerOrderStatus::class,
             'payment' => PaymentStatus::class,
+            'payment_attempt' => PaymentAttemptStatus::class,
+            'refund' => RefundStatus::class,
+            'provider_event' => ProviderEventStatus::class,
             'payout' => PayoutStatus::class,
             'ledger_entry_status' => LedgerEntryStatus::class,
             'ledger_entry_type' => LedgerEntryType::class,

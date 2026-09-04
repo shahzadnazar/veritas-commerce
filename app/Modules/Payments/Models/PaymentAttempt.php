@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Models;
 
-use App\Modules\Payments\Enums\PaymentStatus;
+use App\Modules\Payments\Enums\PaymentAttemptStatus;
 use App\Support\HasPublicId;
 use Database\Factories\PaymentAttemptFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use RuntimeException;
 
@@ -27,7 +28,14 @@ use RuntimeException;
  * @property string|null $method
  * @property string $currency
  * @property int $amount_minor
- * @property PaymentStatus $status
+ * @property PaymentAttemptStatus $status
+ * @property string|null $provider_status
+ * @property string|null $idempotency_key
+ * @property int|null $checkout_attempt_id
+ * @property Carbon|null $succeeded_at
+ * @property Carbon|null $failed_at
+ * @property Carbon|null $cancelled_at
+ * @property int $event_sequence
  * @property string|null $failure_code
  * @property string|null $failure_message
  * @property array<string, mixed>|null $raw_response
@@ -46,18 +54,30 @@ final class PaymentAttempt extends Model
 
     protected $fillable = [
         'marketplace_order_id', 'provider', 'provider_reference', 'method',
-        'currency', 'amount_minor', 'status', 'failure_code', 'failure_message',
-        'raw_response', 'created_at',
+        'currency', 'amount_minor', 'status', 'provider_status',
+        'failure_code', 'failure_message', 'raw_response', 'created_at',
+        'idempotency_key', 'checkout_attempt_id',
+        'succeeded_at', 'failed_at', 'cancelled_at', 'event_sequence',
     ];
 
     protected function casts(): array
     {
         return [
-            'status' => PaymentStatus::class,
+            'status' => PaymentAttemptStatus::class,
             'amount_minor' => 'integer',
+            'event_sequence' => 'integer',
             'raw_response' => 'array',
             'created_at' => 'datetime',
+            'succeeded_at' => 'datetime',
+            'failed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
+    }
+
+    /** @return HasMany<PaymentAttemptEvent, $this> */
+    public function events(): HasMany
+    {
+        return $this->hasMany(PaymentAttemptEvent::class);
     }
 
     protected static function booted(): void

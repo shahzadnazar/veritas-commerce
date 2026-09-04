@@ -296,6 +296,72 @@ export const STATUS_PRESENTATION = {
             "label": "Partially refunded"
         }
     },
+    "payment_attempt": {
+        "created": {
+            "tone": "pending",
+            "label": "Started"
+        },
+        "requires_payment_method": {
+            "tone": "pending",
+            "label": "Awaiting payment details"
+        },
+        "requires_action": {
+            "tone": "pending",
+            "label": "Awaiting confirmation"
+        },
+        "processing": {
+            "tone": "pending",
+            "label": "Processing"
+        },
+        "succeeded": {
+            "tone": "neutral",
+            "label": "Paid"
+        },
+        "failed": {
+            "tone": "critical",
+            "label": "Failed"
+        },
+        "cancelled": {
+            "tone": "inactive",
+            "label": "Cancelled"
+        }
+    },
+    "refund": {
+        "requested": {
+            "tone": "pending",
+            "label": "Requested"
+        },
+        "processing": {
+            "tone": "pending",
+            "label": "Processing"
+        },
+        "succeeded": {
+            "tone": "critical",
+            "label": "Refunded"
+        },
+        "failed": {
+            "tone": "inactive",
+            "label": "Refund failed"
+        }
+    },
+    "provider_event": {
+        "received": {
+            "tone": "pending",
+            "label": "Received"
+        },
+        "processed": {
+            "tone": "neutral",
+            "label": "Processed"
+        },
+        "ignored": {
+            "tone": "inactive",
+            "label": "Not applicable"
+        },
+        "failed": {
+            "tone": "critical",
+            "label": "Failed"
+        }
+    },
     "payout": {
         "requested": {
             "tone": "pending",

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Actions;
 
-use App\Modules\Payments\Data\WebhookEvent;
+use App\Modules\Payments\Data\ProviderEvent;
+use App\Modules\Payments\Enums\ProviderEventStatus;
 use App\Modules\Payments\Models\ProviderWebhookEvent;
 
 /**
@@ -23,13 +24,20 @@ use App\Modules\Payments\Models\ProviderWebhookEvent;
 final class RecordWebhookEvent
 {
     /** @return ProviderWebhookEvent|null null when this event was already recorded */
-    public function __invoke(WebhookEvent $event): ?ProviderWebhookEvent
+    public function __invoke(ProviderEvent $event, ?string $signatureFingerprint = null): ?ProviderWebhookEvent
     {
         $inserted = ProviderWebhookEvent::query()->insertOrIgnore([
             'provider' => $event->provider,
             'event_id' => $event->eventId,
             'type' => $event->type,
+            'object_reference' => $event->objectReference,
+            'status' => ProviderEventStatus::Received->value,
+            'attempts' => 0,
             'payload' => json_encode($event->payload),
+            // A fingerprint, not the signature: enough to correlate a
+            // delivery in a support conversation, useless to anyone who
+            // steals the row.
+            'signature_fingerprint' => $signatureFingerprint,
             'received_at' => now(),
         ]);
 

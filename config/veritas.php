@@ -132,6 +132,35 @@ return [
         'payment_window_minutes' => (int) env('VERITAS_PAYMENT_WINDOW_MINUTES', 30),
     ],
 
+    /*
+     * Payments.
+     *
+     * The provider is chosen by configuration, never by code: the fake
+     * driver is the default so a fresh checkout, a test suite and a CI run
+     * all work without credentials, and production sets `stripe`.
+     *
+     * The payment window belongs to the checkout config; what lives here is
+     * how long the platform will keep asking the provider about a payment
+     * it has not heard a final answer on.
+     */
+    'payments' => [
+        'provider' => env('PAYMENT_PROVIDER', env('PAYMENT_GATEWAY', 'fake')),
+
+        'stripe' => [
+            'key' => env('STRIPE_KEY'),
+            'secret' => env('STRIPE_SECRET'),
+            'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+            // Pinned, so a Stripe-side default change cannot alter the
+            // shape of a response this adapter parses.
+            'api_version' => env('STRIPE_API_VERSION', '2025-08-27.basil'),
+        ],
+
+        // How long a customer's browser may keep asking the platform
+        // whether a payment finished before it gives up and tells them to
+        // check their orders. Bounded on purpose (§59).
+        'status_poll_seconds' => (int) env('VERITAS_PAYMENT_POLL_SECONDS', 90),
+    ],
+
     'providers' => [
         'payment' => env('PAYMENT_GATEWAY', 'fake'),
         'search' => env('SEARCH_DRIVER', 'database'),
