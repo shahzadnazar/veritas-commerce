@@ -78,10 +78,13 @@ final class ProcessProviderEvent implements ShouldQueue
         $claimed = ProviderWebhookEvent::query()
             ->whereKey($event->id)
             ->whereIn('status', [ProviderEventStatus::Received->value, ProviderEventStatus::Failed->value])
-            ->update([
-                'status' => ProviderEventStatus::Received->value,
-                'attempts' => DB::raw('attempts + 1'),
-            ]);
+            // Only the attempt count moves. Resetting the status here
+            // would clear a previous failure the moment a retry picked the
+            // job up, so an event that has been failing for an hour would
+            // read as merely "received" every time an operator looked —
+            // §63 wants the opposite. The status is written when the
+            // outcome is known, below.
+            ->update(['attempts' => DB::raw('attempts + 1')]);
 
         if ($claimed === 0) {
             return;
