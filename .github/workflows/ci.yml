@@ -325,13 +325,15 @@ jobs:
                   ref=$(echo "$location" | sed 's#.*/checkout/##;s#/payment##')
                   echo "order $ref"
 
-                  # The M4 boundary, in the page's own words: an order
-                  # exists and nothing has been paid.
+                  # The boundary, in the page's own words: an order exists
+                  # and nothing has been paid. The page offers to take the
+                  # payment and claims nothing about having taken it.
                   pending=$(curl -fsS -b "$jar" -c "$jar" "$location")
-                  echo "$pending" | grep -q 'Awaiting payment'
-                  echo "$pending" | grep -qi 'payment has not yet been completed'
+                  echo "$pending" | grep -qi 'Pay for this order'
+                  echo "$pending" | grep -qi 'Nothing has been charged yet'
                   ! echo "$pending" | grep -qi 'payment successful'
-                  ! echo "$pending" | grep -qi 'order confirmed'
+                  ! echo "$pending" | grep -qi 'Order confirmed'
+                  ! echo "$pending" | grep -qi 'Payment received'
 
                   # And the stock is HELD, not sold: on_hand untouched,
                   # availability down by two.
@@ -411,6 +413,115 @@ jobs:
                   grep -q 'sales=0' expire.txt
                   grep -q 'ledger=0' expire.txt
 
+            - name: A payment is verified, recorded and reversed in the built image
+              run: |
+                  # The financial machinery against the real PostgreSQL and
+                  # the real Redis: preparation, a forged signature, a
+                  # decline, a retry, verification, replay, reconciliation
+                  # and a reversal. Driven in-process because the fake
+                  # provider holds its payments in memory and a php-fpm
+                  # worker's are not another worker's; the HTTP surface is
+                  # smoked separately below.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m5-payment-smoke.php";' > m5.txt
+                  cat m5.txt
+
+                  # The provider is told the order's own total, once.
+                  grep -q 'prepared amount=9000 order_total=9000 currency=USD' m5.txt
+                  grep -q 'idempotent attempts=1 same=yes' m5.txt
+
+                  # A forged signature is refused and nothing is stored.
+                  grep -q 'forged status=400 stored=0' m5.txt
+
+                  # A decline leaves the order payable — §20.
+                  grep -q 'declined order_status=pending_payment attempt_status=failed' m5.txt
+
+                  # The retry is verified, and three deliveries are one
+                  # capture and one movement.
+                  grep -q 'paid status=200 order=paid payments=1 transactions=1' m5.txt
+                  grep -q 'seller_orders=paid' m5.txt
+
+                  # The money adds up exactly, and the seller cannot spend
+                  # it: pending, with no availability date — §33.
+                  grep -q 'exact=yes' m5.txt
+                  grep -q 'earning status=pending available_at=null' m5.txt
+
+                  # The refund reverses once, and the net position is zero.
+                  grep -q 'refund status=succeeded reversals=1' m5.txt
+                  grep -q 'net earnings=0 commission=0 payment_refunded=9000' m5.txt
+
+            - name: The payment surfaces answer over HTTP and give nothing away
+              run: |
+                  base=http://127.0.0.1:8000
+                  ref=$(grep '^order_reference=' m5.txt | cut -d= -f2 | tr -d '\r')
+                  test -n "$ref"
+
+                  jar=$(mktemp)
+                  xsrf() { grep XSRF-TOKEN "$jar" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))'; }
+
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/login"
+                  test "$(curl -s -b "$jar" -c "$jar" -o /dev/null -w '%{http_code}' -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" \
+                      -d 'email=m4-customer@veritas.test' -d 'password=m4-smoke-password')" = "302"
+
+                  # The paid order says so, in the platform's own words,
+                  # and the page is server-rendered so a crawler-shaped
+                  # request sees the same thing a browser does.
+                  paid=$(curl -fsS -b "$jar" -c "$jar" "$base/checkout/${ref}/payment")
+                  echo "$paid" | grep -qi 'Order confirmed'
+                  echo "$paid" | grep -qi 'Payment received'
+                  ! echo "$paid" | grep -q 'fake_pi_'
+                  ! echo "$paid" | grep -q 'clientSecret'
+                  ! echo "$paid" | grep -qE 'sk_(test|live)_'
+                  ! echo "$paid" | grep -q 'whsec_'
+
+                  # The status endpoint reports the database, never the URL.
+                  status=$(curl -fsS -b "$jar" -c "$jar" -H 'Accept: application/json' \
+                      "$base/checkout/${ref}/payment/status?redirect_status=failed")
+                  echo "$status" | grep -q '"isPaid":true'
+
+                  # A forged webhook over the wire is refused outright.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/webhooks/payments" \
+                      -H 'Stripe-Signature: v1=deadbeef' -H 'Content-Type: application/json' \
+                      -d '{"id":"evt_http_forged","type":"payment_intent.succeeded","data":{"object":{"id":"pi_x"}}}')" = "400"
+
+                  # An unsigned one too — and neither is stored.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/webhooks/payments" \
+                      -H 'Content-Type: application/json' \
+                      -d '{"id":"evt_http_unsigned","type":"payment_intent.succeeded","data":{"object":{"id":"pi_x"}}}')" = "400"
+
+                  docker compose exec -T app php artisan tinker --execute \
+                      'echo "forged_stored=".\App\Modules\Payments\Models\ProviderWebhookEvent::query()->whereIn("event_id", ["evt_http_forged", "evt_http_unsigned"])->count();' \
+                      | grep -q 'forged_stored=0'
+
+                  # Transactional payment pages are never a search result.
+                  for path in "/checkout/${ref}/payment" "/account/orders/${ref}"; do
+                      curl -sD - -o /dev/null -b "$jar" "${base}${path}" | grep -qi 'X-Robots-Tag: noindex, nofollow'
+                  done
+
+            - name: The admin payment screens require the permission that opens them
+              run: |
+                  base=http://127.0.0.1:8000
+                  ref=$(grep '^order_reference=' m5.txt | cut -d= -f2 | tr -d '\r')
+
+                  # A signed-out request is redirected, not answered.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/payments")" = "302"
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/payments/${ref}")" = "302"
+
+                  # And a customer session is not an admin session.
+                  jar=$(mktemp)
+                  xsrf() { grep XSRF-TOKEN "$jar" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))'; }
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/login"
+                  curl -s -b "$jar" -c "$jar" -o /dev/null -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" \
+                      -d 'email=m4-customer@veritas.test' -d 'password=m4-smoke-password'
+                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/admin/payments")" = "302"
+
+                  # The refund route refuses an unauthenticated post too —
+                  # money never moves without a session that may move it.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/admin/payments/${ref}/refunds" \
+                      -d 'reason=trying it on' -d 'lines[0][order_item_id]=1' -d 'lines[0][amount_minor]=100')" = "302"
+
             - name: The inventory ledger reconciles in the built image
               run: |
                   # The stored `reserved` column is only safe because
@@ -421,7 +532,7 @@ jobs:
               run: |
                   headers=$(curl -sD - -o /dev/null http://127.0.0.1:8000/)
                   echo "$headers" | grep -qi 'X-Frame-Options: DENY'
-                  echo "$headers" | grep -qi "Content-Security-Policy: frame-ancestors 'none'"
+                  echo "$headers" | grep -qi "Content-Security-Policy: frame-ancestors 'none'; frame-src 'self' https://js.stripe.com https://hooks.stripe.com"
                   echo "$headers" | grep -qi 'X-Content-Type-Options: nosniff'
                   echo "$headers" | grep -qi 'Referrer-Policy: strict-origin-when-cross-origin'
                   # The portals are never a search result; the storefront is.
