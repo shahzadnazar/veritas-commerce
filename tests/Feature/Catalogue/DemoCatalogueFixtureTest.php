@@ -67,7 +67,7 @@ final class DemoCatalogueFixtureTest extends TestCase
     {
         $this->seedCatalogue();
 
-        $this->assertGreaterThan(1, ProductReview::query()->distinct()->pluck('rating')->count());
+        $this->assertGreaterThan(1, ProductReview::query()->distinct()->count('rating'));
     }
 
     private function seedCatalogue(): string

@@ -302,6 +302,137 @@ executions before their retries were exhausted — on the payments queue,
 the one that matters most during a provider incident. The event-level
 idempotency holds throughout; what fans out is the work.
 
+### Shipment allocation
+
+One seller order with exactly one unfulfilled unit; twenty simultaneous
+allocations from the same seller, released together.
+
+```
+1 unit, 20 simultaneous allocations
+  created         1
+  refused        19
+  server errors   0
+  p50=123ms p95=148ms max=150ms
+```
+
+```
+                       before  after
+shipments on the order      0      1
+units allocated             0      1
+units ordered               1      1
+```
+
+One shipment, one unit, nineteen clean refusals, no overship, no lock
+waits. Fulfilment is where a marketplace can promise the same physical
+item to two customers, and the allocation refusal holds under simultaneous
+attempts rather than only sequential ones.
+
+### Clearing
+
+Four overlapping `earnings:clear` sweeps over four hundred due seller
+orders holding 597 ledger entries, finishing in **3.24 s**.
+
+```
+                    before   after
+rows in the batch      597     597
+still clearing         597       0
+available                0     597
+worth (minor)     27,672,728  27,672,728
+orders still open      400       0
+```
+
+Every entry was released exactly once and every order completed. One
+sweep claimed the work and reported `released=597 completed=500`; the
+other three correctly found nothing and reported zero. Maximum observed
+lock waits: 2.
+
+The batch is worth the same after as before, which is the check that
+matters: a release is a status change, so if overlapping sweeps had
+double-applied anything the money would have moved with it.
+
+### Payout request
+
+One seller with a 175,114,844 minor-unit ledger balance; fifteen
+simultaneous requests, within the endpoint's real `throttle:20,1`.
+
+```
+15 simultaneous payout requests
+  accepted        1
+  refused        14
+  server errors   0
+  p50=155ms p95=205ms max=206ms
+```
+
+One open request afterwards, 5,000 minor units reserved, the ledger
+unchanged, zero lock waits. M7's one-open-request-at-a-time policy holds
+under a simultaneous burst.
+
+The rate limit is worth naming: at twenty per minute per identity, a
+single seller cannot reach the domain race through HTTP faster than the
+limiter allows. It is the first line of defence and it stayed on.
+
+### Payout settlement
+
+One approved payout, ten simultaneous settlements from admin sessions.
+
+```
+1 approved payout, 10 simultaneous settlements
+  server errors   0
+  p50=116ms p95=134ms max=144ms
+```
+
+```
+                 before   after
+status         approved    paid
+payout debits         0       1
+debited (minor)       0  -5,000
+paid_at set          no     yes
+```
+
+**One debit, one transition to paid**, the remaining nine clean no-ops.
+Zero lock waits. This is the moment money leaves the platform, and it
+happened exactly once.
+
+### Reference allocation, after the fix
+
+Re-run of the checkout burst on the fixed code: five units on the shelf,
+forty simultaneous checkouts from forty different customers.
+
+```
+shelf held 5 units
+  orders placed   5
+  refused        35
+  rate limited    0
+  server errors   0
+```
+
+Five units, five orders, thirty-five controlled refusals, no
+five-hundreds and no leaked reservation. The original defect is covered
+by `ReferenceAllocationTest`, which reproduces the losing caller's state
+deterministically; it is not re-tested by re-breaking the code.
+
+### Two generated-data defects that disabled a whole domain
+
+Building the payout drills turned up two faults in the performance
+dataset, both of which had been quietly making the payout domain
+unexercisable at scale. Neither is an application defect; both matter
+because a dataset that cannot reach a domain hides whatever is in it.
+
+- **`payout_accounts.status = 'verified'`.** The model knows only
+  `active` and `disabled`, and eligibility asks for `active`. Every
+  generated seller was therefore ineligible to withdraw, with a message
+  telling them to add a destination they already had.
+- **`payout_accounts.type = 'bank_account'`.** `PayoutAccountType` has
+  no such case. Casting the row threw a `ValueError`, so the seller
+  finance page answered **500** for every generated seller.
+
+Both are fixed in the generator and repaired in the performance database.
+The 500 is worth noting beyond the fix: a backed-enum cast turns
+unrecognised stored data into a hard failure. That is the right default —
+silently coercing corrupt financial data would be worse — but it means a
+bad import or migration surfaces as a broken page rather than a warning,
+which belongs in the runbooks.
+
 ### Idempotency, confirmed sideways
 
 The drill's second run placed no orders at all, which was correct
@@ -330,6 +461,49 @@ measured for longer. The resource picture, read in thirds, is in the
 appendix — CPU, memory and connections flat, zero lock waits throughout,
 and one line that climbed.
 
+## Sustained load after the retention change
+
+Eight minutes at 25 virtual users on the tuned configuration, with the
+sampler's uncontended probe recording the latency trend directly rather
+than leaving it to be inferred.
+
+```
+vus=25 rps=42.2 n=20,307 p50=76 p95=182 p99=250 max=677 fail=0.00%
+```
+
+```
+              first third       middle   last third   drift
+------------------------------------------------------------------
+probe ms             79.5         74.1         77.6    -2%
+cpu busy %           71.4         70.1         70.2    -2%
+memory MB         1,823.9      1,847.4      1,868.0    +2%
+pg conns             10.4         10.5         10.4    +1%
+lock waits            0.0          0.0          0.0    +0%
+redis MB             13.2         32.2         51.2  +289%
+```
+
+20,307 requests, **no failures**, and the probe latency ends where it
+started. Zero lock waits for the whole hold. `failed_jobs` is empty and
+every queue drained to zero — no queue loss. The payments queue stayed
+responsive throughout: legitimate events delivered afterwards reached a
+terminal state in 1.39 s on average.
+
+Redis still climbs, and the climb is now fully explained rather than
+alarming. The application queues 0.92 Horizon records per request; at
+42.2 requests a second and 3.4 KB a record that is 39 records a second,
+which predicts **62 MB over eight minutes against 58.6 MB observed**. The
+same arithmetic gives the steady state the retention change bought:
+
+| retention | plateau at this rate |
+|---|---|
+| 60 minutes (before) | ~464 MB |
+| **30 minutes (now)** | **~232 MB** |
+
+Eight minutes is a quarter of the thirty-minute window, so this run is
+the window filling — the same phase the original soak mistook for
+unbounded growth. That it plateaus is established separately and
+deterministically, in the appendix.
+
 ## What should change, and when to scale
 
 **Phase 1 should scale when sustained traffic approaches 25 concurrent
@@ -348,36 +522,130 @@ not exist.
 
 ## Findings
 
-### HIGH — a PostgreSQL backend is forked for every HTTP request
+| | Classification |
+|---|---|
+| PostgreSQL per-request connection churn | **MEDIUM** — runtime/database connection efficiency |
+| Horizon Redis retention | **CLOSED** — proven bounded, and tuned |
+| Redis memory ceiling | **MEDIUM** — none configured; `noeviction` kept deliberately |
+| Webhook duplicate amplification | **MEDIUM** — linear, measured not to starve payments |
+| Idle Horizon workers on a small host | **MEDIUM** — size workers to the deployment |
+| PDP SSR CI fixture | **CLOSED** — fixture now reaches the code it checks |
+| Post-commit notification loss | **MEDIUM — unresolved**, carried forward |
+| Production runtime | **Undecided** — benchmark is runtime-specific; validation required before launch |
+
+No unresolved HIGH remains.
+
+
+### MEDIUM — runtime and database connection efficiency
 
 `pg_stat_database` recorded **1,956 new sessions while serving 2,098
 requests** — approximately one process fork, backend initialisation,
 authentication and teardown per request. Measured directly, that costs
 **8.7 ms per request on an idle machine**, against a 58 ms p50 at the
 knee: roughly 15% of a request spent connecting to a database it then
-talks to for 0.14 ms.
+talks to for 0.14 ms. It also explains the accounting gap in the CPU
+table, since those backends exit inside the sampling window.
 
-It also explains the accounting gap in the CPU table. Those backends exit
-within the sampling window, so their CPU disappears from per-process
-attribution — 55% attributed against 93.6% actually busy.
+**This is expected behaviour for the runtime it was measured on, not a
+defect.** FrankenPHP was started in classic mode — `frankenphp php-server`,
+no worker directive, no Caddyfile — so every request runs a complete PHP
+request lifecycle and every object, PDO handle included, is destroyed at
+the end of it. No `PDO::ATTR_PERSISTENT` is configured. Nginx with PHP-FPM
+behaves identically. The application is not leaking connections: it opens
+one per request, which is what the 0.93 sessions-per-request ratio says.
 
-The M9 brief rules out introducing a connection pooler for benchmark
-improvement, and that rule is respected here: this is reported, not
-implemented. It is the single largest available win and the first thing
-to evaluate before adding hardware. Persistent connections would need
+It is classified by launch impact rather than by optimisation potential,
+and none of the launch triggers is present:
+
+| Trigger | Measured |
+|---|---|
+| Connection exhaustion | 15–16 concurrent against `max_connections=100` |
+| Failed latency targets | every surface inside budget at the supported level |
+| Database CPU pressure | PostgreSQL 6.5% of one core; PHP 153% |
+| Instability at supported load | 31,424 requests, zero failures, no drift |
+
+So it is **not launch-blocking**, and it remains the largest single win
+available. Revisit when any of these becomes true: the connection count
+approaches half of `max_connections`; PostgreSQL CPU becomes comparable
+to PHP's; p95 misses budget at the supported level with the database
+implicated; or the deployment moves to a runtime where persistent
+connections are safe. In that order, the options are FrankenPHP worker
+mode, persistent PDO connections, and only then a pooler — and each needs
 care, because the application sets session state (`statement_timeout`,
-`lock_timeout`, the trigram thresholds) on each new connection.
+`lock_timeout`, the trigram thresholds) on every new connection, which a
+reused connection would inherit rather than re-establish.
+
+No pooler was introduced. The M9 brief rules that out for benchmark
+improvement, and the measurements say it would not be earning its keep.
+
+### The production runtime is not decided, and this benchmark is specific to one
+
+The benchmark ran on FrankenPHP 1.12.7 in classic mode. Searching the
+architecture and delivery material for what Phase 1 actually deploys
+turns up **no commitment either way**: the deployment doc specifies
+blue/green, health checks and draining workers, and the scale table
+counts "app containers", but nothing names a web runtime. The repository's
+only concrete runtime is `docker-compose.yml`, which runs
+`php artisan serve` — the development server, and explicitly not a
+capacity benchmark.
+
+So there are not two contradictory topologies documented; there is a
+decision that has not been made. Rather than fabricate equivalence
+between runtimes, this report classifies its own numbers as
+**environment- and runtime-specific**, and Phase 1 carries a launch
+prerequisite: **a short production-topology validation on whatever
+runtime is actually chosen**, re-running `ops/load/ramp.sh` and the
+contention drills there. The shape of the curve should carry over; the
+absolute numbers should not be assumed to.
 
 ### MEDIUM — duplicate webhook deliveries multiply work on the payments queue
 
-Thirty concurrent deliveries of one event produced ninety job executions.
-Correctness is unaffected — one event row, one claim, no double money —
-but the amplification lands on the highest-priority queue during exactly
-the incident that causes duplicate deliveries. A `WithoutOverlapping`
-middleware keyed by the event id would collapse them; the stranded-event
-replay command already covers the case where the surviving job then
-fails. Not changed during a load-testing block because it alters the
-retry semantics of the money path.
+Measured across a ladder of simultaneous duplicate deliveries of one
+signed event. Every rung produced **exactly one durable provider event
+row**, no rejections and no server errors.
+
+| deliveries | requeued | event rows | job executions | drain |
+|---|---|---|---|---|
+| 1 | 0 | 1 | 1 | 2.3 s |
+| 10 | 9 | 1 | 10 | 2.4 s |
+| 30 | 29 | 1 | 30 | 2.6 s |
+| 100 | 99 | 1 | 100 | 3.1 s |
+
+**The amplification is linear, not the 3x first reported, and 99 of those
+100 executions are near-free.** The endpoint requeues a duplicate only
+while the event is still `received`; the first worker to arrive claims it
+with a conditional `UPDATE`, and every later job finds nothing to claim
+and returns after one indexed write that matches no rows. Drain time is
+almost flat from 1 delivery to 100.
+
+The 3x came from a different case: an event that *fails*. There, each
+duplicate dispatch carries its own retry ladder (`tries = 8`, backoff
+5/15/60/300/900s), so N duplicates become up to 8N executions — a
+100-delivery storm of a failing event reached 300 attempts within the
+observation window and would climb further.
+
+**It does not starve legitimate payments.** With a 100-duplicate storm of
+a failing event running, distinct new events were delivered and timed
+from arrival to terminal state:
+
+| | mean | worst |
+|---|---|---|
+| quiet queue | 2.68 s | 2.79 s |
+| during the storm | **1.27 s** | 2.50 s |
+
+New events were *faster* under the storm, because a busy queue keeps
+workers warm while a quiet one pays the poll interval. The duplicates
+themselves were not occupying workers: after their first failure the
+exponential backoff moved them into the delayed set, and the ready queue
+drained to zero.
+
+So the behaviour is retained and classified MEDIUM on measured grounds
+rather than changed. What is emphatically not restored is the
+"already received, always 200, never requeue" behaviour this replaced:
+that lost a genuinely paid customer's payment for ever when a Redis
+dispatch failed after the event row committed. Revisit if provider retry
+volumes or worker counts change materially, or if a failing event is ever
+seen to delay a legitimate one.
 
 ### MEDIUM — 18 Horizon workers idle on a 4-core machine
 
@@ -385,28 +653,85 @@ The production supervisor set runs 18 worker processes here, costing 16%
 of a core while doing nothing and holding memory. Worker counts should be
 sized to the deployment target rather than fixed.
 
-### HIGH — Horizon's retained job records are unbounded by anything but time
+### CLOSED — Horizon's Redis retention is bounded, and now tuned
 
-Horizon keeps a record of every job for 60 minutes (`trim.recent`), and
-the application queues one `RecordInteractionEvent` per page view. During
-the soak that came to 43,812 records averaging 3.4 KB — **144 MB, 90% of
-all Redis memory in use** — for a queue whose backlog stayed near zero.
-At the measured ceiling of 68 requests per second, steady state is on the
-order of 840 MB.
+The original report called this HIGH and unbounded. That was wrong, and
+the reason is worth stating: the soak ran for twelve minutes against a
+sixty-minute retention window, so it only ever observed the window
+*filling*. Growth with no plateau in sight is not the same as growth with
+no plateau.
 
-`maxmemory` is 0 with `maxmemory-policy=noeviction`, so nothing bounds
-it: Redis grows until the host refuses, and then starts refusing writes,
-which takes sessions, the cache and the queue with it. Both fixes are
-configuration — size `maxmemory`, and shorten the retention to what an
-operator actually looks back through.
+**Mechanism.** The trim listeners prune Horizon's index sets on the master
+supervisor's loop, but they are not what reclaims the memory. Horizon
+writes a hash per job and gives it a Redis TTL — `completed` minutes from
+completion, `pending` from dispatch, `failed` for a failure. Redis
+enforces the expiry itself.
 
-### LOW — CI's SSR assertion cannot see the failure it was written to catch
+**Evidence, two ways.** Inspecting live keys: **400 of 400 sampled job
+records carried a TTL, none above 60 minutes**, spread across the window
+by when each job ran; across the whole keyspace, 74,815 of 74,839 keys had
+an expiry. Then a controlled run with retention shortened to two minutes:
 
-CI does assert that the product page renders server-side, and it would
-not have caught this one: the seeded product has no reviews, so the star
-histogram that threw is skipped entirely. The assertion is real; its
-fixture is too thin. Seeding a review into the demo catalogue would close
-it, and belongs with the frontend work rather than here.
+| | records | completed index | Redis |
+|---|---|---|---|
+| before the workload | 10 | 0 | 2.1 MB |
+| after 1,412 requests | 1,328 | 1,312 | 6.9 MB |
+| +90 s | 1,216 | 1,312 | 6.2 MB |
+| +2 m | 223 | 724 | 3.8 MB |
+| +3 m 45 s | **14** | **0** | **3.0 MB** |
+
+Records and index sets both returned to baseline on schedule. The answer
+is **BOUNDED**: steady state is `job rate x retention x record size`, and
+it plateaus rather than climbing.
+
+**Tuned anyway.** At 3.4 KB per retained job and one job queued per page
+view, an hour of retention at the measured ceiling is on the order of
+840 MB of Redis holding monitoring data for a queue whose backlog is near
+zero. `recent` and `completed` are now 30 minutes rather than 60, halving
+the dominant term. They move together because `recent_jobs` indexes the
+hashes, so a longer index than TTL would list jobs whose detail has
+already expired. `pending` stays at 60 minutes — long enough to cover the
+payments retry ladder, which is the longest thing an operator follows —
+and failures keep the full week, because they are what gets investigated
+and they are rare enough to afford it. All six values are now
+environment-overridable, so a deployment can tune retention to its own
+traffic without a code change.
+
+Silencing the high-volume job was considered and rejected: Horizon's
+`silenced` list changes which index a job lands in and still writes the
+hash, so it would not save the memory.
+
+### MEDIUM — Redis has no configured memory ceiling
+
+`maxmemory` is 0 with `maxmemory-policy=noeviction`. With retention now
+proven bounded, the steady state is predictable rather than open-ended —
+but nothing enforces it, so a traffic spike, a retention change or an
+unexpected job volume raises the plateau until the host objects.
+
+**The policy stays `noeviction` deliberately.** An evicting policy would
+let Redis silently discard queue entries, sessions and Horizon state to
+stay under a limit — trading a loud, diagnosable failure for quiet
+business corruption, on a store where the queue carries payments. If a
+ceiling is set, it should be sized above the computed plateau and paired
+with a memory alert, so the failure mode remains "writes are refused and
+someone is paged" rather than "money quietly went missing". Redis
+topology is otherwise unchanged; nothing measured here justifies
+redesigning it.
+
+### CLOSED — CI's SSR assertion can now see the failure it was written to catch
+
+CI does assert that the product page server-renders, and it would not
+have caught this one: the seeded product had no reviews, so the star
+histogram that threw was skipped entirely. The assertion was real; its
+fixture could not reach the code under test.
+
+The demo catalogue now seeds published reviews at more than one star, and
+the smoke assertions follow the truth: the structured data must claim the
+rating the database supports, and five histogram rows must appear in the
+server-rendered markup. Those two were previously asserted the other way
+round — no rating may be claimed — which was correct for a product with
+no reviews and is exactly how the blind spot arose. A feature test pins
+the fixture so it cannot quietly regress.
 
 ### Carried forward, unchanged
 
@@ -464,40 +789,45 @@ Every command refuses to run against a database without the generated
 dataset marker, and against production. The identity pool holds a working
 password and is gitignored; it is never committed and never printed.
 
-## Appendix: Redis growth under sustained load
+## Appendix: proving Horizon's retention is bounded
 
-Redis was the only thing that moved during the twelve-minute hold, and it
-moved a lot: 113 MB in the first third to 169 MB in the last, +50% and
-still climbing when the run ended.
+The original report called this unbounded and HIGH. It was neither, and
+the mistake is instructive: a twelve-minute soak against a sixty-minute
+retention window can only ever watch the window fill. Growth with no
+plateau in sight is not growth with no plateau.
 
-Measured by key prefix, **90% of it is Horizon's own bookkeeping**:
+**What actually reclaims the memory.** Horizon's trim listeners run on the
+master supervisor's loop and prune its index sets — `recent_jobs`,
+`completed_jobs`, `pending_jobs`, `silenced_jobs`, `recent_failed_jobs`.
+They do not delete the per-job hashes. Those carry a Redis TTL written
+when the job is recorded: `completed` minutes from completion for a job
+that succeeded, `pending` from dispatch for one still queued, `failed`
+for one that did not. Redis enforces it.
 
-| | keys | average | total |
+**Method C — inspect what is actually stored.** Of 400 sampled job
+records, **400 carried a TTL and none exceeded 60 minutes**, spread across
+the window by when each job ran. Across the whole keyspace, 74,815 of
+74,839 keys had an expiry.
+
+**Method B — shorten the window and watch.** Retention set to two minutes
+in the performance environment, then a controlled workload:
+
+| | records | completed index | Redis |
 |---|---|---|---|
-| Horizon job records | 43,812 | 3,437 B | **144 MB** |
-| Sessions | 44,242 | 377 B | 16 MB |
+| before the workload | 10 | 0 | 2.1 MB |
+| after 1,412 requests | 1,328 | 1,312 | 6.9 MB |
+| +90 s | 1,216 | 1,312 | 6.2 MB |
+| ~+2 m | 223 | 724 | 3.8 MB |
+| +3 m 45 s | **14** | **0** | **3.0 MB** |
 
-Horizon's `trim.recent` is 60 minutes and the application queues a
-`RecordInteractionEvent` for every page view, so it retains roughly
-3.4 KB per request served for an hour. At the measured ceiling of 68
-requests per second that is on the order of **840 MB of Redis held in
-monitoring data alone** at steady state — for a queue whose actual
-backlog stayed near zero throughout.
+Records and index sets both returned to baseline on schedule, and memory
+with them. The hashes decay continuously because each expires on its own
+clock; the index sets step down because the listener runs once a minute.
+They converge.
 
-It is not a leak; the records expire. But it makes Redis memory a
-function of `request rate x retention`, and no ceiling is configured to
-bound it: `maxmemory` is 0 with `maxmemory-policy=noeviction`. Redis
-grows until the host refuses, and `noeviction` means it then starts
-refusing writes — taking sessions, the cache and the queue with it. Both
-levers are configuration: size `maxmemory`, and shorten `trim.recent` to
-what an operator actually looks back through.
-
-**The session count is a generator artifact, not application behaviour.**
-k6 resets a virtual user's cookie jar between iterations, so each
-iteration started a new session. A client that keeps its cookies reuses
-one — confirmed directly: three jarred requests came back with the same
-CSRF token, so the same session. Sessions are 16 MB of the total and
-would be far less in real traffic.
+**Verdict: BOUNDED.** Steady state is `job rate x retention x record
+size`. Nothing was deleted by hand to produce this — the disappearance is
+Redis expiring its own keys under the policy the configuration sets.
 
 ## Appendix: the sustained hold
 
@@ -535,8 +865,21 @@ not the performance one.
 | TypeScript | passed |
 | ESLint | passed, 0 warnings |
 | PHPUnit | 1,580 tests, 21,395 assertions, 0 failures |
+| Prettier | passed |
 | Vite build + SSR build | passed |
 
-The suite grew by four tests against the block's baseline of 1,576: three
-covering reference allocation under a lost race, one pinning the rating
-histogram's payload shape.
+Reconciliations after the contention work, against the performance
+database the drills mutated:
+
+| | Result |
+|---|---|
+| `inventory:reconcile` | 28,170 balances; ledger, columns and holds agree |
+| `finance:reconcile-sellers` | seller finance reconciles in USD |
+| `reviews:reconcile-ratings` | every rating summary matches its reviews |
+| `analytics:rebuild` | 361 rows recomputed, 2.5 s |
+| `recommendations:rebuild` | 898 products scored, 0.5 s |
+
+The suite is at **1,582 tests and 21,410 assertions**, six more than the
+1,576 this block started from: three covering reference allocation under
+a lost race, one pinning the rating histogram's payload shape, and two
+pinning the CI smoke fixture so it keeps reaching the code it checks.
