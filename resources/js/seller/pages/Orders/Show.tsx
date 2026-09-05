@@ -1,8 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
 import { AddressBlock, MoneyRow } from '../../../design-system/patterns/OrderPieces';
 import { StatusBadge } from '../../../design-system/primitives/StatusBadge';
-import type { AddressSnapshot, SellerOrderView } from '../../../shared/commerce';
+import type {
+    AddressSnapshot,
+    SellerFulfilmentView,
+    SellerOrderView,
+} from '../../../shared/commerce';
 import type { SharedPageProps } from '../../../shared/types';
+import { FulfilmentPanel } from '../../components/FulfilmentPanel';
 import { SellerLayout } from '../../layouts/SellerLayout';
 
 interface ShowProps extends SharedPageProps {
@@ -13,7 +18,7 @@ interface ShowProps extends SharedPageProps {
         placedAt: string | null;
         shippingAddress: AddressSnapshot;
     };
-    fulfilment: { actionable: boolean; reason: string | null };
+    fulfilment: SellerFulfilmentView;
     /**
      * Two facts and no more. A seller needs to know the money cleared and
      * when; how the customer paid is between the customer and the
@@ -59,15 +64,7 @@ export default function Show() {
              * actionable. Saying so plainly is better than a screen with
              * greyed-out buttons and no explanation.
              */}
-            {!fulfilment.actionable ? (
-                <div
-                    role="status"
-                    className="mb-8 border-2 border-[var(--vc-neutral-400)] px-5 py-4 text-[14px]"
-                >
-                    <p className="font-semibold">Awaiting payment</p>
-                    <p className="text-[var(--vc-neutral-700)]">{fulfilment.reason}</p>
-                </div>
-            ) : payment.isPaid ? (
+            {fulfilment.actionable && payment.isPaid ? (
                 <div
                     role="status"
                     className="mb-8 border-2 border-[var(--vc-text)] px-5 py-4 text-[14px]"
@@ -89,6 +86,8 @@ export default function Show() {
                     </p>
                 </div>
             ) : null}
+
+            <FulfilmentPanel fulfilment={fulfilment} reference={sellerOrder.reference} />
 
             <div className="grid gap-10 lg:grid-cols-[1fr_300px]">
                 <section aria-labelledby="items-heading">

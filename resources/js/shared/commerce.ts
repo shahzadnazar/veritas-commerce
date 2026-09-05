@@ -189,3 +189,80 @@ export interface Paginated<Row> {
     lastPage: number;
     total: number;
 }
+
+/**
+ * Fulfilment, as the server computes it.
+ *
+ * These numbers are never recomputed in React. §64 puts the arithmetic in
+ * one place on the server precisely so three screens cannot disagree about
+ * one order, and a `remaining = ordered - shipped` written in a component
+ * would be the fourth answer.
+ */
+export interface ItemFulfilmentView {
+    orderItemId: number;
+    publicId: string;
+    title: string;
+    variantName: string | null;
+    sku: string;
+    ordered: number;
+    refunded: number;
+    allocated: number;
+    shipped: number;
+    delivered: number;
+    remainingToShip: number;
+    fulfilable: number;
+}
+
+export interface ShipmentHistoryEntry {
+    from: string | null;
+    to: string;
+    actorType: string;
+    reason: string | null;
+    carrierName: string | null;
+    trackingNumber: string | null;
+    at: string;
+}
+
+export interface ShipmentView {
+    publicId: string;
+    reference: string;
+    status: string;
+    carrierName: string | null;
+    carrierCode: string | null;
+    trackingNumber: string | null;
+    trackingUrl: string | null;
+    shippedAt: string | null;
+    deliveredAt: string | null;
+    createdAt: string | null;
+    notes: string | null;
+    canShip: boolean;
+    canDeliver: boolean;
+    items: { orderItemId: number; title: string; variantName: string | null; quantity: number }[];
+    history?: ShipmentHistoryEntry[];
+}
+
+export interface FulfilmentIssueView {
+    publicId: string;
+    reason: string;
+    note: string;
+    reportedByType: string;
+    reportedAt: string | null;
+    resolvedAt: string | null;
+    resolutionNote: string | null;
+}
+
+export interface SellerFulfilmentView {
+    actionable: boolean;
+    reason: string | null;
+    canConfirm: boolean;
+    canProcess: boolean;
+    canPack: boolean;
+    canManage: boolean;
+    /** Phase 1 has no carrier integration: a person records delivery. */
+    deliveryIsManual: boolean;
+    remainingUnits: number;
+    items: ItemFulfilmentView[];
+    shipments: ShipmentView[];
+    issues: FulfilmentIssueView[];
+    carriers: { code: string; name: string }[];
+}
