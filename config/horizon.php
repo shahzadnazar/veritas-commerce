@@ -126,13 +126,39 @@ return [
     |
     */
 
+    /*
+     * These are memory, not preferences.
+     *
+     * Horizon writes a hash per job and gives it a Redis TTL — `completed`
+     * minutes from completion for a job that succeeded, `pending` from
+     * dispatch for one still queued, `failed` for one that did not. The
+     * trim listeners only prune the index sets; the expiry on the hash is
+     * what actually reclaims the memory, so these values are the retention
+     * horizon and Redis enforces them.
+     *
+     * The M9 load block measured the cost: about 3.4 KB per job retained,
+     * and this application queues one job per page view. At an hour of
+     * retention and the measured ceiling that is on the order of 840 MB
+     * held in monitoring data for a queue whose backlog is near zero.
+     * Half an hour halves it and is still far longer than the payments
+     * retry ladder, which is the longest thing an operator follows in the
+     * completed list.
+     *
+     * `recent` and `completed` move together on purpose: `recent_jobs`
+     * indexes the hashes, so a longer index than TTL would list jobs whose
+     * detail has already expired. Failures keep the full week — they are
+     * what gets investigated, and they are rare enough to afford it.
+     *
+     * Overridable per environment so a deployment can tune retention to
+     * its own traffic without a code change.
+     */
     'trim' => [
-        'recent' => 60,
-        'pending' => 60,
-        'completed' => 60,
-        'recent_failed' => 10080,
-        'failed' => 10080,
-        'monitored' => 10080,
+        'recent' => (int) env('HORIZON_TRIM_RECENT', 30),
+        'pending' => (int) env('HORIZON_TRIM_PENDING', 60),
+        'completed' => (int) env('HORIZON_TRIM_COMPLETED', 30),
+        'recent_failed' => (int) env('HORIZON_TRIM_RECENT_FAILED', 10080),
+        'failed' => (int) env('HORIZON_TRIM_FAILED', 10080),
+        'monitored' => (int) env('HORIZON_TRIM_MONITORED', 10080),
     ],
 
     /*

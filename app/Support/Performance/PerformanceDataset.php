@@ -280,12 +280,17 @@ final class PerformanceDataset
 
         $this->run('payout_accounts', <<<'SQL'
             INSERT INTO payout_accounts (id, public_id, seller_account_id, type, provider, provider_account_reference, display_label, last4, country, currency, status, verified_at, changed_at, created_at, updated_at)
-            SELECT s, :pid(s), s, 'bank_account', 'manual',
+            SELECT s, :pid(s), s, 'bank_transfer', 'manual',
                    'perf-destination-' || s,
                    'Perf Bank ****' || lpad((:h(s) % 10000)::text, 4, '0'),
                    lpad((:h(s) % 10000)::text, 4, '0'),
                    'US', 'USD',
-                   CASE WHEN :h(s) % 10 < 9 THEN 'verified' ELSE 'pending' END,
+                   -- 'active' and 'disabled' are the only statuses the
+                   -- model recognises; a generated 'verified' row looked
+                   -- plausible in the table and was inert everywhere it
+                   -- mattered, so no generated seller could withdraw and
+                   -- the payout contention drill had nothing to race.
+                   CASE WHEN :h(s) % 10 < 9 THEN 'active' ELSE 'disabled' END,
                    CASE WHEN :h(s) % 10 < 9 THEN :anchor - ((:h(s) % 300) || ' days')::interval END,
                    :anchor - ((:h(s) % 300) || ' days')::interval,
                    :anchor - ((:h(s) % 300) || ' days')::interval,

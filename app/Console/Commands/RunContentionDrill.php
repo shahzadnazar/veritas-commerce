@@ -36,7 +36,17 @@ final class RunContentionDrill extends Command
         {--prepare : Put a known quantity on the shelf and record the opening books}
         {--verify : Read the books back and report what the burst did}
         {--prepare-webhook : Sign one payment event and record the opening financial position}
+        {--event-type=payment_intent.succeeded : The provider event type to sign}
         {--verify-webhook : Check that delivering it many times over paid the order once}
+        {--prepare-shipment : Leave one unfulfilled unit on a seller order and record the opening state}
+        {--verify-shipment : Check that a burst of allocations shipped it exactly once}
+        {--prepare-payout : Put a known withdrawable balance on one seller}
+        {--verify-payout : Check that a burst of payout requests reserved it once}
+        {--prepare-settlement : Approve one payout ready to settle}
+        {--verify-settlement : Check that a burst of settlements debited it once}
+        {--prepare-clearing : Make a batch of ledger entries genuinely due for release}
+        {--verify-clearing : Check that overlapping sweeps released each entry once}
+        {--entries=400 : How many entries to make due}
         {--units=5 : How many units to leave available}
         {--state=ops/load/.run/contention.json : Where the drill state lives}';
 
@@ -53,6 +63,14 @@ final class RunContentionDrill extends Command
             (bool) $this->option('verify') => $this->verify(),
             (bool) $this->option('prepare-webhook') => $this->prepareWebhook(),
             (bool) $this->option('verify-webhook') => $this->verifyWebhook(),
+            (bool) $this->option('prepare-shipment') => $this->prepareShipment(),
+            (bool) $this->option('verify-shipment') => $this->verifyShipment(),
+            (bool) $this->option('prepare-payout') => $this->preparePayout(),
+            (bool) $this->option('verify-payout') => $this->verifyPayout(),
+            (bool) $this->option('prepare-settlement') => $this->prepareSettlement(),
+            (bool) $this->option('verify-settlement') => $this->verifySettlement(),
+            (bool) $this->option('prepare-clearing') => $this->prepareClearing(),
+            (bool) $this->option('verify-clearing') => $this->verifyClearing(),
             default => $this->fail('Pass --prepare, --verify, --prepare-webhook or --verify-webhook.'),
         };
     }
@@ -300,7 +318,16 @@ final class RunContentionDrill extends Command
          * replayed was created by the web process, not this one. These are
          * the fields the adapter reads back out of the payload.
          */
-        $signed = $provider->signedEvent('payment_intent.succeeded', [
+        /*
+         * The type is a parameter because the two duplicate-storm cases
+         * behave differently and both need measuring. A payment event
+         * re-reads the provider and, against the in-memory fake, fails —
+         * which is the pathological case where every duplicate carries its
+         * own retry ladder. An event type the platform does not handle
+         * reaches a terminal `ignored` on the first pass, which is the
+         * shape of a real provider retrying something already dealt with.
+         */
+        $signed = $provider->signedEvent((string) $this->option('event-type'), [
             'id' => (string) $attempt->provider_reference,
             'status' => 'succeeded',
             'amount' => (int) $attempt->amount_minor,
@@ -406,6 +433,521 @@ final class RunContentionDrill extends Command
                 ->whereIn('seller_order_id', $sellerOrderIds)
                 ->sum('amount_minor'),
         ];
+    }
+
+    /**
+     * One seller order with exactly one unfulfilled unit left on it.
+     *
+     * The interesting number is not how fast a shipment is created; it is
+     * whether twenty sellers' tabs clicking "ship" at once can allocate
+     * the same unit twice.
+     */
+    private function prepareShipment(): int
+    {
+        $pooled = $this->pooledSellerEmails();
+
+        if ($pooled === []) {
+            $this->error('No identity pool. Run veritas:seed-load-identities first.');
+
+            return self::FAILURE;
+        }
+
+        $row = DB::table('order_items as i')
+            ->join('seller_orders as s', 's.id', '=', 'i.seller_order_id')
+            ->join('seller_memberships as m', 'm.seller_account_id', '=', 's.seller_account_id')
+            ->join('users as u', 'u.id', '=', 'm.user_id')
+            /*
+             * Only sellers the generator can sign in as. A seller outside
+             * the pool has no known password, so every attempt would fail
+             * at the login form and be counted as a refusal — twenty
+             * failed logins looking exactly like twenty correct refusals.
+             */
+            ->whereIn('u.email', $pooled)
+            /*
+             * `processing` and not merely `paid`: the domain refuses to
+             * build a shipment for an order the seller has not confirmed,
+             * so a paid-but-unconfirmed order would have every attempt
+             * refused for the wrong reason and prove nothing.
+             */
+            ->where('s.status', 'processing')
+            ->where('i.quantity', '=', 1)
+            ->whereRaw('not exists (select 1 from shipment_items si where si.order_item_id = i.id)')
+            ->orderByRaw('(i.id * 48271) % 2147483647')
+            ->first([
+                'i.id as order_item_id', 'i.quantity', 's.id as seller_order_id',
+                's.reference', 's.seller_account_id', 'u.email',
+            ]);
+
+        if ($row === null) {
+            $this->error('No unfulfilled paid seller order line to run the drill against.');
+
+            return self::FAILURE;
+        }
+
+        /*
+         * Everything but the last unit is allocated up front, through a
+         * shipment the domain made, so the burst competes for a remainder
+         * of exactly one rather than for a whole line.
+         */
+        $email = (string) $row->email;
+
+        $this->write([
+            'seller_order_id' => (int) $row->seller_order_id,
+            'reference' => (string) $row->reference,
+            'order_item_id' => (int) $row->order_item_id,
+            'seller_email' => $email,
+            'remaining' => 1,
+            'quantity' => (int) $row->quantity,
+            'before' => $this->shipmentPosition((int) $row->seller_order_id, (int) $row->order_item_id),
+        ], $this->scenarioPath('shipment'));
+
+        $this->info(sprintf(
+            'Seller order %s item %d has %d unit(s) unallocated; seller is %s.',
+            $row->reference,
+            $row->order_item_id,
+            $row->quantity,
+            $email,
+        ));
+
+        return self::SUCCESS;
+    }
+
+    private function verifyShipment(): int
+    {
+        $state = $this->read($this->scenarioPath('shipment'));
+        $before = $state['before'];
+        $after = $this->shipmentPosition((int) $state['seller_order_id'], (int) $state['order_item_id']);
+
+        $findings = [];
+
+        // The invariant: allocated units can never exceed ordered units.
+        if ($after['allocated'] > (int) $state['quantity']) {
+            $findings[] = sprintf(
+                'overship — %d units allocated against %d ordered',
+                $after['allocated'],
+                $state['quantity'],
+            );
+        }
+
+        $this->table(['', 'before', 'after'], [
+            ['shipments on the order', $before['shipments'], $after['shipments']],
+            ['units allocated', $before['allocated'], $after['allocated']],
+            ['units ordered', $state['quantity'], $state['quantity']],
+        ]);
+
+        if ($findings !== []) {
+            foreach ($findings as $finding) {
+                $this->error('  '.$finding);
+            }
+
+            return self::FAILURE;
+        }
+
+        $this->info('No unit was allocated to two shipments.');
+
+        return self::SUCCESS;
+    }
+
+    /** @return array{shipments: int, allocated: int} */
+    private function shipmentPosition(int $sellerOrderId, int $orderItemId): array
+    {
+        return [
+            'shipments' => (int) DB::table('shipments')->where('seller_order_id', $sellerOrderId)->count(),
+            'allocated' => (int) DB::table('shipment_items')->where('order_item_id', $orderItemId)->sum('quantity'),
+        ];
+    }
+
+    /**
+     * One seller, one known withdrawable balance, no request outstanding.
+     */
+    private function preparePayout(): int
+    {
+        $pooled = $this->pooledSellerEmails();
+
+        $sellerId = DB::table('seller_ledger_entries as l')
+            ->join('seller_memberships as m', 'm.seller_account_id', '=', 'l.seller_account_id')
+            ->join('users as u', 'u.id', '=', 'm.user_id')
+            ->whereIn('u.email', $pooled)
+            ->select('l.seller_account_id')
+            ->groupBy('l.seller_account_id')
+            ->havingRaw('sum(l.amount_minor) > 0')
+            ->orderByRaw('sum(l.amount_minor) desc')
+            ->value('l.seller_account_id');
+
+        if ($sellerId === null) {
+            $this->error('No seller with a positive ledger balance.');
+
+            return self::FAILURE;
+        }
+
+        $sellerId = (int) $sellerId;
+
+        $member = DB::table('seller_memberships as m')
+            ->join('users as u', 'u.id', '=', 'm.user_id')
+            ->where('m.seller_account_id', $sellerId)
+            ->whereIn('u.email', $this->pooledSellerEmails())
+            ->first(['u.email']);
+
+        if ($member === null) {
+            $this->error("Seller {$sellerId} has no member to sign in as.");
+
+            return self::FAILURE;
+        }
+
+        $this->write([
+            'seller_account_id' => $sellerId,
+            'seller_email' => (string) $member->email,
+            'before' => $this->payoutPosition($sellerId),
+        ], $this->scenarioPath('payout'));
+
+        $position = $this->payoutPosition($sellerId);
+
+        $this->info(sprintf(
+            'Seller %d holds %d minor units across %d ledger entries, with %d open request(s). Member: %s.',
+            $sellerId,
+            $position['ledger_minor'],
+            $position['entries'],
+            $position['open_requests'],
+            $member->email,
+        ));
+
+        return self::SUCCESS;
+    }
+
+    private function verifyPayout(): int
+    {
+        $state = $this->read($this->scenarioPath('payout'));
+        $sellerId = (int) $state['seller_account_id'];
+        $before = $state['before'];
+        $after = $this->payoutPosition($sellerId);
+
+        $findings = [];
+
+        // M7 policy: one open request at a time, so a burst may add one.
+        if ($after['open_requests'] > 1) {
+            $findings[] = sprintf('%d payout requests are open at once', $after['open_requests']);
+        }
+
+        $requested = $after['requested_minor'] - (int) $before['requested_minor'];
+
+        // Nothing may be reserved that the ledger does not hold.
+        if ($requested > (int) $before['ledger_minor']) {
+            $findings[] = sprintf(
+                'the burst reserved %d minor units against a balance of %d',
+                $requested,
+                $before['ledger_minor'],
+            );
+        }
+
+        $this->table(['', 'before', 'after'], [
+            ['ledger (minor)', $before['ledger_minor'], $after['ledger_minor']],
+            ['open requests', $before['open_requests'], $after['open_requests']],
+            ['requested (minor)', $before['requested_minor'], $after['requested_minor']],
+        ]);
+
+        if ($findings !== []) {
+            foreach ($findings as $finding) {
+                $this->error('  '.$finding);
+            }
+
+            return self::FAILURE;
+        }
+
+        $this->info('One open request, reserving no more than the balance held.');
+
+        return self::SUCCESS;
+    }
+
+    /** @return array{ledger_minor: int, entries: int, open_requests: int, requested_minor: int} */
+    private function payoutPosition(int $sellerId): array
+    {
+        $open = DB::table('payout_requests')
+            ->where('seller_account_id', $sellerId)
+            ->whereIn('status', ['requested', 'in_review', 'approved', 'processing']);
+
+        return [
+            'ledger_minor' => (int) DB::table('seller_ledger_entries')->where('seller_account_id', $sellerId)->sum('amount_minor'),
+            'entries' => (int) DB::table('seller_ledger_entries')->where('seller_account_id', $sellerId)->count(),
+            'open_requests' => (int) (clone $open)->count(),
+            'requested_minor' => (int) (clone $open)->sum('amount_minor'),
+        ];
+    }
+
+    /**
+     * One approved payout, sitting where a settlement can be applied.
+     */
+    private function prepareSettlement(): int
+    {
+        $payout = DB::table('payout_requests')
+            ->whereIn('status', ['approved', 'processing'])
+            ->orderByDesc('id')
+            ->first(['id', 'reference', 'seller_account_id', 'amount_minor', 'status']);
+
+        if ($payout === null) {
+            $this->error('No approved payout to settle. Approve one first.');
+
+            return self::FAILURE;
+        }
+
+        $this->write([
+            'payout_id' => (int) $payout->id,
+            'reference' => (string) $payout->reference,
+            'seller_account_id' => (int) $payout->seller_account_id,
+            'amount_minor' => (int) $payout->amount_minor,
+            'before' => $this->settlementPosition((int) $payout->id),
+        ], $this->scenarioPath('settlement'));
+
+        $this->info(sprintf(
+            'Payout %s (%d minor units, %s) is ready to settle.',
+            $payout->reference,
+            $payout->amount_minor,
+            $payout->status,
+        ));
+
+        return self::SUCCESS;
+    }
+
+    private function verifySettlement(): int
+    {
+        $state = $this->read($this->scenarioPath('settlement'));
+        $payoutId = (int) $state['payout_id'];
+        $before = $state['before'];
+        $after = $this->settlementPosition($payoutId);
+
+        $findings = [];
+
+        // The debit is the money leaving. Exactly one, ever.
+        if ($after['debits'] > 1) {
+            $findings[] = sprintf('%d payout debits for one payout', $after['debits']);
+        }
+
+        if ($after['debit_minor'] < -(int) $state['amount_minor']) {
+            $findings[] = sprintf(
+                'debited %d minor units for a payout of %d',
+                $after['debit_minor'],
+                $state['amount_minor'],
+            );
+        }
+
+        $this->table(['', 'before', 'after'], [
+            ['status', $before['status'], $after['status']],
+            ['payout debits', $before['debits'], $after['debits']],
+            ['debited (minor)', $before['debit_minor'], $after['debit_minor']],
+            ['paid_at set', $before['paid'] ? 'yes' : 'no', $after['paid'] ? 'yes' : 'no'],
+        ]);
+
+        if ($findings !== []) {
+            foreach ($findings as $finding) {
+                $this->error('  '.$finding);
+            }
+
+            return self::FAILURE;
+        }
+
+        $this->info('One debit, one transition to paid, however many settlements arrived.');
+
+        return self::SUCCESS;
+    }
+
+    /** @return array{status: string, debits: int, debit_minor: int, paid: bool} */
+    private function settlementPosition(int $payoutId): array
+    {
+        $debits = DB::table('seller_ledger_entries')->where('payout_request_id', $payoutId);
+
+        return [
+            'status' => (string) DB::table('payout_requests')->where('id', $payoutId)->value('status'),
+            'debits' => (int) (clone $debits)->count(),
+            'debit_minor' => (int) (clone $debits)->sum('amount_minor'),
+            'paid' => DB::table('payout_requests')->where('id', $payoutId)->whereNotNull('paid_at')->exists(),
+        ];
+    }
+
+    /**
+     * The seller identities the load generator can actually sign in as.
+     *
+     * @return array<int, string>
+     */
+    private function pooledSellerEmails(): array
+    {
+        $path = dirname($this->path()).'/pool.json';
+
+        if (! is_file($path)) {
+            return [];
+        }
+
+        /** @var array{sellers?: array<int, array{email?: string}>} $pool */
+        $pool = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+
+        return array_values(array_filter(array_map(
+            static fn (array $seller): string => (string) ($seller['email'] ?? ''),
+            $pool['sellers'] ?? [],
+        )));
+    }
+
+    /**
+     * A batch of ledger entries genuinely due for release.
+     *
+     * The generated dataset carries entries that are `pending` or already
+     * `available`; the sweep only looks at `clearing` rows whose clearing
+     * period has elapsed. Moving a controlled batch into that state is
+     * what gives overlapping sweeps something real to race over — the
+     * alternative is several processes agreeing there is nothing to do.
+     */
+    private function prepareClearing(): int
+    {
+        $count = max(1, (int) $this->option('entries'));
+
+        /*
+         * The sweep is driven by seller orders, not by ledger entries: it
+         * selects delivered orders whose clearing date has passed and
+         * releases what those orders hold. Marking arbitrary entries as
+         * due therefore proves nothing — the first version of this drill
+         * did exactly that and every sweep correctly reported releasing
+         * nothing.
+         */
+        $orderIds = DB::table('seller_orders')
+            ->whereIn('status', ['delivered', 'partially_refunded'])
+            ->whereNull('completed_at')
+            ->whereNotNull('earnings_clear_at')
+            ->where('earnings_clear_at', '<=', now())
+            ->orderByRaw('(id * 48271) % 2147483647')
+            ->limit($count)
+            ->pluck('id');
+
+        if ($orderIds->isEmpty()) {
+            $this->error('No delivered seller orders are due for clearing.');
+
+            return self::FAILURE;
+        }
+
+        /*
+         * Made the oldest thing due, so they are the window the sweep
+         * actually takes. `due()` orders by clearing date and stops at
+         * its limit, and the dataset has thousands of orders already
+         * past theirs — a batch picked at random sits behind them and
+         * the sweeps spend their pass on other people's money.
+         */
+        DB::table('seller_orders')->whereIn('id', $orderIds)->update([
+            'earnings_clear_at' => now()->subYears(10),
+        ]);
+
+        /*
+         * Their earnings, put back where the release action will find
+         * them. The generator writes delivered orders' entries as already
+         * available — a post-clearing world — so exercising the release
+         * path at all means recreating the state it runs against.
+         */
+        DB::table('seller_ledger_entries')
+            ->whereIn('seller_order_id', $orderIds)
+            ->whereIn('status', ['pending', 'available'])
+            ->update(['status' => 'clearing', 'available_at' => now()->subDay()]);
+
+        $ids = DB::table('seller_ledger_entries')
+            ->whereIn('seller_order_id', $orderIds)
+            ->where('status', 'clearing')
+            ->pluck('id');
+
+        $this->write([
+            'order_ids' => $orderIds->map(static fn (mixed $id): int => (int) $id)->all(),
+            'entry_ids' => $ids->map(static fn (mixed $id): int => (int) $id)->all(),
+            'before' => $this->clearingPosition($ids->all()) + [
+                'orders_open' => $orderIds->count(),
+            ],
+        ], $this->scenarioPath('clearing'));
+
+        $this->info(sprintf(
+            '%d seller orders are due, holding %d ledger entries ready for release.',
+            $orderIds->count(),
+            $ids->count(),
+        ));
+
+        return self::SUCCESS;
+    }
+
+    private function verifyClearing(): int
+    {
+        $state = $this->read($this->scenarioPath('clearing'));
+        /** @var array<int, int> $ids */
+        $ids = $state['entry_ids'];
+        $before = $state['before'];
+        $after = $this->clearingPosition($ids);
+
+        $findings = [];
+
+        $ordersOpen = DB::table('seller_orders')
+            ->whereIn('id', $state['order_ids'])
+            ->whereNull('completed_at')
+            ->count();
+
+        if ($ordersOpen > 0) {
+            $findings[] = sprintf('%d seller orders were left uncompleted', $ordersOpen);
+        }
+
+        if ($after['still_clearing'] > 0) {
+            $findings[] = sprintf('%d entries were left behind in clearing', $after['still_clearing']);
+        }
+
+        if ($after['available'] !== count($ids)) {
+            $findings[] = sprintf('%d of %d entries became available', $after['available'], count($ids));
+        }
+
+        /*
+         * A release is a status change, not a transfer. If overlapping
+         * sweeps had double-applied anything, the money or the row count
+         * would have moved with it.
+         */
+        if ($after['sum_minor'] !== (int) $before['sum_minor']) {
+            $findings[] = sprintf(
+                'the batch was worth %d minor units and is now worth %d',
+                $before['sum_minor'],
+                $after['sum_minor'],
+            );
+        }
+
+        if ($after['rows'] !== (int) $before['rows']) {
+            $findings[] = sprintf('the batch had %d rows and now has %d', $before['rows'], $after['rows']);
+        }
+
+        $this->table(['', 'before', 'after'], [
+            ['rows in the batch', $before['rows'], $after['rows']],
+            ['still clearing', $before['still_clearing'], $after['still_clearing']],
+            ['available', $before['available'], $after['available']],
+            ['worth (minor)', $before['sum_minor'], $after['sum_minor']],
+            ['orders still open', $before['orders_open'], $ordersOpen],
+        ]);
+
+        if ($findings !== []) {
+            foreach ($findings as $finding) {
+                $this->error('  '.$finding);
+            }
+
+            return self::FAILURE;
+        }
+
+        $this->info('Every entry was released exactly once, and nothing was created or lost.');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param  array<int, mixed>  $ids
+     * @return array{rows: int, still_clearing: int, available: int, sum_minor: int}
+     */
+    private function clearingPosition(array $ids): array
+    {
+        $rows = DB::table('seller_ledger_entries')->whereIn('id', $ids);
+
+        return [
+            'rows' => (int) (clone $rows)->count(),
+            'still_clearing' => (int) (clone $rows)->where('status', 'clearing')->count(),
+            'available' => (int) (clone $rows)->where('status', 'available')->count(),
+            'sum_minor' => (int) (clone $rows)->sum('amount_minor'),
+        ];
+    }
+
+    private function scenarioPath(string $name): string
+    {
+        return dirname($this->path()).'/'.$name.'.json';
     }
 
     private function webhookPath(): string
