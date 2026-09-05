@@ -199,4 +199,84 @@ final class ReviewStructuredDataTest extends TestCase
 
         $this->assertArrayNotHasKey('aggregateRating', $this->productSchema($product->slug));
     }
+
+    // ---------------------------------------------------------------
+    // Individual reviews in the markup.
+    // ---------------------------------------------------------------
+
+    #[Test]
+    public function published_reviews_appear_as_schema_review_items(): void
+    {
+        ['user' => $author, 'product' => $product] = $this->deliveredPurchase();
+        $this->review($author, $product, rating: 4, body: 'Boils fast and the lid seals properly.', title: 'Solid');
+
+        $schema = $this->productSchema($product->slug);
+
+        $this->assertArrayHasKey('review', $schema);
+        $this->assertCount(1, $schema['review']);
+
+        $review = $schema['review'][0];
+
+        $this->assertSame('Review', $review['@type']);
+        $this->assertSame(4, $review['reviewRating']['ratingValue']);
+        $this->assertSame(5, $review['reviewRating']['bestRating']);
+        $this->assertSame('Solid', $review['name']);
+        $this->assertSame('Boils fast and the lid seals properly.', $review['reviewBody']);
+        $this->assertSame('Person', $review['author']['@type']);
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $review['datePublished']);
+    }
+
+    #[Test]
+    public function the_markup_quotes_only_reviews_the_page_shows(): void
+    {
+        ['user' => $author, 'product' => $product] = $this->deliveredPurchase();
+        $review = $this->review($author, $product, body: 'A review that is about to be hidden.');
+
+        $this->assertArrayHasKey('review', $this->productSchema($product->slug));
+
+        $admin = $this->makeAdmin();
+        app(ModerateReview::class)->hide($review, ReviewActor::admin((int) $admin->id), 'Off topic.');
+
+        $schema = $this->productSchema($product->slug);
+
+        $this->assertArrayNotHasKey('aggregateRating', $schema);
+        $this->assertArrayNotHasKey(
+            'review',
+            $schema,
+            'Markup quoting a review a visitor cannot find is the same lie as an invented rating.',
+        );
+    }
+
+    #[Test]
+    public function a_products_markup_never_carries_a_reviewers_email(): void
+    {
+        ['user' => $author, 'product' => $product] = $this->deliveredPurchase();
+        $this->review($author, $product);
+
+        $this->assertStringNotContainsString(
+            (string) $author->email,
+            json_encode($this->productSchema($product->slug)) ?: '',
+        );
+    }
+
+    #[Test]
+    public function the_markup_carries_at_most_a_handful_of_reviews(): void
+    {
+        ['product' => $product] = $this->deliveredPurchase();
+
+        // Seven separate customers, each with their own delivered order.
+        foreach (range(1, 7) as $index) {
+            ['user' => $buyer] = $this->deliveredPurchaseOf($product);
+            $this->review($buyer, $product, body: "Review number {$index} of this kettle.");
+        }
+
+        $schema = $this->productSchema($product->slug);
+
+        $this->assertSame(7, $schema['aggregateRating']['reviewCount']);
+        $this->assertLessThanOrEqual(
+            5,
+            count($schema['review']),
+            'The aggregate is what a rich result shows; the bodies are a courtesy.',
+        );
+    }
 }

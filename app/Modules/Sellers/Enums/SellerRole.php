@@ -42,12 +42,17 @@ enum SellerRole: string
                 // Sees the payouts; cannot ask for one or move where they
                 // go. Running the shop is not owning its bank details.
                 SellerPermission::PayoutsView,
+                SellerPermission::AnalyticsView,
             ],
 
             self::CatalogManager => [
                 SellerPermission::CatalogView,
                 SellerPermission::CatalogManage,
                 SellerPermission::InventoryView,
+                // "This listing gets traffic and no orders" is a catalogue
+                // problem, and this is where they would see it. It carries
+                // no earnings figure.
+                SellerPermission::AnalyticsView,
             ],
 
             self::InventoryManager => [
@@ -79,6 +84,7 @@ enum SellerRole: string
                 SellerPermission::OrdersView,
                 SellerPermission::FinanceView,
                 SellerPermission::PayoutsView,
+                SellerPermission::AnalyticsView,
             ],
 
             self::Viewer => [

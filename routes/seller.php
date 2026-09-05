@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Analytics\Http\Controllers\SellerAnalyticsController;
 use App\Modules\Catalog\Http\Controllers\SellerCatalogueController;
 use App\Modules\Inventory\Http\Controllers\SellerInventoryController;
 use App\Modules\Offers\Http\Controllers\SellerOfferController;
@@ -160,6 +161,15 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             Route::post('{reference}/cancel', [SellerFinanceController::class, 'cancel'])
                 ->middleware(['seller.can:payouts.request', 'throttle:20,1'])->name('cancel');
         });
+
+        /*
+         * The store's own performance. A different permission from
+         * finance.view: seeing that a listing gets traffic and no orders
+         * is a catalogue question, and does not require seeing what the
+         * store earned.
+         */
+        Route::get('analytics', [SellerAnalyticsController::class, 'index'])
+            ->middleware('seller.can:analytics.view')->name('analytics');
 
         Route::get('team', [SellerTeamController::class, 'index'])
             ->middleware('seller.can:members.view')->name('team');

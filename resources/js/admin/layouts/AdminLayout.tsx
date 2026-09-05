@@ -19,6 +19,8 @@ const NAV: NavItem[] = [
     { label: 'Payouts', href: '/admin/payouts' },
     { label: 'Finance', href: '/admin/finance' },
     { label: 'Inventory', href: '/admin/inventory' },
+    { label: 'Reviews', href: '/admin/reviews' },
+    { label: 'Analytics', href: '/admin/analytics' },
     { label: 'Search health', href: '/admin/catalogue/search-health' },
     { label: 'Staff', href: '/admin/staff' },
     { label: 'Two-factor', href: '/admin/two-factor' },

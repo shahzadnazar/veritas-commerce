@@ -45,7 +45,7 @@ final class WishlistItem extends Model
     protected static function booted(): void
     {
         self::creating(function (self $item): void {
-            if ($item->created_at === null) {
+            if (blank($item->created_at)) {
                 $item->created_at = Carbon::now();
             }
         });

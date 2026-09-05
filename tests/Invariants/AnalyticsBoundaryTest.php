@@ -75,6 +75,22 @@ final class AnalyticsBoundaryTest extends TestCase
         );
     }
 
+    /**
+     * The one action the insight layer may call, and why.
+     *
+     * Recording that a shelf was shown or a card clicked is the insight
+     * layer's own business: interaction_events is behavioural input, not
+     * commerce truth, and §2's list — inventory, order totals, payments,
+     * refunds, the seller ledger, clearing, payout reservations, payouts —
+     * does not include it. Everything else stays forbidden, and the
+     * allowance is spelled out here so adding a second one is a decision
+     * somebody makes deliberately rather than a test that quietly stopped
+     * failing.
+     */
+    private const ALLOWED_ACTIONS = [
+        'App\\Modules\\Events\\Actions\\RecordInteraction',
+    ];
+
     #[Test]
     public function the_insight_modules_call_no_other_modules_actions(): void
     {
@@ -93,6 +109,10 @@ final class AnalyticsBoundaryTest extends TestCase
                     continue;
                 }
 
+                if (in_array($imported, self::ALLOWED_ACTIONS, true)) {
+                    continue;
+                }
+
                 $violations[] = $this->relative($file).' imports '.$imported;
             }
         }
@@ -101,7 +121,8 @@ final class AnalyticsBoundaryTest extends TestCase
             [],
             $violations,
             "An insight module reached for a domain action:\n  - ".implode("\n  - ", $violations).
-            "\n\nAn action exists to change something. Analytics changes nothing.",
+            "\n\nAn action exists to change something. Analytics changes nothing but its own ".
+            'behavioural input — see ALLOWED_ACTIONS.',
         );
     }
 
@@ -137,6 +158,24 @@ final class AnalyticsBoundaryTest extends TestCase
             "\n\n§2: analytics and recommendations are never authoritative for inventory, order ".
             'totals, payments, refunds, the seller ledger, clearing, payout reservations or payouts.',
         );
+    }
+
+    #[Test]
+    public function the_one_permitted_action_is_behavioural_and_nothing_else(): void
+    {
+        $this->assertCount(
+            1,
+            self::ALLOWED_ACTIONS,
+            'A second allowance was added. Every one of these is a hole in §2 and needs arguing for.',
+        );
+
+        foreach (self::ALLOWED_ACTIONS as $action) {
+            $this->assertStringStartsWith(
+                'App\\Modules\\Events\\Actions\\',
+                $action,
+                'Only the behavioural event module may be called from the insight layer.',
+            );
+        }
     }
 
     #[Test]

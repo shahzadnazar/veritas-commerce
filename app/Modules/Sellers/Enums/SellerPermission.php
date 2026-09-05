@@ -45,6 +45,17 @@ enum SellerPermission: string
      */
     case PayoutAccountManage = 'payouts.account.manage';
 
+    /*
+     * The store's own performance: views, conversion, best sellers.
+     *
+     * Separate from `finance.view`, which is what the store *made*. A
+     * catalogue manager deciding which photographs to reshoot needs to see
+     * that a listing gets traffic and no orders; they have no business
+     * seeing the earnings statement. §2: nothing behind this permission
+     * changes anything.
+     */
+    case AnalyticsView = 'analytics.view';
+
     public function label(): string
     {
         return $this->value;

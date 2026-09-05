@@ -16,5 +16,13 @@ export interface SharedPageProps {
     /** Server-authoritative basket size for the header. Zero in the portals. */
     cart?: { count: number };
     flash: { success?: string; error?: string };
+    /**
+     * Validation errors Inertia shares on every page.
+     *
+     * Read directly when a failure belongs to the request rather than to
+     * one field — a review refused because the customer never bought the
+     * product is not an error about the rating box.
+     */
+    errors: Record<string, string>;
     [key: string]: unknown;
 }

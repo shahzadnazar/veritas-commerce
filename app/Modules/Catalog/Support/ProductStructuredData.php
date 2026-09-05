@@ -29,6 +29,15 @@ use App\Modules\Inventory\Enums\StockState;
 final class ProductStructuredData
 {
     /**
+     * How many individual reviews the markup carries.
+     *
+     * A handful, not the whole list: the aggregate is what a rich result
+     * shows, and a page emitting two hundred review bodies is paying for
+     * bytes no crawler reads.
+     */
+    private const MAX_REVIEWS = 5;
+
+    /**
      * @param  array<string, mixed>  $page  the shape BuildProductPage returns
      * @return array<string, mixed>
      */
@@ -75,6 +84,16 @@ final class ProductStructuredData
 
         if ($rating !== null) {
             $data['aggregateRating'] = $rating;
+
+            // Individual reviews only alongside an aggregate. A `review`
+            // block without one would let a page claim testimony while
+            // withholding the average it adds up to, which is the shape
+            // of a page trying to bury its bad reviews.
+            $reviews = self::reviews($page);
+
+            if ($reviews !== []) {
+                $data['review'] = $reviews;
+            }
         }
 
         return $data;
@@ -121,6 +140,77 @@ final class ProductStructuredData
             'bestRating' => 5,
             'worstRating' => 1,
         ];
+    }
+
+    /**
+     * A handful of published reviews, as Schema.org Review items.
+     *
+     * Only what is on the page: the same list, the same order, the same
+     * text. A markup block quoting reviews a visitor cannot find is the
+     * same lie as an invented rating, and it is avoided the same way —
+     * by reading the payload the page already renders rather than issuing
+     * a second query that could return something else.
+     *
+     * Hidden, rejected and withdrawn reviews are absent from that payload
+     * and therefore absent here. The author is the display name the page
+     * shows; the email is not in the payload at all.
+     *
+     * @param  array<string, mixed>  $page
+     * @return array<int, array<string, mixed>>
+     */
+    private static function reviews(array $page): array
+    {
+        $reviews = $page['reviews'] ?? null;
+
+        if (! is_array($reviews) || ! is_array($reviews['data'] ?? null)) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach (array_slice($reviews['data'], 0, self::MAX_REVIEWS) as $review) {
+            if (! is_array($review)) {
+                continue;
+            }
+
+            $rating = (int) ($review['rating'] ?? 0);
+            $body = (string) ($review['body'] ?? '');
+
+            if ($rating < 1 || $rating > 5 || $body === '') {
+                continue;
+            }
+
+            $items[] = array_filter([
+                '@type' => 'Review',
+                'reviewRating' => [
+                    '@type' => 'Rating',
+                    'ratingValue' => $rating,
+                    'bestRating' => 5,
+                    'worstRating' => 1,
+                ],
+                'author' => [
+                    '@type' => 'Person',
+                    'name' => (string) ($review['author'] ?? 'Verified customer'),
+                ],
+                'datePublished' => self::publishedDate($review['publishedAt'] ?? null),
+                'name' => is_string($review['title'] ?? null) ? $review['title'] : null,
+                'reviewBody' => $body,
+            ], static fn (mixed $value): bool => $value !== null);
+        }
+
+        return $items;
+    }
+
+    /** An ISO date, or nothing — never a guess at when a review was written. */
+    private static function publishedDate(mixed $publishedAt): ?string
+    {
+        if (! is_string($publishedAt) || $publishedAt === '') {
+            return null;
+        }
+
+        $timestamp = strtotime($publishedAt);
+
+        return $timestamp === false ? null : date('Y-m-d', $timestamp);
     }
 
     /**

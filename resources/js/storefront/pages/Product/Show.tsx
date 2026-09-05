@@ -4,6 +4,16 @@ import { StorefrontLayout } from '../../../design-system/layout/StorefrontLayout
 import { Button } from '../../../design-system/primitives/Button';
 import { EmptyState } from '../../../design-system/patterns/States';
 import { StructuredData } from '../../../design-system/patterns/StructuredData';
+import {
+    ProductReviews,
+    type RatingSummaryData,
+    type ReviewsData,
+} from '../../components/ProductReviews';
+import {
+    RecommendationShelf,
+    type RecommendationSetData,
+} from '../../components/RecommendationShelf';
+import { WishlistButton } from '../../components/WishlistButton';
 import type { SharedPageProps } from '../../../shared/types';
 
 interface Crumb {
@@ -73,6 +83,10 @@ interface ProductShowProps extends SharedPageProps {
         ogImage: string | null;
     };
     structuredData: unknown[];
+    rating: RatingSummaryData;
+    reviews: ReviewsData;
+    wishlist: { isAuthenticated: boolean; isSaved: boolean };
+    shelves: Record<string, RecommendationSetData>;
 }
 
 /**
@@ -93,6 +107,10 @@ export default function Show() {
         priceRange,
         seo,
         structuredData,
+        rating,
+        reviews,
+        wishlist,
+        shelves,
     } = usePage<ProductShowProps>().props;
 
     const [selectedImage, setSelectedImage] = useState(0);
@@ -294,6 +312,14 @@ export default function Show() {
                 </section>
             </div>
 
+            <div className="mt-10">
+                <WishlistButton
+                    productPublicId={product.publicId}
+                    isSaved={wishlist.isSaved}
+                    isAuthenticated={wishlist.isAuthenticated}
+                />
+            </div>
+
             {specifications.length > 0 ? (
                 <section className="mt-12 max-w-[720px]">
                     <h2 className="mb-4 text-[22px]">Specifications</h2>
@@ -312,6 +338,21 @@ export default function Show() {
                     </dl>
                 </section>
             ) : null}
+
+            <ProductReviews
+                productPublicId={product.publicId}
+                reviews={reviews}
+                rating={rating}
+            />
+
+            {/*
+              * Shelves in the order the server listed them, and each one
+              * already excludes what the one above it showed — a product
+              * cannot appear twice down the page.
+              */}
+            {Object.values(shelves).map((shelf) => (
+                <RecommendationShelf key={shelf.slot} set={shelf} />
+            ))}
         </StorefrontLayout>
     );
 }

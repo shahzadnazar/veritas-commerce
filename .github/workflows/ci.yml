@@ -729,6 +729,111 @@ jobs:
                       "$base/admin/payouts/${payout}/approve" \
                       -H "X-XSRF-TOKEN: $(xsrf "$seller")")" = "302"
 
+            - name: Reviews, recommendations and analytics run in the built image
+              run: |
+                  # The trust and insight layer against the container's real
+                  # PostgreSQL and Redis, through the same actions and
+                  # services the storefront and portals call. Nothing in the
+                  # script inserts a review, a rating summary, a popularity
+                  # score or a daily metric by hand.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m8-trust-smoke.php";' > m8.txt
+                  cat m8.txt
+
+                  # §4: the verified badge is established from the order
+                  # record, and the order item behind it is set by the
+                  # server rather than sent by anybody.
+                  grep -q 'review id=.* verified=yes status=published order_item=set' m8.txt
+
+                  # §5: a customer with no purchase behind them is refused,
+                  # and the reason names why rather than being generic.
+                  grep -q 'unverified reason=not_purchased' m8.txt
+
+                  # §14: one canonical product has ONE rating summary,
+                  # however many sellers offer it.
+                  grep -q 'rating offers=.* summaries=1 ' m8.txt
+
+                  # §8 and §16: hiding a review takes it off the rating in
+                  # the same moment, and restoring puts it back.
+                  grep -q 'hidden changed=yes has_rating=no count=0' m8.txt
+                  grep -q 'restored has_rating=yes count=1' m8.txt
+
+                  # §30 and §31: a shelf never repeats a product because
+                  # several sellers list it, never contains its own anchor,
+                  # and never contains anything a shopper may not see.
+                  grep -qE 'recommendations count=([0-9]+) distinct=\1 contains_anchor=no' m8.txt
+                  grep -q 'recommendations ineligible=0' m8.txt
+
+                  # §60: the rebuild is idempotent, and cannot alter a
+                  # transactional or financial table.
+                  grep -q 'reco_rebuild idempotent=yes transactional_unchanged=yes' m8.txt
+                  grep -q 'reco_verify exit=0' m8.txt
+                  grep -q 'analytics_verify exit=0' m8.txt
+
+                  # §48 and §56: the daily money columns agree with M7's
+                  # finance definitions to the penny.
+                  grep -q 'analytics agrees=yes' m8.txt
+
+                  # §17: and after all of it, the ratings still add up.
+                  grep -q 'reconcile problems=0' m8.txt
+                  grep -q 'reconcile_command Every product rating summary matches its reviews.' m8.txt
+                  ! grep -q 'reconcile_problem' m8.txt
+
+            - name: The trust and insight surfaces answer over HTTP and stay private
+              run: |
+                  base=http://127.0.0.1:8000
+                  # The product the M8 smoke actually reviewed, so the
+                  # page below genuinely has a review on it.
+                  slug=$(grep '^product_slug=' m8.txt | cut -d= -f2 | tr -d '\r')
+                  test -n "$slug"
+
+                  # The product page carries its reviews, its rating and its
+                  # shelves, and the JSON-LD quotes the same reviews the
+                  # page shows (§16).
+                  page=$(curl -fsS "$base/products/${slug}")
+                  echo "$page" | grep -q '"reviews"'
+                  echo "$page" | grep -q '"aggregateRating"'
+                  echo "$page" | grep -q '"@type":"Review"'
+                  echo "$page" | grep -q '"canWrite"'
+
+                  # A signed-out visitor is told to sign in rather than
+                  # shown a form the server would refuse.
+                  echo "$page" | grep -q '"reason":"sign_in"'
+
+                  # The wishlist is personal: signed out it redirects, and
+                  # the response carries the noindex header even when SSR
+                  # is misconfigured (§100).
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/account/wishlist")" = "302"
+
+                  # The admin surfaces need a session that may open them.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/reviews")" = "302"
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/analytics")" = "302"
+                  test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/admin/reviews/01JQQQQQQQQQQQQQQQQQQQQQQQ/hide" \
+                      -d 'reason=trying it on')" = "302"
+
+                  # And a customer session is not an admin session.
+                  jar=$(mktemp)
+                  xsrf() { grep XSRF-TOKEN "$jar" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))'; }
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/login"
+                  curl -s -b "$jar" -c "$jar" -o /dev/null -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf)" \
+                      -d 'email=m4-customer@veritas.test' -d 'password=m4-smoke-password'
+
+                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/admin/analytics")" = "302"
+                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/seller/analytics")" = "302"
+
+                  # Their own wishlist answers, and says noindex in the
+                  # header rather than only in the markup.
+                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/account/wishlist")" = "200"
+                  curl -s -b "$jar" -D - -o /dev/null "$base/account/wishlist" \
+                      | grep -qi 'x-robots-tag: *noindex'
+
+            - name: Product rating summaries reconcile in the built image
+              run: |
+                  # Its own gate, like the finance one: a green test suite
+                  # is not the same as a rating that adds up.
+                  docker compose exec -T app php artisan reviews:reconcile-ratings
+
             - name: Seller finance reconciles in the built image
               run: |
                   # §89: the reconciliation is its own gate. A green test

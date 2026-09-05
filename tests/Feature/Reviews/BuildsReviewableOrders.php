@@ -6,12 +6,18 @@ namespace Tests\Feature\Reviews;
 
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Identity\Models\User;
+use App\Modules\Inventory\Actions\AdjustInventory;
+use App\Modules\Inventory\Enums\InventoryMovementReason;
+use App\Modules\Offers\Enums\OfferStatus;
+use App\Modules\Offers\Models\Offer;
 use App\Modules\Orders\Actions\CompleteDeliveredSellerOrders;
 use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Orders\Models\SellerOrder;
 use App\Modules\Reviews\Actions\SubmitReview;
 use App\Modules\Reviews\Models\ProductReview;
+use App\Modules\Sellers\Enums\SellerStatus;
 use App\Modules\Sellers\Models\SellerAccount;
+use App\Modules\Stores\Models\Store;
 
 /**
  * Purchases that are genuinely reviewable, built the long way.
@@ -54,6 +60,52 @@ trait BuildsReviewableOrders
             'sellerOrder' => $sellerOrder->refresh(),
             'seller' => $seller,
         ];
+    }
+
+    /**
+     * Another customer buying and receiving a product that already exists.
+     *
+     * A second seller lists it, so this exercises the case the review
+     * domain cares about most: many buyers, many sellers, one canonical
+     * product, and therefore one rating.
+     *
+     * @return array{user: User, sellerOrder: SellerOrder}
+     */
+    protected function deliveredPurchaseOf(Product $product, int $priceMinor = 10_000): array
+    {
+        $seller = SellerAccount::factory()->create(['status' => SellerStatus::Approved->value]);
+        $store = Store::factory()->create(['seller_account_id' => $seller->id, 'is_open' => true]);
+
+        $offer = Offer::factory()->create([
+            'seller_account_id' => $seller->id,
+            'store_id' => $store->id,
+            'product_id' => $product->id,
+            'product_variant_id' => null,
+            'price_minor' => $priceMinor,
+            'status' => OfferStatus::Published->value,
+        ]);
+
+        app(AdjustInventory::class)(
+            $offer->refresh(),
+            5,
+            InventoryMovementReason::RestockReceived,
+            'seller',
+            (int) $seller->id,
+        );
+
+        $user = User::factory()->create();
+        $order = $this->placeOrder([[$offer->refresh(), 1]], (int) $user->id, $user->email);
+
+        $this->payFor($order);
+
+        $sellerOrder = SellerOrder::query()
+            ->where('marketplace_order_id', $order->id)
+            ->where('seller_account_id', $seller->id)
+            ->firstOrFail();
+
+        $this->deliver($this->shipEverything($sellerOrder));
+
+        return ['user' => $user, 'sellerOrder' => $sellerOrder->refresh()];
     }
 
     /** The same, carried on to COMPLETED by the clearing sweep. */

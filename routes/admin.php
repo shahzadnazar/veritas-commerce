@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\AdminPortal\Http\Controllers\AdminAnalyticsController;
 use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
 use App\Modules\AdminPortal\Http\Controllers\AdminFinanceController;
 use App\Modules\AdminPortal\Http\Controllers\AdminFulfilmentController;
@@ -9,6 +10,7 @@ use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
 use App\Modules\AdminPortal\Http\Controllers\AdminOrderController;
 use App\Modules\AdminPortal\Http\Controllers\AdminPaymentController;
 use App\Modules\AdminPortal\Http\Controllers\AdminPayoutController;
+use App\Modules\AdminPortal\Http\Controllers\AdminReviewController;
 use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
@@ -199,6 +201,32 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware(['admin.can:payouts.settle', 'throttle:60,1'])->name('fail');
                 Route::post('{reference}/cancel', [AdminPayoutController::class, 'cancel'])
                     ->middleware(['admin.can:payouts.reject', 'throttle:60,1'])->name('cancel');
+            });
+
+            /*
+             * Review moderation. Reading the queue and changing a review
+             * are different permissions, because hiding one moves a
+             * product's public rating.
+             */
+            Route::prefix('reviews')->name('reviews.')->group(function (): void {
+                Route::get('/', [AdminReviewController::class, 'index'])
+                    ->middleware('admin.can:reviews.view')->name('index');
+                Route::post('{review}/hide', [AdminReviewController::class, 'hide'])
+                    ->middleware(['admin.can:reviews.moderate', 'throttle:60,1'])->name('hide');
+                Route::post('{review}/reject', [AdminReviewController::class, 'reject'])
+                    ->middleware(['admin.can:reviews.moderate', 'throttle:60,1'])->name('reject');
+                Route::post('{review}/restore', [AdminReviewController::class, 'restore'])
+                    ->middleware(['admin.can:reviews.moderate', 'throttle:60,1'])->name('restore');
+            });
+
+            /*
+             * Marketplace analytics. One route, GET only: §2 says nothing
+             * behind this permission may change anything, and the surface
+             * says so rather than relying on the controller to.
+             */
+            Route::prefix('analytics')->name('analytics.')->group(function (): void {
+                Route::get('/', [AdminAnalyticsController::class, 'index'])
+                    ->middleware('admin.can:analytics.view')->name('index');
             });
 
             Route::prefix('finance')->name('finance.')->group(function (): void {

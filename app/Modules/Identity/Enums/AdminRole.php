@@ -64,6 +64,12 @@ enum AdminRole: string
                 // — is finance's alone.
                 AdminPermission::ViewPayouts,
                 AdminPermission::ReviewPayouts,
+                // Reviews are catalogue reputation, and the marketplace
+                // admin already decides what stays listed.
+                AdminPermission::ViewProductReviews,
+                AdminPermission::ModerateProductReviews,
+                AdminPermission::ViewMarketplaceAnalytics,
+                AdminPermission::ViewSellerAnalytics,
             ],
 
             // Governs sellers. Deliberately holds no finance or catalogue
@@ -103,6 +109,11 @@ enum AdminRole: string
                 AdminPermission::CatalogueAttributeManage,
                 AdminPermission::CatalogueBrandManage,
                 AdminPermission::InventoryView,
+                // Moderating what is said about a product is the same job
+                // as moderating the product.
+                AdminPermission::ViewProductReviews,
+                AdminPermission::ModerateProductReviews,
+                AdminPermission::ViewMarketplaceAnalytics,
             ],
 
             self::FinanceAdmin => [
@@ -131,6 +142,10 @@ enum AdminRole: string
                 AdminPermission::SettlePayouts,
                 AdminPermission::ViewPayoutsSensitive,
                 AdminPermission::AdjustSellerFinance,
+                // Finance reads the trading figures; the reputation side
+                // of the catalogue is not theirs to touch.
+                AdminPermission::ViewMarketplaceAnalytics,
+                AdminPermission::ViewSellerAnalytics,
             ],
 
             self::Support => [
@@ -151,6 +166,9 @@ enum AdminRole: string
                 // day. Approving it, settling it, and seeing which
                 // account it goes to are all withheld.
                 AdminPermission::ViewPayouts,
+                // "Why has my review disappeared" is a support question.
+                // Putting it back is not.
+                AdminPermission::ViewProductReviews,
             ],
 
             /*
@@ -164,6 +182,12 @@ enum AdminRole: string
                 AdminPermission::CatalogueView,
                 AdminPermission::InventoryView,
                 AdminPermission::ViewPayouts,
+                // The whole point of the role. Reading every figure and
+                // being unable to change one is exactly the shape §2
+                // asks for.
+                AdminPermission::ViewMarketplaceAnalytics,
+                AdminPermission::ViewSellerAnalytics,
+                AdminPermission::ViewProductReviews,
             ],
         };
     }

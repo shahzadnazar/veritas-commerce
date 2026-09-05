@@ -1,11 +1,16 @@
 import { usePage } from '@inertiajs/react';
 import { Button } from '../../design-system/primitives/Button';
-import { CardGridSkeleton, EmptyState } from '../../design-system/patterns/States';
+import { EmptyState } from '../../design-system/patterns/States';
 import { StorefrontLayout } from '../../design-system/layout/StorefrontLayout';
+import {
+    RecommendationShelf,
+    type RecommendationSetData,
+} from '../components/RecommendationShelf';
 import type { SharedPageProps } from '../../shared/types';
 
 interface HomeProps extends SharedPageProps {
     stats: { products: number; sellers: number };
+    shelves: Record<string, RecommendationSetData>;
 }
 
 /**
@@ -15,7 +20,8 @@ interface HomeProps extends SharedPageProps {
  * real here is the layout, the density, the tokens and the SSR path.
  */
 export default function Home() {
-    const { stats, platform } = usePage<HomeProps>().props;
+    const { stats, platform, shelves } = usePage<HomeProps>().props;
+    const rendered = Object.values(shelves);
 
     return (
         <StorefrontLayout>
@@ -37,19 +43,26 @@ export default function Home() {
                 <Button variant="secondary">Meet the sellers</Button>
             </div>
 
-            <hr className="mb-8 border-0 border-t-2 border-[var(--vc-text)]" />
-
-            <h2 className="mb-6 text-[32px]">Featured this week</h2>
-
             {stats.products === 0 ? (
-                <EmptyState
-                    title="The catalogue is empty"
-                    body="No offers have been published yet. Sellers list products from the seller portal, and they appear here once approved."
-                    actions={<Button variant="secondary">Apply to sell</Button>}
-                />
-            ) : (
-                <CardGridSkeleton count={8} />
-            )}
+                <>
+                    <hr className="mb-8 border-0 border-t-2 border-[var(--vc-text)]" />
+                    <EmptyState
+                        title="The catalogue is empty"
+                        body="No offers have been published yet. Sellers list products from the seller portal, and they appear here once approved."
+                        actions={<Button variant="secondary">Apply to sell</Button>}
+                    />
+                </>
+            ) : null}
+
+            {/*
+              * Shelves in the order the server chose, each already
+              * excluding what the one above it showed. A shelf with
+              * nothing in it renders nothing at all — a heading over an
+              * empty carousel is worse than no heading.
+              */}
+            {rendered.map((shelf) => (
+                <RecommendationShelf key={shelf.slot} set={shelf} />
+            ))}
         </StorefrontLayout>
     );
 }

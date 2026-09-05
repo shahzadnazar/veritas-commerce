@@ -18,6 +18,7 @@ use App\Modules\Identity\Http\Controllers\PasswordResetController;
 use App\Modules\Identity\Http\Controllers\ProfileController;
 use App\Modules\Identity\Http\Controllers\RegisterController;
 use App\Modules\Orders\Http\Controllers\CustomerOrderController;
+use App\Modules\Recommendations\Http\Controllers\RecommendationTrackingController;
 use App\Modules\Reviews\Http\Controllers\ProductReviewController;
 use App\Modules\Stores\Http\Controllers\PublicStoreController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,18 @@ Route::get('/search/suggestions', [SearchController::class, 'suggestions'])
 Route::post('/search/click', [SearchController::class, 'click'])
     ->middleware('throttle:120,1')->name('search.click');
 Route::get('/categories/{slug}', PublicCategoryController::class)->name('categories.show');
+
+/*
+ * Recommendation telemetry. Open to signed-out visitors because most
+ * browsing is signed out, and rate-limited because a beacon endpoint is
+ * the easiest thing on a storefront to point a script at.
+ */
+Route::post('/recommendations/impressions', [RecommendationTrackingController::class, 'impressions'])
+    ->middleware('throttle:120,1')
+    ->name('recommendations.impressions');
+Route::post('/recommendations/clicks', [RecommendationTrackingController::class, 'clicks'])
+    ->middleware('throttle:120,1')
+    ->name('recommendations.clicks');
 
 /*
  * The basket and the checkout.

@@ -144,6 +144,36 @@ enum AdminPermission: string
     /** The kept M0 name, now meaning "may decide a payout at all". */
     case DecidePayouts = 'payouts.decide';
 
+    /*
+     * Product reviews, split two ways.
+     *
+     * Reading the moderation queue is a support question; hiding a review
+     * is an editorial act that changes what shoppers see and moves a
+     * product's public rating. A single `reviews.manage` would have let
+     * anyone who can read the queue silently reshape the catalogue's
+     * reputation.
+     */
+    case ViewProductReviews = 'reviews.view';
+    case ModerateProductReviews = 'reviews.moderate';
+
+    /*
+     * Marketplace analytics.
+     *
+     * Separate from `dashboard.view` because these pages carry trading
+     * volume, conversion and per-seller performance — the marketplace's
+     * commercial position, not its operational status. §2: nothing behind
+     * this permission can change anything.
+     */
+    case ViewMarketplaceAnalytics = 'analytics.view';
+
+    /*
+     * Per-seller figures inside the platform's own analytics.
+     *
+     * Held apart because a seller-by-seller breakdown is the one report
+     * that could be lifted out and sold as competitive intelligence.
+     */
+    case ViewSellerAnalytics = 'analytics.sellers.view';
+
     // Platform
     case ManageOperationalSettings = 'settings.operational';
     case ManageCompanySettings = 'settings.company';

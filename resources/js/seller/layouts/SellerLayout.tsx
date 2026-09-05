@@ -16,6 +16,7 @@ const NAV: NavItem[] = [
     // server-side — a link is a courtesy, never the control (§47).
     { label: 'Earnings', href: '/seller/earnings' },
     { label: 'Payouts', href: '/seller/payouts' },
+    { label: 'Analytics', href: '/seller/analytics' },
     { label: 'Team', href: '/seller/team' },
 ];
 
