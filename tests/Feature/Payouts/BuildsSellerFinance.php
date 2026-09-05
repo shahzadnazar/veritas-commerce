@@ -8,6 +8,8 @@ use App\Modules\Ledger\Actions\PostLedgerEntry;
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
 use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Ledger\Models\SellerLedgerEntry;
+use App\Modules\Payouts\Actions\ApprovePayout;
+use App\Modules\Payouts\Actions\RecordPayoutSettlement;
 use App\Modules\Payouts\Actions\RequestPayout;
 use App\Modules\Payouts\Data\PayoutActor;
 use App\Modules\Payouts\Data\SellerFinancialPosition;
@@ -98,6 +100,32 @@ trait BuildsSellerFinance
             currency: $currency,
             actor: PayoutActor::seller(null, 'Test owner'),
         );
+    }
+
+    /** The platform side of a payout: approve it, then settle it. */
+    protected function financeActor(string $label = 'Finance'): PayoutActor
+    {
+        return PayoutActor::admin(null, $label);
+    }
+
+    protected function approve(PayoutRequest $request): PayoutRequest
+    {
+        app(ApprovePayout::class)($request, $this->financeActor());
+
+        return $request->refresh();
+    }
+
+    /**
+     * Approve and settle in one step, for tests whose subject is what
+     * settlement does to a balance rather than the review workflow.
+     */
+    protected function settle(PayoutRequest $request, string $reference = 'FT-TEST-0001'): PayoutRequest
+    {
+        $this->approve($request);
+
+        app(RecordPayoutSettlement::class)($request, $this->financeActor(), 'wire', $reference);
+
+        return $request->refresh();
     }
 
     protected function positionOf(SellerAccount $seller, string $currency = 'USD'): SellerFinancialPosition
