@@ -13,17 +13,7 @@
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
-import {
-    BASE,
-    pool,
-    assigned,
-    productSlug,
-    categorySlug,
-    customerOrder,
-    sellerOrder,
-    adminOrder,
-    search,
-} from './lib/pool.js';
+import { BASE, pool, assigned, productSlug, categorySlug, search } from './lib/pool.js';
 import { signInAdmin, signInCustomer, signInSeller } from './lib/session.js';
 
 const VUS = Number(__ENV.LOAD_VUS || 10);
@@ -100,8 +90,8 @@ export const options = {
     },
 };
 
-function measure(surface, url, name) {
-    const response = http.get(url, { tags: { name: name || surface } });
+function measure(surface, url, name, jar) {
+    const response = http.get(url, { jar, tags: { name: name || surface } });
     const ok = check(response, { 'status is 200': (r) => r.status === 200 });
 
     trends[surface].add(response.timings.duration);
@@ -134,57 +124,61 @@ export function searchSurfaces() {
     });
 }
 
-// Each authenticated VU signs in once and keeps its session. Logging in
-// every iteration would measure bcrypt and trip the login throttle, and
-// sharing one session across VUs would serialise on its Redis key.
-let signedIn = false;
+// Each authenticated virtual user signs in once and keeps that session
+// for the rest of the run. Logging in every iteration would measure
+// bcrypt and trip the login throttle; sharing one session between
+// virtual users would serialise them on its Redis key.
+//
+// The session lives in its own cookie jar, keyed by scenario. k6 reuses
+// a virtual user's runtime across scenarios, so a single shared flag
+// would leave the seller scenario running on the customer's session.
+const sessions = {};
 
-export function customerSurfaces() {
-    if (!signedIn) {
-        signInCustomer(Object.assign({}, assigned(pool.customers), { password: pool.password }));
-        signedIn = true;
+function session(name, signIn, identity) {
+    if (!sessions[name]) {
+        sessions[name] = signIn(Object.assign({}, identity, { password: pool.password }));
     }
 
+    return sessions[name];
+}
+
+export function customerSurfaces() {
+    const jar = session('customer', signInCustomer, assigned(pool.customers));
+
     group('customer', () => {
-        measure('customer_orders', `${BASE}/account/orders`);
+        measure('customer_orders', `${BASE}/account/orders`, null, jar);
         sleep(0.5);
-        measure('customer_orders', `${BASE}/account/orders?page=2`, 'customer_orders:page2');
+        measure('customer_orders', `${BASE}/account/orders?page=2`, 'customer_orders:page2', jar);
         sleep(0.5);
     });
 }
 
 export function sellerSurfaces() {
-    if (!signedIn) {
-        signInSeller(Object.assign({}, assigned(pool.sellers), { password: pool.password }));
-        signedIn = true;
-    }
+    const jar = session('seller', signInSeller, assigned(pool.sellers));
 
     group('seller', () => {
-        measure('seller_orders', `${BASE}/seller/orders`);
+        measure('seller_orders', `${BASE}/seller/orders`, null, jar);
         sleep(0.4);
-        measure('seller_orders', `${BASE}/seller/orders?status=delivered`, 'seller_orders:filtered');
+        measure('seller_orders', `${BASE}/seller/orders?status=delivered`, 'seller_orders:filtered', jar);
         sleep(0.4);
-        measure('seller_inventory', `${BASE}/seller/inventory`);
+        measure('seller_inventory', `${BASE}/seller/inventory`, null, jar);
         sleep(0.4);
-        measure('seller_inventory', `${BASE}/seller/inventory?state=low_stock`, 'seller_inventory:low');
+        measure('seller_inventory', `${BASE}/seller/inventory?state=low_stock`, 'seller_inventory:low', jar);
         sleep(0.4);
     });
 }
 
 export function adminSurfaces() {
-    if (!signedIn) {
-        signInAdmin(Object.assign({}, assigned(pool.admins), { password: pool.password }));
-        signedIn = true;
-    }
+    const jar = session('admin', signInAdmin, assigned(pool.admins));
 
     group('admin', () => {
-        measure('admin_orders', `${BASE}/admin/orders`);
+        measure('admin_orders', `${BASE}/admin/orders`, null, jar);
         sleep(0.5);
-        measure('admin_orders', `${BASE}/admin/orders?status=paid`, 'admin_orders:filtered');
+        measure('admin_orders', `${BASE}/admin/orders?status=paid`, 'admin_orders:filtered', jar);
         sleep(0.5);
-        measure('admin_finance', `${BASE}/admin/finance`);
+        measure('admin_finance', `${BASE}/admin/finance`, null, jar);
         sleep(0.5);
-        measure('admin_finance', `${BASE}/admin/payouts`, 'admin_payouts');
+        measure('admin_finance', `${BASE}/admin/payouts`, 'admin_payouts', jar);
         sleep(0.5);
     });
 }
