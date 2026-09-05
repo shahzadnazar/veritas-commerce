@@ -38,6 +38,20 @@ enum InteractionEventType: string
      */
     case PaymentFailed = 'payment_failed';
 
+    /*
+     * Operational events, recorded so the marketplace can see how long
+     * fulfilment actually takes.
+     *
+     * They carry no affinity weight: a seller pressing "sent" says nothing
+     * about what a shopper wants, and letting operational volume influence
+     * ranking would make the busiest warehouse the most recommended shop.
+     */
+    case OrderConfirmed = 'order_confirmed';
+    case ShipmentCreated = 'shipment_created';
+    case ShipmentShipped = 'shipment_shipped';
+    case ShipmentDelivered = 'shipment_delivered';
+    case OrderDelivered = 'order_delivered';
+
     /**
      * Relative weight when building affinity scores. Kept with the event so
      * the offline job and any future model read one definition.
@@ -62,6 +76,9 @@ enum InteractionEventType: string
             // simply not a purchase.
             self::PaymentFailed => 4,
             self::SearchPerformed => 0,
+            // Operational, not behavioural. See the cases above.
+            self::OrderConfirmed, self::ShipmentCreated, self::ShipmentShipped,
+            self::ShipmentDelivered, self::OrderDelivered => 0,
         };
     }
 
@@ -87,6 +104,11 @@ enum InteractionEventType: string
             self::CheckoutOrderCreated => 'Order created',
             self::PurchaseCompleted => 'Purchase completed',
             self::PaymentFailed => 'Payment failed',
+            self::OrderConfirmed => 'Order confirmed',
+            self::ShipmentCreated => 'Shipment created',
+            self::ShipmentShipped => 'Shipment shipped',
+            self::ShipmentDelivered => 'Shipment delivered',
+            self::OrderDelivered => 'Order delivered',
         };
     }
 }

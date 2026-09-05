@@ -18,6 +18,7 @@ use App\Modules\Catalog\Listeners\KeepSearchIndexCurrent;
 use App\Modules\Catalog\Listeners\NotifyProposingSeller;
 use App\Modules\Catalog\Queries\BuildIndexableProduct;
 use App\Modules\Events\Listeners\RecordCartActivity;
+use App\Modules\Events\Listeners\RecordFulfilmentActivity;
 use App\Modules\Events\Listeners\RecordPaymentActivity;
 use App\Modules\Inventory\Events\InventoryAdjusted;
 use App\Modules\Inventory\Events\InventoryDepleted;
@@ -29,6 +30,12 @@ use App\Modules\Media\Stores\FilesystemObjectStore;
 use App\Modules\Offers\Events\OfferActivated;
 use App\Modules\Offers\Events\OfferSuspended;
 use App\Modules\Offers\Events\OfferUpdated;
+use App\Modules\Orders\Events\SellerOrderConfirmed;
+use App\Modules\Orders\Events\SellerOrderDelivered;
+use App\Modules\Orders\Events\ShipmentCreated;
+use App\Modules\Orders\Events\ShipmentDelivered;
+use App\Modules\Orders\Events\ShipmentShipped;
+use App\Modules\Orders\Listeners\AnnounceFulfilment;
 use App\Modules\Payments\Adapters\FakePaymentProvider;
 use App\Modules\Payments\Adapters\StripePaymentProvider;
 use App\Modules\Payments\Contracts\PaymentProvider;
@@ -171,6 +178,23 @@ final class AppServiceProvider extends ServiceProvider
         // analytics exist.
         Event::listen(PaymentSucceeded::class, [RecordPaymentActivity::class, 'succeeded']);
         Event::listen(PaymentFailed::class, [RecordPaymentActivity::class, 'failed']);
+
+        /*
+         * Fulfilment. The customer is told about each parcel, once, and
+         * the operational stream records how long each step took.
+         *
+         * "Once" is not enforced here: the actions refuse a parcel that has
+         * already moved, under a row lock, so a retried job or a
+         * double-clicked button dispatches nothing the second time.
+         */
+        Event::listen(ShipmentShipped::class, [AnnounceFulfilment::class, 'shipped']);
+        Event::listen(ShipmentDelivered::class, [AnnounceFulfilment::class, 'delivered']);
+
+        Event::listen(SellerOrderConfirmed::class, [RecordFulfilmentActivity::class, 'confirmed']);
+        Event::listen(ShipmentCreated::class, [RecordFulfilmentActivity::class, 'shipmentCreated']);
+        Event::listen(ShipmentShipped::class, [RecordFulfilmentActivity::class, 'shipped']);
+        Event::listen(ShipmentDelivered::class, [RecordFulfilmentActivity::class, 'shipmentDelivered']);
+        Event::listen(SellerOrderDelivered::class, [RecordFulfilmentActivity::class, 'orderDelivered']);
 
         // Models live in module namespaces (App\Modules\Orders\Models\...),
         // so the default factory guess does not apply. Factories stay in one
