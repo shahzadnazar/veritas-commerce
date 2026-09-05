@@ -39,6 +39,9 @@ enum SellerRole: string
                 SellerPermission::OrdersView,
                 SellerPermission::OrdersManage,
                 SellerPermission::FinanceView,
+                // Sees the payouts; cannot ask for one or move where they
+                // go. Running the shop is not owning its bank details.
+                SellerPermission::PayoutsView,
             ],
 
             self::CatalogManager => [
@@ -61,9 +64,21 @@ enum SellerRole: string
                 SellerPermission::OrdersManage,
             ],
 
+            /*
+             * Reads the money, in full, and moves none of it.
+             *
+             * The M7 brief suggests a finance manager may also request
+             * payouts. Veritas deliberately does not: `payouts.request`
+             * and `members.manage` are the two capabilities that turn a
+             * compromised staff account into a stolen business, and the
+             * invariant suite has asserted since M1 that only the owner
+             * holds them. A finance manager sees every figure and every
+             * payout, and asks the owner to press the button.
+             */
             self::FinanceManager => [
                 SellerPermission::OrdersView,
                 SellerPermission::FinanceView,
+                SellerPermission::PayoutsView,
             ],
 
             self::Viewer => [

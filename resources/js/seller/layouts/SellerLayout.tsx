@@ -11,6 +11,11 @@ const NAV: NavItem[] = [
     { label: 'Offers', href: '/seller/offers' },
     { label: 'Inventory', href: '/seller/inventory' },
     { label: 'Orders', href: '/seller/orders' },
+    // Two entries rather than one, because they answer different
+    // questions: what have I made, and where has it gone. Both are gated
+    // server-side — a link is a courtesy, never the control (§47).
+    { label: 'Earnings', href: '/seller/earnings' },
+    { label: 'Payouts', href: '/seller/payouts' },
     { label: 'Team', href: '/seller/team' },
 ];
 

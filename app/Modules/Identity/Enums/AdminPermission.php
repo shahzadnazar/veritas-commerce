@@ -108,6 +108,40 @@ enum AdminPermission: string
      * that produces it.
      */
     case ViewEarningsClearing = 'earnings.clearing.view';
+
+    /*
+     * Payout operations, split five ways because they are five decisions.
+     *
+     * Reading the queue is a support question ("has my payout been
+     * looked at"). Approving one is an authorisation. Recording a
+     * settlement is a claim that money left the platform, and it is the
+     * only one of the five that writes to the seller ledger. A single
+     * `payouts.decide` would have let anyone who can answer the first
+     * question do the third.
+     */
+    case ViewPayouts = 'payouts.view';
+    case ReviewPayouts = 'payouts.review';
+    case ApprovePayouts = 'payouts.approve';
+    case RejectPayouts = 'payouts.reject';
+    case SettlePayouts = 'payouts.settle';
+
+    /*
+     * The destination behind a payout: the account reference, the last
+     * four digits, the country.
+     *
+     * Nothing here can move money by itself — the platform holds no
+     * credentials — but it is a seller's banking identity, and support
+     * answering "was I paid" needs the amount and the date, not that.
+     */
+    case ViewPayoutsSensitive = 'payouts.view_sensitive';
+
+    /*
+     * Correcting a seller's balance by hand. Exceptional, audited, and
+     * held only by the roles that reconcile money.
+     */
+    case AdjustSellerFinance = 'finance.adjust';
+
+    /** The kept M0 name, now meaning "may decide a payout at all". */
     case DecidePayouts = 'payouts.decide';
 
     // Platform

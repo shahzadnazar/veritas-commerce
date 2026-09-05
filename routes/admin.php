@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
+use App\Modules\AdminPortal\Http\Controllers\AdminFinanceController;
 use App\Modules\AdminPortal\Http\Controllers\AdminFulfilmentController;
 use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
 use App\Modules\AdminPortal\Http\Controllers\AdminOrderController;
 use App\Modules\AdminPortal\Http\Controllers\AdminPaymentController;
+use App\Modules\AdminPortal\Http\Controllers\AdminPayoutController;
 use App\Modules\AdminPortal\Http\Controllers\AdminStaffController;
 use App\Modules\AdminPortal\Http\Controllers\AdminTwoFactorController;
 use App\Modules\AdminPortal\Http\Controllers\ApplicationDocumentController;
@@ -169,6 +171,41 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware(['admin.can:fulfilment.tracking.correct', 'throttle:60,1'])->name('tracking');
             });
 
+            /*
+             * Money.
+             *
+             * Five permissions across seven routes, because reading the
+             * queue, picking a request up, authorising it, refusing it and
+             * recording that money left are five different acts of trust.
+             * Only the last writes to a seller's ledger, and only finance
+             * holds it.
+             */
+            Route::prefix('payouts')->name('payouts.')->group(function (): void {
+                Route::get('/', [AdminPayoutController::class, 'index'])
+                    ->middleware('admin.can:payouts.view')->name('index');
+                Route::get('{reference}', [AdminPayoutController::class, 'show'])
+                    ->middleware('admin.can:payouts.view')->name('show');
+                Route::post('{reference}/review', [AdminPayoutController::class, 'review'])
+                    ->middleware(['admin.can:payouts.review', 'throttle:60,1'])->name('review');
+                Route::post('{reference}/approve', [AdminPayoutController::class, 'approve'])
+                    ->middleware(['admin.can:payouts.approve', 'throttle:60,1'])->name('approve');
+                Route::post('{reference}/reject', [AdminPayoutController::class, 'reject'])
+                    ->middleware(['admin.can:payouts.reject', 'throttle:60,1'])->name('reject');
+                Route::post('{reference}/settlement', [AdminPayoutController::class, 'startSettlement'])
+                    ->middleware(['admin.can:payouts.settle', 'throttle:60,1'])->name('settlement');
+                Route::post('{reference}/settle', [AdminPayoutController::class, 'settle'])
+                    ->middleware(['admin.can:payouts.settle', 'throttle:60,1'])->name('settle');
+                Route::post('{reference}/fail', [AdminPayoutController::class, 'fail'])
+                    ->middleware(['admin.can:payouts.settle', 'throttle:60,1'])->name('fail');
+                Route::post('{reference}/cancel', [AdminPayoutController::class, 'cancel'])
+                    ->middleware(['admin.can:payouts.reject', 'throttle:60,1'])->name('cancel');
+            });
+
+            Route::prefix('finance')->name('finance.')->group(function (): void {
+                Route::get('/', [AdminFinanceController::class, 'index'])
+                    ->middleware('admin.can:earnings.view')->name('index');
+            });
+
             Route::prefix('inventory')->name('inventory.')->group(function (): void {
                 Route::get('/', [InventoryOversightController::class, 'index'])
                     ->middleware('admin.can:inventory.view')->name('index');
@@ -196,6 +233,13 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:seller.suspend')->name('suspend');
                 Route::post('{seller}/reactivate', [SellerAccountController::class, 'reactivate'])
                     ->middleware('admin.can:seller.reactivate')->name('reactivate');
+
+                // One seller's whole financial picture, and the
+                // exceptional correction. §72 and §64.
+                Route::get('{seller}/finance', [AdminPayoutController::class, 'sellerFinance'])
+                    ->middleware('admin.can:earnings.view')->name('finance');
+                Route::post('{seller}/finance/adjust', [AdminPayoutController::class, 'adjust'])
+                    ->middleware(['admin.can:finance.adjust', 'throttle:20,1'])->name('finance.adjust');
             });
         });
     });

@@ -13,6 +13,11 @@ const NAV: NavItem[] = [
     { label: 'Orders', href: '/admin/orders' },
     { label: 'Payments', href: '/admin/payments' },
     { label: 'Fulfilment', href: '/admin/fulfilment' },
+    // Two entries, because the queue is a day's work and the dashboard is
+    // a month's picture. Both are permission-gated server-side; a link is
+    // never the control (§47).
+    { label: 'Payouts', href: '/admin/payouts' },
+    { label: 'Finance', href: '/admin/finance' },
     { label: 'Inventory', href: '/admin/inventory' },
     { label: 'Search health', href: '/admin/catalogue/search-health' },
     { label: 'Staff', href: '/admin/staff' },

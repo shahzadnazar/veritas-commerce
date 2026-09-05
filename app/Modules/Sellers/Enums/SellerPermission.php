@@ -24,7 +24,26 @@ enum SellerPermission: string
     case OrdersView = 'orders.view';
     case OrdersManage = 'orders.manage';
     case FinanceView = 'finance.view';
+
+    /*
+     * Reading the payout side of finance, split from requesting one.
+     *
+     * `finance.view` is the earnings statement — what the store made.
+     * `payouts.view` is where that money went and where it is going, which
+     * a finance manager needs and a catalogue manager does not.
+     */
+    case PayoutsView = 'payouts.view';
     case PayoutsRequest = 'payouts.request';
+
+    /*
+     * Changing where the money goes.
+     *
+     * The most dangerous capability in the seller portal: an attacker who
+     * can point payouts at their own account does not need to touch
+     * anything else. It stays with the owner, and the action behind it
+     * asks for a password even when they hold it.
+     */
+    case PayoutAccountManage = 'payouts.account.manage';
 
     public function label(): string
     {

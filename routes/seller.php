@@ -7,6 +7,7 @@ use App\Modules\Inventory\Http\Controllers\SellerInventoryController;
 use App\Modules\Offers\Http\Controllers\SellerOfferController;
 use App\Modules\Orders\Http\Controllers\SellerFulfilmentController;
 use App\Modules\Orders\Http\Controllers\SellerOrderController;
+use App\Modules\Payouts\Http\Controllers\SellerFinanceController;
 use App\Modules\Sellers\Http\Controllers\SellerApplicationController;
 use App\Modules\Sellers\Http\Controllers\SellerDashboardController;
 use App\Modules\Sellers\Http\Controllers\SellerDocumentController;
@@ -132,6 +133,32 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
                 ->middleware('seller.can:orders.manage')->name('shipments.deliver');
             Route::post('issues', [SellerFulfilmentController::class, 'reportIssue'])
                 ->middleware('seller.can:orders.manage')->name('issues.store');
+        });
+
+        /*
+         * Money.
+         *
+         * `finance.view` reads the statement; `payouts.view` reads where
+         * the money went; `payouts.request` asks for it, and only the
+         * owner holds that. Changing the destination is its own
+         * permission again and asks for a password inside the action —
+         * the three are different acts of trust and the route matrix says
+         * so rather than hiding a button.
+         */
+        Route::get('earnings', [SellerFinanceController::class, 'earnings'])
+            ->middleware('seller.can:finance.view')->name('earnings');
+
+        Route::prefix('payouts')->name('payouts.')->group(function (): void {
+            Route::get('/', [SellerFinanceController::class, 'index'])
+                ->middleware('seller.can:payouts.view')->name('index');
+            Route::post('/', [SellerFinanceController::class, 'store'])
+                ->middleware(['seller.can:payouts.request', 'throttle:20,1'])->name('store');
+            Route::post('destination', [SellerFinanceController::class, 'saveDestination'])
+                ->middleware(['seller.can:payouts.account.manage', 'throttle:10,1'])->name('destination');
+            Route::get('{reference}', [SellerFinanceController::class, 'show'])
+                ->middleware('seller.can:payouts.view')->name('show');
+            Route::post('{reference}/cancel', [SellerFinanceController::class, 'cancel'])
+                ->middleware(['seller.can:payouts.request', 'throttle:20,1'])->name('cancel');
         });
 
         Route::get('team', [SellerTeamController::class, 'index'])

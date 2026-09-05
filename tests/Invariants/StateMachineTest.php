@@ -7,6 +7,7 @@ namespace Tests\Invariants;
 use App\Modules\Orders\Enums\SellerOrderStatus;
 use App\Modules\Orders\Enums\ShipmentStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
+use App\Support\HasEntryStates;
 use App\Support\StatusRegistry;
 use App\Support\StatusTransitions;
 use BackedEnum;
@@ -76,9 +77,23 @@ final class StateMachineTest extends TestCase
                 }
             }
 
-            $cases = $enum::cases();
-            // The first case is the entry state and needs no inbound edge.
-            $shouldBeReachable = array_slice($cases, 1);
+            /*
+             * Entry states need no inbound edge. Almost every machine has
+             * exactly one and it is the first case; the seller ledger
+             * declares several, because an entry is created in whichever
+             * state its money is already in. See HasEntryStates.
+             */
+            /** @var array<int, BackedEnum> $entryCases */
+            $entryCases = is_a($enum, HasEntryStates::class, true)
+                ? $enum::entryStates()
+                : [$enum::cases()[0]];
+
+            $entry = array_map(static fn (BackedEnum $case): string => (string) $case->value, $entryCases);
+
+            $shouldBeReachable = array_filter(
+                $enum::cases(),
+                static fn (BackedEnum $case): bool => ! in_array((string) $case->value, $entry, true),
+            );
 
             foreach ($shouldBeReachable as $case) {
                 $this->assertArrayHasKey(

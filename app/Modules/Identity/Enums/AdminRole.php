@@ -58,6 +58,12 @@ enum AdminRole: string
                 AdminPermission::InventoryView,
                 AdminPermission::InventoryAdjust,
                 AdminPermission::InventoryAudit,
+                // Sees the payout queue and can pick a request up for
+                // review. Deciding one is finance's, and settling one —
+                // the only payout action that writes to a seller's ledger
+                // — is finance's alone.
+                AdminPermission::ViewPayouts,
+                AdminPermission::ReviewPayouts,
             ],
 
             // Governs sellers. Deliberately holds no finance or catalogue
@@ -111,7 +117,20 @@ enum AdminRole: string
                 AdminPermission::ViewSellerEarnings,
                 AdminPermission::ViewEarningsClearing,
                 AdminPermission::ViewFulfilment,
+                // Finance runs the payout queue end to end. Phase 1 lets
+                // one finance admin review, approve and settle: inventing
+                // mandatory dual control nobody asked for teaches people
+                // to share a login. The four actor columns are recorded on
+                // every request, so a policy requiring different people is
+                // a check to add rather than a schema to change.
                 AdminPermission::DecidePayouts,
+                AdminPermission::ViewPayouts,
+                AdminPermission::ReviewPayouts,
+                AdminPermission::ApprovePayouts,
+                AdminPermission::RejectPayouts,
+                AdminPermission::SettlePayouts,
+                AdminPermission::ViewPayoutsSensitive,
+                AdminPermission::AdjustSellerFinance,
             ],
 
             self::Support => [
@@ -128,13 +147,23 @@ enum AdminRole: string
                 // Likewise stock: "is it actually out of stock" is a
                 // support question, "make it not be" is not.
                 AdminPermission::InventoryView,
+                // "Has my payout gone out yet" is asked of support every
+                // day. Approving it, settling it, and seeing which
+                // account it goes to are all withheld.
+                AdminPermission::ViewPayouts,
             ],
 
+            /*
+             * Aggregates, and nothing that names a seller's bank details.
+             * An analyst reporting on payout volume needs the totals; the
+             * destination behind each one is not part of the question.
+             */
             self::Analyst => [
                 AdminPermission::ViewDashboard,
                 AdminPermission::ViewOrders,
                 AdminPermission::CatalogueView,
                 AdminPermission::InventoryView,
+                AdminPermission::ViewPayouts,
             ],
         };
     }

@@ -50,3 +50,14 @@ Schedule::job(new ExpireCheckoutAttempts)->everyMinute()->withoutOverlapping();
 Schedule::command('earnings:clear')->hourly()->withoutOverlapping();
 
 Schedule::command('inventory:reconcile')->dailyAt('03:15');
+
+/*
+ * Does the seller money add up?
+ *
+ * Reads only, and reports rather than repairs — a discrepancy in a
+ * financial ledger is something a person has to look at, and a sweep that
+ * quietly fixed it would destroy the evidence of what caused it. Daily,
+ * just after the inventory reconciliation, so both land before anyone
+ * looks at a dashboard.
+ */
+Schedule::command('finance:reconcile-sellers')->dailyAt('03:30');

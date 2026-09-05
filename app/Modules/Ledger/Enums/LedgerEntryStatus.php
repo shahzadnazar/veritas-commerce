@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Ledger\Enums;
 
+use App\Support\HasEntryStates;
 use App\Support\HasStatusTone;
 use App\Support\StatusTone;
 use App\Support\StatusTransitions;
@@ -24,13 +25,32 @@ use App\Support\StatusTransitions;
  * money twice. Holds live in `payout_allocations` (M7), and this enum
  * answers only one question: has this money finished clearing.
  */
-enum LedgerEntryStatus: string implements HasStatusTone, StatusTransitions
+enum LedgerEntryStatus: string implements HasEntryStates, HasStatusTone, StatusTransitions
 {
     case Pending = 'pending';
     case Clearing = 'clearing';
     case Available = 'available';
     case Paid = 'paid';
     case Reversed = 'reversed';
+
+    /**
+     * Where an entry can be created, as opposed to where it can move to.
+     *
+     * PENDING   an earning whose order has not been delivered.
+     * CLEARING  an earning on a delivered order, or an adjustment credit.
+     * AVAILABLE a reversal against money that had already cleared, and an
+     *           adjustment debit, both of which must bite immediately.
+     * PAID      the debit a settled payout appends. It is created spent
+     *           and stays that way; nothing transitions into it, because
+     *           the money did not pass through this state on its way
+     *           anywhere — it left.
+     *
+     * @return array<int, self>
+     */
+    public static function entryStates(): array
+    {
+        return [self::Pending, self::Clearing, self::Available, self::Paid];
+    }
 
     public function allowedTransitions(): array
     {

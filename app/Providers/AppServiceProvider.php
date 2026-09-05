@@ -42,6 +42,14 @@ use App\Modules\Payments\Contracts\PaymentProvider;
 use App\Modules\Payments\Events\PaymentFailed;
 use App\Modules\Payments\Events\PaymentSucceeded;
 use App\Modules\Payments\Listeners\AnnouncePaidOrder;
+use App\Modules\Payouts\Contracts\PayoutProvider;
+use App\Modules\Payouts\Events\PayoutApproved;
+use App\Modules\Payouts\Events\PayoutFailed;
+use App\Modules\Payouts\Events\PayoutPaid;
+use App\Modules\Payouts\Events\PayoutRejected;
+use App\Modules\Payouts\Events\PayoutRequested;
+use App\Modules\Payouts\Listeners\AnnouncePayout;
+use App\Modules\Payouts\Providers\ManualPayoutProvider;
 use App\Modules\Search\Adapters\PostgresSearchIndex;
 use App\Modules\Search\Contracts\IndexableProductSource;
 use App\Modules\Search\Contracts\SearchIndex;
@@ -100,6 +108,18 @@ final class AppServiceProvider extends ServiceProvider
                 (string) config('veritas.payments.stripe.webhook_secret'),
             );
         });
+
+        /*
+         * The payout port.
+         *
+         * One implementation, and it refuses to send money. M7 records
+         * settlements that people performed outside the platform; there is
+         * no rail, and an adapter that quietly returned "succeeded" would
+         * make the code read as though there were. Binding it here means a
+         * future Stripe Connect adapter is one line and no change to the
+         * payout domain.
+         */
+        $this->app->bind(PayoutProvider::class, ManualPayoutProvider::class);
     }
 
     public function boot(): void
@@ -189,6 +209,18 @@ final class AppServiceProvider extends ServiceProvider
          */
         Event::listen(ShipmentShipped::class, [AnnounceFulfilment::class, 'shipped']);
         Event::listen(ShipmentDelivered::class, [AnnounceFulfilment::class, 'delivered']);
+
+        /*
+         * Payout announcements, to the store's owners only. Approval and
+         * settlement are two separate messages on purpose: the first says
+         * authorised, the second says sent, and collapsing them is how a
+         * seller is told money arrived that has not.
+         */
+        Event::listen(PayoutRequested::class, [AnnouncePayout::class, 'requested']);
+        Event::listen(PayoutApproved::class, [AnnouncePayout::class, 'approved']);
+        Event::listen(PayoutRejected::class, [AnnouncePayout::class, 'rejected']);
+        Event::listen(PayoutPaid::class, [AnnouncePayout::class, 'paid']);
+        Event::listen(PayoutFailed::class, [AnnouncePayout::class, 'failed']);
 
         Event::listen(SellerOrderConfirmed::class, [RecordFulfilmentActivity::class, 'confirmed']);
         Event::listen(ShipmentCreated::class, [RecordFulfilmentActivity::class, 'shipmentCreated']);

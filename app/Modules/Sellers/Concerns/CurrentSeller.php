@@ -99,6 +99,7 @@ final class CurrentSeller
             SellerPermission::InventoryManage,
             SellerPermission::OrdersManage,
             SellerPermission::PayoutsRequest,
+            SellerPermission::PayoutAccountManage,
         ], true);
     }
 

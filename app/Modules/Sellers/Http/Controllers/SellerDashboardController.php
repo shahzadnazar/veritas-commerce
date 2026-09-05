@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Sellers\Http\Controllers;
 
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
-use App\Modules\Ledger\Queries\SellerBalance;
 use App\Modules\Orders\Enums\SellerOrderStatus;
+use App\Modules\Payouts\Queries\EvaluatePayoutEligibility;
+use App\Modules\Payouts\Queries\GetSellerFinancialPosition;
+use App\Modules\Payouts\Support\PayoutPolicy;
 use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Sellers\Enums\SellerPermission;
+use App\Modules\Sellers\Models\SellerAccount;
 use App\Modules\Stores\Models\Store;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +39,10 @@ use Inertia\Response;
  */
 final class SellerDashboardController
 {
-    public function __construct(private readonly SellerBalance $balance) {}
+    public function __construct(
+        private readonly GetSellerFinancialPosition $position,
+        private readonly EvaluatePayoutEligibility $eligibility,
+    ) {}
 
     public function __invoke(): Response
     {
@@ -83,7 +89,7 @@ final class SellerDashboardController
 
         return Inertia::render('Dashboard', [
             'fulfilment' => $canSeeOrders ? $this->fulfilmentCounts($seller->id) : null,
-            'earnings' => $canSeeFinance ? $this->earnings($seller->id) : null,
+            'earnings' => $canSeeFinance ? $this->earnings($seller) : null,
             'seller' => [
                 'legalName' => $seller->legal_name,
                 'reference' => $seller->public_id,
@@ -103,6 +109,7 @@ final class SellerDashboardController
                 'manageMembers' => CurrentSeller::can(SellerPermission::MembersManage),
                 'seeFinance' => $canSeeFinance,
                 'seeOrders' => $canSeeOrders,
+                'seePayouts' => CurrentSeller::can(SellerPermission::PayoutsView),
             ],
         ]);
     }
@@ -151,42 +158,41 @@ final class SellerDashboardController
     }
 
     /**
-     * The three states of a seller's money, from the ledger.
+     * The seller's money, and whether they can ask for any of it.
      *
-     * §67 and §68. Never summed from delivered orders or from the seller
-     * orders' own earning totals: those are summaries of intent and drift
-     * the moment a refund is issued. The ledger is the financial record,
-     * and a reversal against an available earning reduces what is
-     * available — which is exactly the number M7 will pay out against.
+     * Both come from the domain: the five figures from
+     * GetSellerFinancialPosition, and can-they-withdraw from
+     * EvaluatePayoutEligibility — the same service RequestPayout consults
+     * inside its transaction, so the button and the action cannot disagree.
+     *
+     * M6's `payoutsAvailable => false` is gone. It was honest then and
+     * would be a lie now; what replaces it is a real answer with a real
+     * reason attached, and React renders it rather than deciding it (§17).
      *
      * @return array<string, mixed>
      */
-    private function earnings(int $sellerAccountId): array
+    private function earnings(SellerAccount $seller): array
     {
-        $balance = ($this->balance)($sellerAccountId);
+        $currency = PayoutPolicy::currency();
+        $position = ($this->position)($seller->id, $currency);
 
         $nextRelease = DB::table('seller_ledger_entries')
-            ->where('seller_account_id', $sellerAccountId)
+            ->where('seller_account_id', $seller->id)
+            ->where('currency', $currency)
             ->where('status', LedgerEntryStatus::Clearing->value)
             ->whereNotNull('available_at')
             ->min('available_at');
 
-        return [
-            'pending' => $balance['pending']->format(),
-            'clearing' => $balance['clearing']->format(),
-            'available' => $balance['available']->format(),
-            'pendingMinor' => $balance['pending']->minor,
-            'clearingMinor' => $balance['clearing']->minor,
-            'availableMinor' => $balance['available']->minor,
+        return array_merge($position->toArray(), [
             'nextReleaseAt' => is_string($nextRelease)
                 ? Carbon::parse($nextRelease)->toIso8601String()
                 : null,
-            /*
-             * Said in words on the screen too, because "available" is the
-             * only one of the three a seller can act on — and M7 is where
-             * acting on it becomes possible.
-             */
-            'payoutsAvailable' => false,
-        ];
+            'eligibility' => ($this->eligibility)(
+                $seller,
+                $currency,
+                CurrentSeller::can(SellerPermission::PayoutsRequest),
+                $position,
+            )->toArray(),
+        ]);
     }
 }

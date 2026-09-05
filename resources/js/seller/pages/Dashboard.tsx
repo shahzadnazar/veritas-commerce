@@ -3,6 +3,8 @@ import { SellerLayout } from '../layouts/SellerLayout';
 import { Button } from '../../design-system/primitives/Button';
 import { StatusBadge } from '../../design-system/primitives/StatusBadge';
 import { FlashBanner } from '../../design-system/patterns/States';
+import { BalancePanel } from '../components/BalancePanel';
+import type { PayoutEligibilityView, SellerFinancialPositionView } from '../../shared/commerce';
 import type { SharedPageProps } from '../../shared/types';
 
 interface SetupStep {
@@ -37,21 +39,18 @@ interface DashboardProps extends SharedPageProps {
         lowStock: number;
     } | null;
     /** Null when this member's role cannot see the money. */
-    earnings: {
-        pending: string;
-        clearing: string;
-        available: string;
-        pendingMinor: number;
-        clearingMinor: number;
-        availableMinor: number;
-        nextReleaseAt: string | null;
-        payoutsAvailable: boolean;
-    } | null;
+    earnings:
+        | (SellerFinancialPositionView & {
+              nextReleaseAt: string | null;
+              eligibility: PayoutEligibilityView;
+          })
+        | null;
     can: {
         manageStore: boolean;
         manageMembers: boolean;
         seeFinance: boolean;
         seeOrders: boolean;
+        seePayouts: boolean;
     };
 }
 
@@ -130,41 +129,38 @@ export default function Dashboard() {
             ) : null}
 
             {earnings !== null ? (
-                <section aria-labelledby="earnings-heading" className="mb-10">
-                    <h2 id="earnings-heading" className="mb-1 text-[20px]">
-                        Your earnings
-                    </h2>
-                    <p className="mb-3 text-[13px] text-[var(--vc-neutral-700)]">
-                        Money is recorded when a customer pays, starts clearing when you deliver,
-                        and becomes available after the clearing period.
-                    </p>
+                <section className="mb-10">
+                    {/*
+                     * The five figures and the withdrawable answer come
+                     * from the backend, and the CTA below appears only
+                     * when the backend says a payout can be made. §73:
+                     * React does not recreate the eligibility rule.
+                     */}
+                    <BalancePanel
+                        position={earnings}
+                        eligibility={earnings.eligibility}
+                        nextReleaseAt={earnings.nextReleaseAt}
+                    />
 
-                    <dl className="grid gap-3 sm:grid-cols-3">
-                        <Balance
-                            label="Pending"
-                            amount={earnings.pending}
-                            note="Paid for, not yet delivered."
-                        />
-                        <Balance
-                            label="Clearing"
-                            amount={earnings.clearing}
-                            note={
-                                earnings.nextReleaseAt
-                                    ? `Next release ${new Date(earnings.nextReleaseAt).toLocaleDateString()}.`
-                                    : 'Delivered, inside the clearing period.'
-                            }
-                        />
-                        <Balance
-                            label="Available"
-                            amount={earnings.available}
-                            note={
-                                earnings.payoutsAvailable
-                                    ? 'Ready to withdraw.'
-                                    : 'Cleared. Withdrawals are not open yet.'
-                            }
-                            emphasis
-                        />
-                    </dl>
+                    {can.seePayouts ? (
+                        <p className="mt-3 text-[13px]">
+                            {earnings.eligibility.canRequest ? (
+                                <Link
+                                    href="/seller/payouts"
+                                    className="underline underline-offset-4"
+                                >
+                                    Request a payout
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/seller/earnings"
+                                    className="underline underline-offset-4"
+                                >
+                                    See your statement
+                                </Link>
+                            )}
+                        </p>
+                    ) : null}
                 </section>
             ) : null}
 
@@ -305,33 +301,5 @@ function WorkCount({
                 <span className="mt-1 block text-[13px] text-[var(--vc-neutral-700)]">{label}</span>
             </Link>
         </li>
-    );
-}
-
-/** One of the three states a seller's money can be in. */
-function Balance({
-    label,
-    amount,
-    note,
-    emphasis = false,
-}: {
-    label: string;
-    amount: string;
-    note: string;
-    emphasis?: boolean;
-}) {
-    return (
-        <div
-            className={[
-                'border-2 p-4',
-                emphasis ? 'border-[var(--vc-text)]' : 'border-[var(--vc-divider)]',
-            ].join(' ')}
-        >
-            <dt className="text-[12px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase">
-                {label}
-            </dt>
-            <dd className="vc-tabular mt-1 text-[24px] leading-none">{amount}</dd>
-            <p className="mt-2 text-[12px] text-[var(--vc-neutral-700)]">{note}</p>
-        </div>
     );
 }
