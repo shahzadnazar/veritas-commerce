@@ -11,6 +11,7 @@ use App\Support\HasEntryStates;
 use App\Support\StatusRegistry;
 use App\Support\StatusTransitions;
 use BackedEnum;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -47,6 +48,36 @@ final class StateMachineTest extends TestCase
                     );
                 }
             }
+        }
+    }
+
+    /**
+     * The enum's idea of "open" and the database's must agree.
+     *
+     * `payout_requests_one_open_per_seller` is a partial unique index over
+     * a literal list of statuses, and PayoutStatus::openValues() is the
+     * application's list. A status added to one and forgotten in the other
+     * would silently let a seller hold two payouts at once, which is the
+     * one thing that index exists to prevent.
+     */
+    #[Test]
+    public function the_open_payout_statuses_match_the_database_index(): void
+    {
+        $definition = (string) DB::selectOne(
+            "select indexdef from pg_indexes where indexname = 'payout_requests_one_open_per_seller'"
+        )?->indexdef;
+
+        $this->assertNotSame('', $definition, 'The one-open-payout index must exist.');
+
+        foreach (PayoutStatus::cases() as $status) {
+            $inIndex = str_contains($definition, "'{$status->value}'");
+
+            $this->assertSame(
+                $status->holdsBalance(),
+                $inIndex,
+                "payout.{$status->value} is ".($inIndex ? 'in' : 'not in').
+                ' the database index but holdsBalance() says otherwise.',
+            );
         }
     }
 

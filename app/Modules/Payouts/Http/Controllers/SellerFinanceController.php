@@ -11,6 +11,7 @@ use App\Modules\Payouts\Actions\RequestPayout;
 use App\Modules\Payouts\Actions\SavePayoutDestination;
 use App\Modules\Payouts\Data\PayoutActor;
 use App\Modules\Payouts\Data\PayoutEligibility;
+use App\Modules\Payouts\Data\SellerFinancialPosition;
 use App\Modules\Payouts\Enums\PayoutAccountType;
 use App\Modules\Payouts\Exceptions\PayoutNotPermitted;
 use App\Modules\Payouts\Models\PayoutAccount;
@@ -23,6 +24,7 @@ use App\Modules\Payouts\Support\PayoutPolicy;
 use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Sellers\Enums\SellerPermission;
 use App\Modules\Sellers\Models\SellerAccount;
+use App\Modules\Sellers\Models\SellerMembership;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +52,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final class SellerFinanceController
 {
+    private ?SellerMembership $membership = null;
+
     public function __construct(
         private readonly GetSellerFinancialPosition $position,
         private readonly EvaluatePayoutEligibility $eligibility,
@@ -63,14 +67,18 @@ final class SellerFinanceController
         $seller = $this->seller();
         $currency = PayoutPolicy::currency();
 
+        // Read once and handed to both: the figures on the screen and the
+        // eligibility answer beside them must come from one balance.
+        $position = ($this->position)($seller->id, $currency);
+
         return Inertia::render('Earnings', [
-            'position' => ($this->position)($seller->id, $currency)->toArray(),
+            'position' => $position->toArray(),
             'statement' => app(BuildSellerStatement::class)(
                 $seller->id,
                 $currency,
                 perPage: 25,
             ),
-            'eligibility' => $this->eligibilityFor($seller, $currency)->toArray(),
+            'eligibility' => $this->eligibilityFor($seller, $currency, $position)->toArray(),
             'can' => $this->capabilities(),
         ]);
     }
@@ -89,9 +97,11 @@ final class SellerFinanceController
             ->map(fn (PayoutRequest $payout): array => $this->view->summarise($payout))
             ->all();
 
+        $position = ($this->position)($seller->id, $currency);
+
         return Inertia::render('Payouts/Index', [
-            'position' => ($this->position)($seller->id, $currency)->toArray(),
-            'eligibility' => $this->eligibilityFor($seller, $currency)->toArray(),
+            'position' => $position->toArray(),
+            'eligibility' => $this->eligibilityFor($seller, $currency, $position)->toArray(),
             'payouts' => $payouts,
             'destination' => $this->destinationFor($seller),
             'can' => $this->capabilities(),
@@ -130,7 +140,7 @@ final class SellerFinanceController
                 amountMinor: (int) $validated['amount_minor'],
                 currency: PayoutPolicy::currency(),
                 actor: $this->actor($request),
-                actorMayRequest: CurrentSeller::can(SellerPermission::PayoutsRequest),
+                actorMayRequest: CurrentSeller::allows($this->membership(), SellerPermission::PayoutsRequest),
             );
         } catch (PayoutNotPermitted $refused) {
             throw ValidationException::withMessages(['amount_minor' => $refused->getMessage()]);
@@ -216,7 +226,7 @@ final class SellerFinanceController
             // can choose. The column exists because the next rail will.
             type: PayoutAccountType::Manual,
             last4: $validated['last4'] ?? null,
-            country: $validated['country'] === null ? null : strtoupper($validated['country']),
+            country: isset($validated['country']) ? strtoupper((string) $validated['country']) : null,
             currency: PayoutPolicy::currency(),
         );
 
@@ -225,21 +235,40 @@ final class SellerFinanceController
 
     // ---------------------------------------------------------------
 
+    /**
+     * The membership, resolved once per request.
+     *
+     * These screens ask three capability questions and look the seller up
+     * twice; CurrentSeller::can() re-reads the membership and its account
+     * on every call, so asking it six times is twelve queries to answer
+     * "what may this person do here". Resolved once, and every question
+     * goes to CurrentSeller::allows() — which is still the one place the
+     * suspension rule lives.
+     */
+    private function membership(): ?SellerMembership
+    {
+        return $this->membership ??= CurrentSeller::membership();
+    }
+
     private function seller(): SellerAccount
     {
-        $seller = CurrentSeller::membership()?->sellerAccount;
+        $seller = $this->membership()?->sellerAccount;
 
         abort_if($seller === null, 404);
 
         return $seller;
     }
 
-    private function eligibilityFor(SellerAccount $seller, string $currency): PayoutEligibility
-    {
+    private function eligibilityFor(
+        SellerAccount $seller,
+        string $currency,
+        ?SellerFinancialPosition $position = null,
+    ): PayoutEligibility {
         return ($this->eligibility)(
             $seller,
             $currency,
-            CurrentSeller::can(SellerPermission::PayoutsRequest),
+            CurrentSeller::allows($this->membership(), SellerPermission::PayoutsRequest),
+            $position,
         );
     }
 
@@ -267,9 +296,9 @@ final class SellerFinanceController
     private function capabilities(): array
     {
         return [
-            'viewPayouts' => CurrentSeller::can(SellerPermission::PayoutsView),
-            'requestPayout' => CurrentSeller::can(SellerPermission::PayoutsRequest),
-            'manageDestination' => CurrentSeller::can(SellerPermission::PayoutAccountManage),
+            'viewPayouts' => CurrentSeller::allows($this->membership(), SellerPermission::PayoutsView),
+            'requestPayout' => CurrentSeller::allows($this->membership(), SellerPermission::PayoutsRequest),
+            'manageDestination' => CurrentSeller::allows($this->membership(), SellerPermission::PayoutAccountManage),
             'minimum' => Money::of(PayoutPolicy::minimumMinor(), PayoutPolicy::currency())->format(),
             'minimumMinor' => PayoutPolicy::minimumMinor(),
             'currency' => PayoutPolicy::currency(),

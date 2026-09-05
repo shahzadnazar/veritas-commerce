@@ -68,10 +68,6 @@ final class EvaluatePayoutEligibility
             return $refuse(PayoutIneligibility::OpenPayoutExists, $open->reference);
         }
 
-        if (PayoutPolicy::requiresDestination() && ! $this->hasDestination($seller->id, $currency)) {
-            return $refuse(PayoutIneligibility::PayoutAccountRequired);
-        }
-
         /*
          * Negative before empty. "You have nothing available" and "you owe
          * the platform money after a refund" are different situations and
@@ -88,6 +84,20 @@ final class EvaluatePayoutEligibility
 
         if ($withdrawable < $minimum) {
             return $refuse(PayoutIneligibility::BelowMinimum);
+        }
+
+        /*
+         * The destination is asked for last on purpose.
+         *
+         * It is the only refusal here that is a task rather than a state
+         * of affairs, and prompting a brand-new seller with no cleared
+         * money to "add a payout destination" tells them to do something
+         * that will not help — the reason they cannot withdraw is that
+         * there is nothing to withdraw. Asked at this point, the prompt
+         * appears exactly when it is the thing standing in their way.
+         */
+        if (PayoutPolicy::requiresDestination() && ! $this->hasDestination($seller->id, $currency)) {
+            return $refuse(PayoutIneligibility::PayoutAccountRequired);
         }
 
         return PayoutEligibility::allowed($withdrawable, $minimum, $currency);

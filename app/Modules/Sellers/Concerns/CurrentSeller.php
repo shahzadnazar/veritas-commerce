@@ -70,8 +70,20 @@ final class CurrentSeller
      */
     public static function can(SellerPermission $permission): bool
     {
-        $membership = self::membership();
+        return self::allows(self::membership(), $permission);
+    }
 
+    /**
+     * The same question, asked of a membership the caller already has.
+     *
+     * `can()` resolves the membership every time it is called, which is
+     * fine for one check in a middleware and wasteful for a screen that
+     * asks four. A page that needs several answers resolves the membership
+     * once and comes here — one place still decides, and the suspension
+     * rule below is not duplicated at the call site.
+     */
+    public static function allows(?SellerMembership $membership, SellerPermission $permission): bool
+    {
         if ($membership === null) {
             return false;
         }

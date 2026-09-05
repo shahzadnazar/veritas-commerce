@@ -613,6 +613,126 @@ jobs:
                   test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/admin/payments/${ref}/refunds" \
                       -d 'reason=trying it on' -d 'lines[0][order_item_id]=1' -d 'lines[0][amount_minor]=100')" = "302"
 
+            - name: A payout is requested, approved, settled and refunded in the built image
+              run: |
+                  # The whole payout lifecycle against the container's real
+                  # PostgreSQL and Redis, through the domain actions the
+                  # portals call: earn, clear, request, reserve, review,
+                  # approve, settle — then a refund lands behind the money
+                  # that already left. One order with two sellers, so
+                  # "the other seller was untouched" is a claim about a
+                  # store that was genuinely in the way.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m7-payout-smoke.php";' > m7.txt
+                  cat m7.txt
+
+                  grep -q 'order=VC-.* sellers=2' m7.txt
+
+                  # Delivered and swept: both stores have money, neither
+                  # has anything held.
+                  grep -q 'cleared a_available=15840 a_withdrawable=15840 a_reserved=0 b_withdrawable=5280' m7.txt
+
+                  # §4: the request holds the money without moving the
+                  # ledger. Available is historically unchanged.
+                  grep -q 'requested payout=PO-.* amount=7920 reserved=7920 withdrawable=7920 available=15840' m7.txt
+
+                  # §24: approval authorises a transfer and makes none.
+                  grep -q 'approved status=approved reserved=7920 debits=0' m7.txt
+
+                  # §29 and §53: settling closes the hold AND posts exactly
+                  # one debit, and subtracts once — 15,840 less 7,920
+                  # leaves 7,920, not -7,920 and not 15,840. Recorded three
+                  # times over, because a retried job must not pay twice.
+                  grep -q 'settled status=paid reserved=0 withdrawable=7920 paid_out=7920 debits=1 ref=CI-FT-0001' m7.txt
+
+                  # §85: the other seller in the same order is untouched.
+                  grep -q 'isolation_after_payout b_withdrawable=5280 b_paid_out=0 b_payouts=0' m7.txt
+
+                  # §42: a refund lands behind the money that already left.
+                  # Neither historical record moves and the store ends up
+                  # owing the platform — 15,840 less 7,920 paid less
+                  # 11,880 refunded is -3,960.
+                  grep -q 'post_refund a_net=-3960 a_paid_out=7920 payout_status=paid payout_amount=7920' m7.txt
+                  grep -q 'isolation_after_refund b_net=5280 b_withdrawable=5280' m7.txt
+
+                  # §48: and nothing further can be withdrawn.
+                  grep -q 'blocked reason=negative_balance' m7.txt
+
+                  # §41 and §89: after all of that, the money still adds up.
+                  grep -q 'reconcile problems=0' m7.txt
+                  grep -q 'reconcile_command Seller finance reconciles in USD.' m7.txt
+                  ! grep -q 'reconcile_problem' m7.txt
+
+            - name: The finance surfaces answer over HTTP and stay private
+              run: |
+                  base=http://127.0.0.1:8000
+                  payout=$(grep '^payout_reference=' m7.txt | cut -d= -f2 | tr -d '\r')
+                  test -n "$payout"
+
+                  xsrf() { grep XSRF-TOKEN "$1" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))'; }
+
+                  # The seller sees their own statement and their payout.
+                  seller=$(mktemp)
+                  curl -fsS -b "$seller" -c "$seller" -o /dev/null "$base/login"
+                  test "$(curl -s -b "$seller" -c "$seller" -o /dev/null -w '%{http_code}' -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf "$seller")" \
+                      -d 'email=m7-seller@veritas.test' -d 'password=m4-smoke-password')" = "302"
+
+                  # SSR is storefront-only by design, so the portal's
+                  # assertions are made against the props the server sent
+                  # rather than against rendered headings — which is the
+                  # stronger check anyway: it is the data, not the layout.
+                  earnings=$(curl -fsS -b "$seller" -c "$seller" "$base/seller/earnings")
+                  echo "$earnings" | grep -q '"component":"Earnings"'
+                  echo "$earnings" | grep -q '"paidOutMinor":7920'
+                  echo "$earnings" | grep -q '"netBalanceMinor":-3960'
+                  echo "$earnings" | grep -q '"reason":"negative_balance"'
+                  echo "$earnings" | grep -q '"canRequest":false'
+                  # The statement is the ledger, and it names the order.
+                  echo "$earnings" | grep -q '"typeLabel":"Payout"'
+                  echo "$earnings" | grep -q '"referenceKind":"order"'
+
+                  detail=$(curl -fsS -b "$seller" -c "$seller" "$base/seller/payouts/${payout}")
+                  echo "$detail" | grep -q "${payout}"
+                  echo "$detail" | grep -q '"status":"paid"'
+                  echo "$detail" | grep -q '"settlementReference":"CI-FT-0001"'
+                  # §6: the allocations say which earnings funded it, and
+                  # they settled rather than being released.
+                  echo "$detail" | grep -q '"allocations":\[{"id"'
+                  echo "$detail" | grep -q '"statusLabel":"Settled"'
+                  # §20: the seller is never shown provider internals.
+                  ! echo "$detail" | grep -q '"providerReference"'
+
+                  # A stranger reaches neither, and a payout reference is
+                  # not a credential (§116).
+                  stranger=$(mktemp)
+                  curl -fsS -b "$stranger" -c "$stranger" -o /dev/null "$base/login"
+                  curl -s -b "$stranger" -c "$stranger" -o /dev/null -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf "$stranger")" \
+                      -d 'email=m4-stranger@veritas.test' -d 'password=m4-smoke-password'
+
+                  test "$(curl -s -b "$stranger" -o /dev/null -w '%{http_code}' "$base/seller/payouts/${payout}")" = "404"
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/seller/payouts/${payout}")" = "302"
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/payouts/${payout}")" = "302"
+
+                  # §114 and §115: finance pages are never a search result.
+                  for path in "/seller/earnings" "/seller/payouts" "/seller/payouts/${payout}"; do
+                      curl -sD - -o /dev/null -b "$seller" "${base}${path}" | grep -qi 'X-Robots-Tag: noindex, nofollow'
+                  done
+
+                  # And a seller session is not an admin session: with a
+                  # valid CSRF token, so this proves authorisation rather
+                  # than proving the token check works.
+                  test "$(curl -s -b "$seller" -c "$seller" -o /dev/null -w '%{http_code}' -X POST \
+                      "$base/admin/payouts/${payout}/approve" \
+                      -H "X-XSRF-TOKEN: $(xsrf "$seller")")" = "302"
+
+            - name: Seller finance reconciles in the built image
+              run: |
+                  # §89: the reconciliation is its own gate. A green test
+                  # suite is not the same as a ledger that adds up.
+                  docker compose exec -T app php artisan finance:reconcile-sellers
+
             - name: The inventory ledger reconciles in the built image
               run: |
                   # The stored `reserved` column is only safe because

@@ -106,8 +106,15 @@ final class SellerDashboardTest extends TestCase
                 ->where('earnings.clearingMinor', 8_800)
                 ->where('earnings.availableMinor', 0)
                 ->has('earnings.nextReleaseAt')
-                // §90: no payout anywhere in M6, said in the data too.
-                ->where('earnings.payoutsAvailable', false));
+                /*
+                 * M6 said `payoutsAvailable => false` here, which was true
+                 * then and would be a lie now. M7 replaces it with a real
+                 * answer and a real reason: nothing has cleared, so there
+                 * is nothing to withdraw, and the seller is told which.
+                 */
+                ->where('earnings.withdrawableMinor', 0)
+                ->where('earnings.eligibility.canRequest', false)
+                ->where('earnings.eligibility.reason', 'no_available_balance'));
 
         // Once it clears, it moves — and only then.
         $this->travel(8)->days();

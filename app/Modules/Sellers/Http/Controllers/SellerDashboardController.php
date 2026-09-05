@@ -12,6 +12,7 @@ use App\Modules\Payouts\Support\PayoutPolicy;
 use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Sellers\Enums\SellerPermission;
 use App\Modules\Sellers\Models\SellerAccount;
+use App\Modules\Sellers\Models\SellerMembership;
 use App\Modules\Stores\Models\Store;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +90,7 @@ final class SellerDashboardController
 
         return Inertia::render('Dashboard', [
             'fulfilment' => $canSeeOrders ? $this->fulfilmentCounts($seller->id) : null,
-            'earnings' => $canSeeFinance ? $this->earnings($seller) : null,
+            'earnings' => $canSeeFinance ? $this->earnings($seller, $membership) : null,
             'seller' => [
                 'legalName' => $seller->legal_name,
                 'reference' => $seller->public_id,
@@ -171,7 +172,7 @@ final class SellerDashboardController
      *
      * @return array<string, mixed>
      */
-    private function earnings(SellerAccount $seller): array
+    private function earnings(SellerAccount $seller, SellerMembership $membership): array
     {
         $currency = PayoutPolicy::currency();
         $position = ($this->position)($seller->id, $currency);
@@ -190,7 +191,7 @@ final class SellerDashboardController
             'eligibility' => ($this->eligibility)(
                 $seller,
                 $currency,
-                CurrentSeller::can(SellerPermission::PayoutsRequest),
+                CurrentSeller::allows($membership, SellerPermission::PayoutsRequest),
                 $position,
             )->toArray(),
         ]);

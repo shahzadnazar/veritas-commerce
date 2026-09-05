@@ -126,6 +126,68 @@ InventoryBalance::query()->firstOrCreate(
 
 app(AdjustInventory::class)->openingStock($grinder, 25, 'seller', $otherUser->id);
 
+/*
+ * Two more stores, for the finance smoke.
+ *
+ * The M7 assertions are exact figures — "settling 7,920 out of 15,840
+ * leaves 7,920" — and exact figures need stores whose ledgers start empty.
+ * The M4 and M6 sellers have already earned and cleared by the time the
+ * payout step runs, so they get their own pair rather than having every
+ * M7 assertion turned into a delta nobody can read.
+ */
+$financeUser = $makeUser('m7-seller@veritas.test', 'Finance');
+$financeOtherUser = $makeUser('m7-other-seller@veritas.test', 'Finance other');
+
+$makeStore = static function (User $user, string $name, string $title, int $priceMinor) use ($makeUser): Offer {
+    $account = SellerAccount::factory()->create(['status' => SellerStatus::Approved->value]);
+
+    $store = Store::factory()->create([
+        'seller_account_id' => $account->id,
+        'is_open' => true,
+        'name' => $name,
+    ]);
+
+    SellerMembership::factory()->create([
+        'seller_account_id' => $account->id,
+        'user_id' => $user->id,
+        'role' => SellerRole::Owner->value,
+    ]);
+
+    $product = Product::factory()->create([
+        'title' => $title,
+        'status' => ProductStatus::Published->value,
+        'published_at' => now(),
+    ]);
+
+    $offer = Offer::factory()->create([
+        'seller_account_id' => $account->id,
+        'store_id' => $store->id,
+        'product_id' => $product->id,
+        'product_variant_id' => null,
+        'price_minor' => $priceMinor,
+        'status' => OfferStatus::Published->value,
+    ]);
+
+    $location = InventoryLocation::query()->firstOrCreate(
+        ['seller_account_id' => $account->id, 'is_default' => true],
+        ['name' => 'Default'],
+    );
+
+    InventoryBalance::query()->firstOrCreate(
+        ['offer_id' => $offer->id, 'inventory_location_id' => $location->id],
+        ['on_hand' => 0],
+    );
+
+    app(AdjustInventory::class)->openingStock($offer, 25, 'seller', $user->id);
+
+    return $offer;
+};
+
+$blender = $makeStore($financeUser, 'M7 Finance Store', 'M7 Smoke Blender', 4_500);
+$scale = $makeStore($financeOtherUser, 'M7 Second Store', 'M7 Smoke Scale', 6_000);
+
+echo 'blender='.$blender->public_id, PHP_EOL;
+echo 'scale='.$scale->public_id, PHP_EOL;
 echo 'offer='.$offer->public_id, PHP_EOL;
 echo 'grinder='.$grinder->public_id, PHP_EOL;
 echo 'product='.$product->slug, PHP_EOL;

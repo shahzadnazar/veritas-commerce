@@ -168,7 +168,15 @@ final class ModuleBoundaryTest extends TestCase
              * ledger row.
              */
             'Payments' => ['Orders', 'Ledger', 'Sellers'],
-            'Payouts' => ['Ledger'],
+            /*
+             * Payouts reads the ledger it is paid out of, and reads a
+             * user to say who asked and who to tell. Identity is the same
+             * coupling Orders and Payments already have: a payout belongs
+             * to a person as well as to a store. Every write still goes
+             * through the owning module's action — PostLedgerEntry
+             * remains the only thing that inserts a ledger row.
+             */
+            'Payouts' => ['Ledger', 'Identity'],
             'Ledger' => ['Orders'],
             'Stores' => ['Sellers'],
         ];
