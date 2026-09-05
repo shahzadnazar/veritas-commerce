@@ -42,3 +42,4 @@ Thumbs.db
 # and match phpunit.xml, and DestructiveDatabaseGuardTest asserts the two
 # stay in step. No production secret belongs in it.
 !.env.testing
+ops/load/.run/

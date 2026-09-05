@@ -214,6 +214,56 @@ final class ReviewSurfaceTest extends TestCase
     }
 
     /**
+     * The star histogram's payload shape, pinned.
+     *
+     * The page sends the distribution as a list of rows and the component
+     * renders the list. It was once sent as a list and read as a map
+     * keyed by star, which in JavaScript quietly resolves to a row object
+     * — and React refuses to render an object as a child, so the whole
+     * product page threw as soon as a product had a rating. The bug was
+     * invisible to the type checker because the declared type described
+     * the map that was never sent, and invisible to CI because the seeded
+     * product had no reviews and the histogram is skipped without one.
+     *
+     * Asserting the shape here means the TypeScript type and this test
+     * have to be changed together, which is the only pairing that makes
+     * the declared type mean anything.
+     */
+    #[Test]
+    public function the_rating_distribution_reaches_the_page_as_ordered_rows(): void
+    {
+        ['user' => $user, 'product' => $product] = $this->deliveredPurchase();
+
+        $this->review($user, $product, rating: 4);
+
+        $this->get('/products/'.$product->slug)
+            ->assertOk()
+            ->assertInertia(function (AssertableInertia $page): void {
+                /** @var array<int, mixed> $rows */
+                $rows = $page->toArray()['props']['rating']['distribution'];
+
+                // A list, not a map: sequential integer keys, five of
+                // them, highest star first.
+                $this->assertSame([0, 1, 2, 3, 4], array_keys($rows));
+                $this->assertSame(
+                    [5, 4, 3, 2, 1],
+                    array_map(static fn (array $row): int => $row['rating'], $rows),
+                );
+
+                // Every row carries the share the component draws the bar
+                // from, so the arithmetic stays on this side.
+                foreach ($rows as $row) {
+                    $this->assertSame(['rating', 'count', 'percent'], array_keys($row));
+                    $this->assertIsInt($row['count']);
+                    $this->assertIsInt($row['percent']);
+                }
+
+                $this->assertSame(1, $rows[1]['count']);
+                $this->assertSame(100, $rows[1]['percent']);
+            });
+    }
+
+    /**
      * §13: React escaping is not the only rendering context this text
      * reaches.
      *

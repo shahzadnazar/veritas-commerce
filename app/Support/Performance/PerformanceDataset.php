@@ -298,6 +298,23 @@ final class PerformanceDataset
     {
         $this->step('Categories, brands and products');
 
+        /*
+         * The platform's commission rate, which the application refuses
+         * to guess.
+         *
+         * Found by the load suite rather than the seeder's own tests: the
+         * admin dashboard returned 500 against a dataset with sixty
+         * thousand order items and no rule to have priced them. The rows
+         * carry a rate snapshot, so nothing recomputes — but any screen
+         * that asks "what is the rate now" is right to refuse, and a
+         * dataset that cannot answer is incomplete.
+         */
+        $this->run('commission_rules', <<<'SQL'
+            INSERT INTO commission_rules (public_id, scope, rate_percent, effective_from, note, created_at)
+            SELECT :pid(1), 'global', 12.00, :anchor - '800 days'::interval,
+                   'Generated platform default for the performance dataset.', :anchor - '800 days'::interval
+            SQL, $scale);
+
         $this->run('categories', <<<'SQL'
             INSERT INTO categories (id, public_id, parent_id, name, slug, description, is_visible, position, path, depth, created_at, updated_at)
             SELECT n, :pid(n),

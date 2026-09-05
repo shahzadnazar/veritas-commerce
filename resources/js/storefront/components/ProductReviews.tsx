@@ -29,12 +29,25 @@ export interface MyReview {
     publishedAt: string | null;
 }
 
+/**
+ * One bar of the star histogram, as the server computes it.
+ *
+ * The share is worked out in PHP alongside the counts so that this page
+ * and anything else showing the same histogram cannot disagree about the
+ * arithmetic.
+ */
+export interface RatingDistributionRow {
+    rating: number;
+    count: number;
+    percent: number;
+}
+
 export interface RatingSummaryData {
     hasRating: boolean;
     average: number | null;
     reviewCount: number;
     verifiedCount: number;
-    distribution: Record<string, number>;
+    distribution: RatingDistributionRow[];
 }
 
 export interface ReviewsData {
@@ -140,30 +153,25 @@ function RatingSummary({ rating }: { rating: RatingSummaryData }) {
             </p>
 
             <dl className="mt-2 w-full max-w-[320px]">
-                {[5, 4, 3, 2, 1].map((star) => {
-                    const count = rating.distribution[String(star)] ?? 0;
-                    const share = rating.reviewCount === 0 ? 0 : (count / rating.reviewCount) * 100;
-
-                    return (
-                        <div key={star} className="flex items-center gap-3 py-[3px] text-[13px]">
-                            <dt className="w-[52px] shrink-0 text-[var(--vc-neutral-600)]">
-                                {star} star
-                            </dt>
-                            <dd className="flex flex-1 items-center gap-2">
+                {rating.distribution.map((row) => (
+                    <div key={row.rating} className="flex items-center gap-3 py-[3px] text-[13px]">
+                        <dt className="w-[52px] shrink-0 text-[var(--vc-neutral-600)]">
+                            {row.rating} star
+                        </dt>
+                        <dd className="flex flex-1 items-center gap-2">
+                            <span
+                                aria-hidden="true"
+                                className="h-[8px] flex-1 border border-[var(--vc-text)]"
+                            >
                                 <span
-                                    aria-hidden="true"
-                                    className="h-[8px] flex-1 border border-[var(--vc-text)]"
-                                >
-                                    <span
-                                        className="block h-full bg-[var(--vc-text)]"
-                                        style={{ width: `${share}%` }}
-                                    />
-                                </span>
-                                <span className="vc-tabular w-[32px] text-right">{count}</span>
-                            </dd>
-                        </div>
-                    );
-                })}
+                                    className="block h-full bg-[var(--vc-text)]"
+                                    style={{ width: `${row.percent}%` }}
+                                />
+                            </span>
+                            <span className="vc-tabular w-[32px] text-right">{row.count}</span>
+                        </dd>
+                    </div>
+                ))}
             </dl>
         </div>
     );

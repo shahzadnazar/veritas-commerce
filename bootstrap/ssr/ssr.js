@@ -3977,36 +3977,26 @@ function RatingSummary({ rating }) {
 			}),
 			/* @__PURE__ */ jsx("dl", {
 				className: "mt-2 w-full max-w-[320px]",
-				children: [
-					5,
-					4,
-					3,
-					2,
-					1
-				].map((star) => {
-					const count = rating.distribution[String(star)] ?? 0;
-					const share = rating.reviewCount === 0 ? 0 : count / rating.reviewCount * 100;
-					return /* @__PURE__ */ jsxs("div", {
-						className: "flex items-center gap-3 py-[3px] text-[13px]",
-						children: [/* @__PURE__ */ jsxs("dt", {
-							className: "w-[52px] shrink-0 text-[var(--vc-neutral-600)]",
-							children: [star, " star"]
-						}), /* @__PURE__ */ jsxs("dd", {
-							className: "flex flex-1 items-center gap-2",
-							children: [/* @__PURE__ */ jsx("span", {
-								"aria-hidden": "true",
-								className: "h-[8px] flex-1 border border-[var(--vc-text)]",
-								children: /* @__PURE__ */ jsx("span", {
-									className: "block h-full bg-[var(--vc-text)]",
-									style: { width: `${share}%` }
-								})
-							}), /* @__PURE__ */ jsx("span", {
-								className: "vc-tabular w-[32px] text-right",
-								children: count
-							})]
+				children: rating.distribution.map((row) => /* @__PURE__ */ jsxs("div", {
+					className: "flex items-center gap-3 py-[3px] text-[13px]",
+					children: [/* @__PURE__ */ jsxs("dt", {
+						className: "w-[52px] shrink-0 text-[var(--vc-neutral-600)]",
+						children: [row.rating, " star"]
+					}), /* @__PURE__ */ jsxs("dd", {
+						className: "flex flex-1 items-center gap-2",
+						children: [/* @__PURE__ */ jsx("span", {
+							"aria-hidden": "true",
+							className: "h-[8px] flex-1 border border-[var(--vc-text)]",
+							children: /* @__PURE__ */ jsx("span", {
+								className: "block h-full bg-[var(--vc-text)]",
+								style: { width: `${row.percent}%` }
+							})
+						}), /* @__PURE__ */ jsx("span", {
+							className: "vc-tabular w-[32px] text-right",
+							children: row.count
 						})]
-					}, star);
-				})
+					})]
+				}, row.rating))
 			})
 		]
 	});
