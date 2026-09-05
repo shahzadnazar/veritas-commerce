@@ -808,8 +808,13 @@ jobs:
                   # The admin surfaces need a session that may open them.
                   test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/reviews")" = "302"
                   test "$(curl -s -o /dev/null -w '%{http_code}' "$base/admin/analytics")" = "302"
-                  test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/admin/reviews/01JQQQQQQQQQQQQQQQQQQQQQQQ/hide" \
-                      -d 'reason=trying it on')" = "302"
+                  # Either refusal is correct and which one arrives first
+                  # depends on middleware order: 419 is the CSRF layer, 302
+                  # is the redirect to the admin sign-in. What must never
+                  # happen is a 2xx.
+                  code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+                      "$base/admin/reviews/01JQQQQQQQQQQQQQQQQQQQQQQQ/hide" -d 'reason=trying it on')
+                  case "$code" in 302|419) ;; *) echo "unauthenticated moderation returned $code"; exit 1 ;; esac
 
                   # And a customer session is not an admin session.
                   jar=$(mktemp)
@@ -819,8 +824,11 @@ jobs:
                       -H "X-XSRF-TOKEN: $(xsrf)" \
                       -d 'email=m4-customer@veritas.test' -d 'password=m4-smoke-password'
 
+                  # The admin realm redirects to its own sign-in; the
+                  # seller portal 404s, because a customer with no
+                  # membership must not learn that the page exists.
                   test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/admin/analytics")" = "302"
-                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/seller/analytics")" = "302"
+                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' "$base/seller/analytics")" = "404"
 
                   # Their own wishlist answers, and says noindex in the
                   # header rather than only in the markup.

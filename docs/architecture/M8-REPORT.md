@@ -271,3 +271,245 @@ they have lived since M0. `PersonalAffinityStrategy` counts in SQL and
 weights in PHP precisely so that enum remains the single definition — a
 CASE expression built from it would be the same numbers written twice, and
 the copy in SQL is the one that goes stale.
+
+## 16. Analytics and commerce are separated (§2, §48, §56, §60)
+
+The insight modules — `Analytics` and `Recommendations` — read orders,
+payments, refunds, the seller ledger, the catalogue, offers, interaction
+events, reviews and wishlists. They write six tables, all derived:
+`product_popularity_scores`, `product_associations`,
+`daily_marketplace_metrics`, `daily_product_metrics`,
+`daily_seller_metrics`, `daily_search_metrics`. Drop any of them, run the
+rebuild, and it comes back identical.
+
+`AnalyticsBoundaryTest` enforces this statically:
+
+1. neither module imports **any** model — a model brings `save()`,
+   `update()` and `delete()` with it, and the point is that those are
+   unreachable;
+2. neither calls another module's Action, with one narrow allowance —
+   `Events\Actions\RecordInteraction`, because recording that a shelf was
+   shown is the insight layer's own behavioural input and appears nowhere
+   in §2's list. A companion test asserts the allowance stays a list of
+   one;
+3. every raw `DB::table(...)->insert/update/delete` names one of the six;
+4. neither takes a write lock — a rebuild that locked order rows could
+   block checkout, which is a way for a dashboard to take the marketplace
+   down without writing a byte;
+5. the six owned tables carry no word from `order`, `payment`, `refund`,
+   `ledger`, `payout`, `inventory`, `offer` or `seller_account`, so the
+   list cannot silently widen into transactional truth.
+
+§48 is proved by experiment, not by assertion:
+`AnalyticsProjectionTest::a_purchase_event_that_never_happened_does_not_move_the_money`
+fires fifty fabricated `purchase_completed` events, each carrying a
+`value_minor` of 999,999, rebuilds, and asserts GMV is unchanged.
+
+§56 is proved by reconciliation:
+`daily_money_columns_reconcile_with_the_m7_finance_summary` sums every
+daily row over a period and asserts GMV, refunds, commission and net sales
+equal what `SummarisePlatformFinance` reports for the same period. The CI
+smoke does the same in the built image and prints
+`analytics agrees=yes`.
+
+## 17. The rebuild commands (§60)
+
+Both take `--as-of` (or `--from`/`--to`/`--days`) so a run is reproducible,
+and both take `--verify`, which fingerprints every protected table — row
+count, maximum id and a checksum over the primary keys — before and after
+the run and exits non-zero if anything moved. The two commands share one
+`PROTECTED_TABLES` list, and a test asserts they do, so the two cannot
+drift.
+
+Neither is incremental. Every window and every day is deleted and
+reinserted inside one transaction, which is what makes a second run over
+unchanged data produce byte-identical rows and a failed run leave data
+stale rather than half-counted. An incremental rollup would be faster and
+wrong the first time an event arrived late.
+
+## 18. Seller isolation in analytics (§52)
+
+Every query in `GetSellerAnalytics` is scoped by `seller_account_id` in
+its WHERE clause, not filtered afterwards — there is no code path that
+reads a rival's row and then decides not to show it. The seller id comes
+from the membership, never from the request, so there is no parameter to
+tamper with.
+
+The best-sellers table is built from that seller's own order items rather
+than from `daily_product_metrics`. That table counts the whole
+marketplace, and showing a seller the marketplace's number for a product
+they happen to list would hand them their competitors' volume.
+
+`AnalyticsSurfaceTest::a_seller_analytics_payload_never_names_another_seller`
+asserts a rival's legal name, public id and product title appear nowhere
+in the response body.
+
+## 19. Day boundaries and currency (§70, §71)
+
+`AnalyticsDay` is a platform-timezone day whose boundaries are UTC
+instants, exclusive at the top. Both are computed together, in one place,
+because a projection that computed them separately is how a day ends up 23
+hours long in one table and 25 in another.
+`an_event_just_before_local_midnight_belongs_to_that_day` sets the
+platform timezone to America/Los_Angeles and asserts an event at 07:30 UTC
+on the 4th lands on the 3rd.
+
+Currency is a filter, never a sum across. `daily_marketplace_metrics` is
+keyed on `(day, currency)`, the dashboards state which currency they are
+showing, and no figure anywhere adds two together.
+
+## 20. SEO (§16, §67, §69, §100)
+
+`aggregateRating` is emitted only when the rating summary reports at least
+one published review and the average is numeric. A product nobody has
+reviewed emits nothing rather than a zero — 0 is not on the scale, and a
+rich result showing zero stars for an unreviewed product is a lie that
+costs the domain's standing rather than one page's ranking.
+
+Individual `Review` items accompany the aggregate, capped at five, drawn
+from the same payload the page renders. A markup block quoting reviews a
+visitor cannot find is the same lie as an invented rating, and it is
+avoided the same way: one payload, not two queries that have to agree.
+
+The wishlist and every `account/*` page carry `X-Robots-Tag: noindex,
+nofollow` as a response header as well as a meta tag. The header is what
+actually protects them — it reaches a crawler even when SSR is
+misconfigured, which is precisely the moment an accidental index would
+happen.
+
+## 21. Out of scope (§103)
+
+Nothing was built for: coupons, promotions or discount codes; sponsored
+listings or paid placement; machine-learning ranking; embeddings; a vector
+database; Kafka; microservices; Kubernetes; seller *service* reviews;
+seller responses to reviews; AI moderation; RMA or returns portal; a
+mobile app.
+
+One boundary is worth naming because it was a judgement call rather than
+an exclusion: the wishlist button appears on the product page and the
+wishlist page, and **not** on search or category cards. Adding it there
+would have meant changing `SearchHit` and `ProductCard`, which are M3
+shapes with M3 tests, for a modest gain. It is a deliberate stopping
+point, not an oversight.
+
+## 22. Test matrix
+
+| File | Tests | Covers |
+| ---- | ----: | ------ |
+| `Reviews/ReviewInvariantsTest` | 22 | Pre-UI properties 1–3; evidence, one-per-customer, rating constraint, immutability |
+| `Reviews/ReviewSurfaceTest` | 17 | §4 unfakeable badge, §13 untrusted text, edit/withdraw, author isolation |
+| `Reviews/ReviewStructuredDataTest` | 10 | §16 page/markup agreement, §69 no zero rating, Review items |
+| `Reviews/AdminModerationTest` | 13 | §8 review-not-approval queue, permissions, reasons, audit, history |
+| `Recommendations/RecommendationInvariantsTest` | 19 | Pre-UI properties 4–5; dedupe, eligibility, chain, determinism, thresholds |
+| `Recommendations/RecommendationRebuildTest` | 14 | Weights, windows, symmetry, paid-only pairs, idempotency, §60 boundary |
+| `Analytics/AnalyticsProjectionTest` | 19 | §56 reconciliation with M7, §48 fabricated events, day boundaries, search |
+| `Analytics/AnalyticsSurfaceTest` | 10 | §52 seller isolation, permissions, read-only routes |
+| `Customers/WishlistTest` | 16 | Idempotency, isolation, unavailable products, HTTP, noindex |
+| `Invariants/AnalyticsBoundaryTest` | 6 | §2 structural separation of insight from commerce |
+| **Total** | **146** | |
+
+## 23. Gate results
+
+Every gate below was run in this environment on the final tree, except
+where it says otherwise.
+
+| Gate | Result |
+| ---- | ------ |
+| PHPUnit (full suite) | **1,269 tests / 13,960 assertions, all passing** |
+| Laravel Pint | **passed** — no files needed fixing |
+| PHPStan + Larastan, level 8 | **passed** — 0 errors |
+| TypeScript `tsc --noEmit` | **passed** — 0 errors |
+| Vite production build | **passed** |
+| `php artisan statuses:export` | **current** — no diff after regeneration |
+| `reviews:reconcile-ratings` | **clean** — "Every product rating summary matches its reviews." |
+| `finance:reconcile-sellers` | **clean** — "Seller finance reconciles in USD." (M7, unaffected) |
+| `inventory:reconcile` | **clean** |
+| `recommendations:rebuild --verify` | **exit 0** — no transactional table changed |
+| `analytics:rebuild --verify` | **exit 0** — no transactional table changed |
+| M8 CI smoke script, run locally | **every assertion held** — see below |
+| Docker local | **unverified — no daemon** |
+
+The test count moved from **1,123** at the M7 baseline to **1,269**: 146
+new tests, no test removed and no assertion weakened.
+
+### The M8 smoke, run locally
+
+Docker cannot start in this environment, so the containerised CI job could
+not be exercised. The smoke *script* was run against the local PostgreSQL
+and Redis after the full M4 → M7 seeding chain, which verifies its logic
+and its assertions but not the built image. Output:
+
+```
+fixture product=1 buyer=1 seller_order=2
+product_slug=m4-smoke-kettle-449537
+review id=1 verified=yes status=published order_item=set
+unverified reason=not_purchased
+rating offers=1 summaries=1 average=5.00 count=1 verified=1
+hidden changed=yes has_rating=no count=0
+restored has_rating=yes count=1
+recommendations count=3 distinct=3 contains_anchor=no strategies=new_arrivals
+recommendations ineligible=0
+reco_rebuild idempotent=yes transactional_unchanged=yes
+reco_verify exit=0
+analytics gmv_rolled=52500 gmv_m7=52500 refunds_rolled=9000 refunds_m7=9000 commission_rolled=5220 commission_m7=5220
+analytics agrees=yes
+analytics_verify exit=0
+reconcile problems=0
+reconcile_command Every product rating summary matches its reviews.
+```
+
+`strategies=new_arrivals` is the fallback chain working as designed: the
+anchor's category had no comparable products in the seeded catalogue, so
+the chain fell through to the strategy that always has an answer. The
+shelf is still three distinct products, none of them the anchor and none
+of them ineligible.
+
+The HTTP assertions in the new CI step were also checked against a local
+`artisan serve`, which is how two of them were corrected before being
+committed: an unauthenticated moderation POST returns 419 (CSRF) rather
+than 302 in this configuration, and a signed-in customer reaching
+`/seller/analytics` gets 404 rather than 302 — the seller portal's
+deliberate "a guessed page does not exist" rule. Both assertions now say
+what actually happens and why.
+
+**Docker local: unverified — no daemon.** `service docker start` fails
+with `ulimit: error setting limit (Operation not permitted)`, as it has
+since M0. The CI job that builds the image, starts the stack, migrates,
+drains the queues, checks SSR and runs every smoke is unchanged and gains
+three M8 steps; it has not been executed here.
+
+## 24. Stripe
+
+Unchanged from M7. `stripe/stripe-php` v21.3.1 is installed, the driver
+is the fake one by default, and no M8 code touches payments. No network
+call to Stripe was made in this milestone, and none is needed for
+anything M8 added.
+
+## 25. What M9 inherits
+
+Four things are worth knowing before the next milestone builds on this.
+
+**The eligibility gate is the extension point.** Adding a recommendation
+strategy means implementing three methods and adding a class name to one
+chain. It cannot introduce a way to recommend something unpublished,
+because the gate is not optional — a strategy returns ids and has no
+route to a page except through it.
+
+**The projections are disposable.** Every one of the six can be dropped
+and rebuilt. Nothing in the marketplace depends on them for truth, which
+is what makes changing their shape a low-risk operation rather than a
+migration with a data-loss window.
+
+**Search impressions are recorded but not yet emitted.** The
+`search_result_shown` event type exists and `daily_product_metrics`
+counts it, so the click-through-rate column is wired end to end — but the
+search page does not emit the event yet, so that column reads zero. It is
+a deliberate seam rather than a gap: the projection is ready for the day
+the discovery pages start reporting impressions.
+
+**The recommendation cache stores a ranking, never a payload.** A shelf
+is rebuilt from cached ids on every read and re-passes the eligibility
+gate each time, so a product withdrawn since the ids were computed
+disappears on the next request rather than five minutes later. Any future
+change to caching should preserve that: cache the work, never the
+decision.
