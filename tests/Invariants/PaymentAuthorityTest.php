@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace Tests\Invariants;
 
 use App\Modules\Orders\Actions\MarkOrderPaid;
+use App\Modules\Payments\Actions\FinalizePayment;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
+use ReflectionIntersectionType;
 use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
+use ReflectionType;
+use ReflectionUnionType;
 use Tests\TestCase;
 
 /**
@@ -127,6 +132,142 @@ final class PaymentAuthorityTest extends TestCase
          * the caller is one refactor away from being a controller.
          */
         $this->assertSame(['order'], $parameters);
+    }
+
+    #[Test]
+    public function only_the_verified_finalizer_can_hold_the_paid_transition(): void
+    {
+        /*
+         * The same rule as the scan above, asked structurally instead of
+         * textually.
+         *
+         * Reading files for the string "MarkOrderPaid" is deliberately
+         * broad — a class that so much as names it is a refactor away from
+         * calling it — but it is also a substring match, and substring
+         * matches can be talked around: a container alias, a variable class
+         * name, a string built at runtime. This asks the type system
+         * instead. Whatever the file says, a class cannot invoke the action
+         * without being handed one, and PHP records where that happens.
+         *
+         * Both together are the point. Either alone has a shape of evasion
+         * the other catches.
+         */
+        $holders = [];
+
+        foreach ($this->appClasses() as $class) {
+            $reflection = new ReflectionClass($class);
+
+            if ($reflection->getName() === MarkOrderPaid::class) {
+                continue;
+            }
+
+            foreach ($this->declaredTypes($reflection->getName()) as $type) {
+                if ($type === MarkOrderPaid::class) {
+                    $holders[] = $reflection->getName();
+
+                    break;
+                }
+            }
+        }
+
+        sort($holders);
+
+        $this->assertSame(
+            self::PERMITTED_CALLERS,
+            $holders,
+            "A class other than the verified finalizer can be handed MarkOrderPaid.\n\n"
+                .'Being able to hold it is being able to call it. If this is intended, the reviewer '
+                .'has to say so out loud by editing PERMITTED_CALLERS — and should be sure the new '
+                .'holder re-reads the provider rather than believing a request.',
+        );
+    }
+
+    #[Test]
+    public function the_structural_scan_is_actually_looking_at_something(): void
+    {
+        // A reflection sweep that quietly matched nothing would pass
+        // forever, so the fixture it is meant to find is asserted present.
+        $classes = $this->appClasses();
+
+        $this->assertGreaterThan(200, count($classes));
+        $this->assertContains(FinalizePayment::class, $classes);
+
+        $types = $this->declaredTypes(FinalizePayment::class);
+
+        $this->assertContains(
+            MarkOrderPaid::class,
+            $types,
+            'The finalizer must still be the class that holds the paid transition.',
+        );
+    }
+
+    /**
+     * Every type this class is handed or holds.
+     *
+     * Constructor parameters, method parameters and properties: the three
+     * ways an object arrives somewhere it can be called from. Union and
+     * intersection types are unwrapped, because hiding a dependency inside
+     * one would otherwise be a way past this.
+     *
+     * @param  class-string  $className
+     * @return array<int, string>
+     */
+    private function declaredTypes(string $className): array
+    {
+        $class = new ReflectionClass($className);
+        $types = [];
+
+        $collect = static function (?ReflectionType $type) use (&$types): void {
+            if ($type === null) {
+                return;
+            }
+
+            $parts = $type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType
+                ? $type->getTypes()
+                : [$type];
+
+            foreach ($parts as $part) {
+                if ($part instanceof ReflectionNamedType && ! $part->isBuiltin()) {
+                    $types[] = $part->getName();
+                }
+            }
+        };
+
+        foreach ($class->getMethods() as $method) {
+            if ($method->getDeclaringClass()->getName() !== $class->getName()) {
+                continue;
+            }
+
+            foreach ($method->getParameters() as $parameter) {
+                $collect($parameter->getType());
+            }
+        }
+
+        foreach ($class->getProperties() as $property) {
+            if ($property->getDeclaringClass()->getName() === $class->getName()) {
+                $collect($property->getType());
+            }
+        }
+
+        return array_values(array_unique($types));
+    }
+
+    /** @return array<int, class-string> */
+    private function appClasses(): array
+    {
+        $classes = [];
+
+        foreach ($this->phpFiles(app_path()) as $file) {
+            $class = $this->classNameOf($file);
+
+            if ($class !== '\\' && class_exists($class)) {
+                $classes[] = $class;
+            }
+        }
+
+        sort($classes);
+
+        return $classes;
     }
 
     /** @return iterable<int, string> */
