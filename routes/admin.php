@@ -33,7 +33,14 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('login', [AdminLoginController::class, 'show'])->name('login');
     Route::post('login', [AdminLoginController::class, 'store'])->name('login.store');
 
-    Route::middleware('auth:admin')->group(function (): void {
+    /*
+     * `admin.idle` sits alongside the guard rather than inside it: the
+     * console can approve sellers, settle payouts and read verification
+     * paperwork, and is worth less time unattended than a shopping
+     * session. ADMIN_SESSION_LIFETIME has promised that since M1 and was
+     * read by nothing until M9.
+     */
+    Route::middleware(['auth:admin', 'admin.idle'])->group(function (): void {
         Route::post('logout', [AdminLoginController::class, 'destroy'])->name('logout');
 
         // Reachable while enrolment is incomplete — this is the only area

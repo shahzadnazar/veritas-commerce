@@ -117,6 +117,20 @@ return [
      * environment that knows declares it. `APP_ENV=production` is
      * protected on its own, without needing to be named here.
      */
+    /*
+     * The platform console.
+     *
+     * A privileged session is worth less time than a shopping one. This
+     * value was already declared in .env.example — with a comment saying
+     * staff sessions expire far sooner than customer sessions — and was
+     * then read by nothing at all, so administrators were in fact getting
+     * the ordinary 120 minutes. M9 found the gap; this is where the
+     * setting now actually lives.
+     */
+    'admin' => [
+        'session_lifetime_minutes' => max(1, (int) env('ADMIN_SESSION_LIFETIME', 30)),
+    ],
+
     'database' => [
         'protected' => array_values(array_filter(array_map(
             'trim',
