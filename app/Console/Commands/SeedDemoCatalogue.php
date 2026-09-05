@@ -8,6 +8,8 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Inventory\Actions\AdjustInventory;
 use App\Modules\Offers\Models\Offer;
+use App\Modules\Reviews\Actions\RecomputeRatingSummary;
+use App\Modules\Reviews\Models\ProductReview;
 use App\Modules\Sellers\Models\SellerAccount;
 use App\Modules\Stores\Models\Store;
 use Illuminate\Console\Command;
@@ -28,7 +30,8 @@ final class SeedDemoCatalogue extends Command
 {
     protected $signature = 'veritas:seed-demo-catalogue
         {--title=Aeris Cordless Kettle : Title for the published product}
-        {--offers=1 : How many sellers list it}';
+        {--offers=1 : How many sellers list it}
+        {--reviews=3 : How many published reviews to give it}';
 
     protected $description = 'Create one published product with eligible offers, for smoke tests';
 
@@ -47,9 +50,10 @@ final class SeedDemoCatalogue extends Command
 
         $title = (string) $this->option('title');
         $offers = max(1, (int) $this->option('offers'));
+        $reviews = max(0, (int) $this->option('reviews'));
 
         /** @var array{product: Product, category: Category, store: Store} $seeded */
-        $seeded = DB::transaction(function () use ($title, $offers): array {
+        $seeded = DB::transaction(function () use ($title, $offers, $reviews): array {
             $category = Category::factory()->createOne(['name' => 'Kettles', 'is_visible' => true]);
 
             $product = Product::factory()->createOne([
@@ -87,8 +91,26 @@ final class SeedDemoCatalogue extends Command
             // Returned rather than read back through relations: these are
             // the rows just written, so there is nothing to re-resolve and
             // no nullable relation to defend against.
+            /*
+             * Reviews at more than one star, so the smoke test exercises
+             * the rating histogram rather than skipping it.
+             *
+             * The product page renders no histogram at all for a product
+             * with no rating, which is how a defect that threw on every
+             * rated product passed a CI step whose whole purpose was to
+             * prove the page server-renders. A fixture that cannot reach
+             * the code under test is not a fixture.
+             */
+            foreach (array_slice([5, 4, 5, 3, 2], 0, $reviews) as $rating) {
+                ProductReview::factory()->rated($rating)->createOne(['product_id' => $product->id]);
+            }
+
             return ['product' => $product, 'category' => $category, 'store' => $firstStore];
         });
+
+        if ($reviews > 0) {
+            app(RecomputeRatingSummary::class)((int) $seeded['product']->id);
+        }
 
         // One line each, machine-readable: the smoke script reads these.
         $this->line('product='.$seeded['product']->slug);

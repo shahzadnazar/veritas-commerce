@@ -285,10 +285,25 @@ jobs:
                   echo "$body" | grep -q 'rel="canonical"'
                   echo "$body" | grep -q 'application/ld+json'
                   echo "$body" | grep -q '"@type":"Product"'
-                  # Truthfulness, not presence: nothing may claim a rating
-                  # or a review the database cannot support.
-                  ! echo "$body" | grep -q 'aggregateRating'
-                  ! echo "$body" | grep -q '"review"'
+                  # Truthfulness, not presence: the seeded product now
+                  # carries published reviews, so the structured data has
+                  # to claim the rating the database can support — and the
+                  # rating histogram has to appear in the server-rendered
+                  # markup.
+                  #
+                  # This is the assertion that would have caught the M9
+                  # defect. The page sent the histogram as a list of rows
+                  # and the component read it as a map keyed by star; React
+                  # refuses to render the resulting object, so SSR threw
+                  # and Inertia fell back to client rendering. The response
+                  # stayed a 200 with a correct-looking shell, and the
+                  # step passed — because the seeded product had no reviews
+                  # and the histogram was skipped entirely. A fixture that
+                  # cannot reach the code under test is not a fixture.
+                  echo "$body" | grep -q 'aggregateRating'
+                  echo "$body" | grep -q '"ratingValue"'
+                  # Five rows, five stars, rendered on the server.
+                  test "$(echo "$body" | grep -c 'star</dt>')" = "5"
                   # A storefront page is indexable; the portals are not.
                   ! curl -sD - -o /dev/null "http://127.0.0.1:8000/products/${slug}" | grep -qi 'X-Robots-Tag'
                   # Availability is the inventory ledger's answer, not an
