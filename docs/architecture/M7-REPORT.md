@@ -9,8 +9,8 @@ not be run in this environment it says so rather than claiming a result.
 
 `claude/veritas-marketplace-architecture-vov8c0`.
 
-The last code commit is `17c659e`; the branch head is the commit carrying
-this report, which is its immediate child. Nothing was force-pushed and no
+The last code commit is `c853279`; the branch head is the commit that
+updated this report for it. Nothing was force-pushed and no
 published history was rewritten.
 
 ## 2. M7 commit range
@@ -22,7 +22,7 @@ published history was rewritten.
 | `8473497` | feat: implement seller finance, payout reservation and settlement |
 | `467898f` | feat: build the seller and admin finance surfaces            |
 | `17c659e` | test: add the M7 finance, payout and reconciliation suite     |
-| `(head~1)` | refactor: clamp the withdrawable balance at zero              |
+| `c853279` | refactor: clamp the withdrawable balance at zero              |
 
 110 files changed. The tightened withdrawable definition (§6) landed as a
 fourth commit after the first three.
