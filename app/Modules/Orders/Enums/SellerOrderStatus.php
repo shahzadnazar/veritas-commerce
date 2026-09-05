@@ -65,8 +65,16 @@ enum SellerOrderStatus: string implements HasStatusTone, StatusTransitions
                 self::PartiallyShipped, self::Shipped,
                 self::PartiallyRefunded, self::Refunded, self::Disputed,
             ],
+            /*
+             * Straight to delivered is reachable and not a mistake: a
+             * refund can reduce what the seller still owes, so an order
+             * that shipped two of three units is fully delivered once
+             * those two arrive and the third has been refunded. Holding it
+             * open waiting for a unit nobody owes anybody would strand the
+             * seller's earnings forever.
+             */
             self::PartiallyShipped => [
-                self::Shipped, self::PartiallyDelivered,
+                self::Shipped, self::PartiallyDelivered, self::Delivered,
                 self::PartiallyRefunded, self::Refunded, self::Disputed,
             ],
             self::Shipped => [
