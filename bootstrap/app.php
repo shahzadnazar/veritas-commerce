@@ -32,6 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
              * security is the signature it is verified against.
              */
             Route::group([], base_path('routes/webhooks.php'));
+
+            /*
+             * Health probes, likewise outside every group: sessions live
+             * in Redis, and a liveness check that started one would fail
+             * during a Redis outage — restarting every container instead
+             * of merely draining them.
+             */
+            Route::group([], base_path('routes/health.php'));
         },
         commands: __DIR__.'/../routes/console.php',
         health: '/up',

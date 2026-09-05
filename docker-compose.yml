@@ -24,6 +24,29 @@ services:
             redis:
                 condition: service_healthy
         command: php artisan serve --host=0.0.0.0 --port=8000
+        # Readiness rather than liveness: this decides whether the
+        # container is worth sending traffic to, and it fails while
+        # PostgreSQL or Redis is away instead of pretending the
+        # application can serve without them.
+        #
+        # Liveness lives at /health/live and deliberately depends on
+        # nothing — a probe that restarted this container during a
+        # database outage would turn a recoverable incident into a restart
+        # loop against a database that is already struggling.
+        #
+        # Probed with PHP rather than curl because the Alpine image does
+        # not carry one, and adding a package to the runtime image only to
+        # ask it a question the runtime can already answer is a poor trade.
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - >-
+                  php -r 'exit(@file_get_contents("http://127.0.0.1:8000/health/ready")
+                  === false ? 1 : 0);'
+            interval: 10s
+            timeout: 5s
+            retries: 6
+            start_period: 30s
 
     # Horizon rather than a bare `queue:work`, because the supervisors are
     # the point: five queues with their own pools, so image processing
