@@ -389,7 +389,22 @@ final class ProductionReadiness
             Storage::disk((string) config('veritas.storage.private_disk'))->files('__production_check__');
             $checks[] = Check::pass('storage', 'private disk reachable', 'listed without error');
         } catch (Throwable $exception) {
-            $checks[] = Check::warn('storage', 'private disk reachable', 'could not list', $this->safeReason($exception));
+            /*
+             * A failure, not a warning.
+             *
+             * This is the disk that holds seller identity documents. A
+             * deployment that cannot list it cannot accept an application,
+             * cannot show a reviewer a passport, and — the M9 failure
+             * drills found this one — cannot clean up an orphaned upload
+             * either. Warning about it would let a release go out that
+             * silently could not do KYC.
+             */
+            $checks[] = Check::fail(
+                'storage',
+                'private disk reachable',
+                'could not list',
+                $this->safeReason($exception).' Seller documents cannot be stored or read.',
+            );
         }
 
         return $checks;

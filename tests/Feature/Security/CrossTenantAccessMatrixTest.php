@@ -629,6 +629,10 @@ final class CrossTenantAccessMatrixTest extends TestCase
         $ignored = [
             'cache', 'cache_locks', 'failed_jobs', 'job_batches', 'jobs',
             'migrations', 'password_reset_tokens', 'reference_sequences', 'sessions',
+            // One row per piece of background machinery saying when it
+            // last ran. It belongs to no tenant and holds no business
+            // fact, so a change in it is not an attack landing.
+            'operational_heartbeats',
             // Projections and derived read models, rebuilt from the tables
             // above by their own commands; a change here without a change
             // there is not an attack landing.

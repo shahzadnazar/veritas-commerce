@@ -66,6 +66,10 @@ final class ObjectStorageFailureTest extends TestCase
     // A write that fails leaves no row.
     // ---------------------------------------------------------------
 
+    /**
+     * A row pointing at bytes that were never written is a broken image
+     * on every page that renders it.
+     */
     #[Test]
     public function a_failed_media_write_leaves_no_media_row(): void
     {
@@ -86,6 +90,11 @@ final class ObjectStorageFailureTest extends TestCase
         $this->assertDatabaseCount('product_media', 0);
     }
 
+    /**
+     * The same for a seller's paperwork, where the consequence is worse:
+     * a reviewer opening a document that is not there, on an application
+     * the seller believes is complete.
+     */
     #[Test]
     public function a_failed_document_write_leaves_no_document_row(): void
     {
@@ -154,6 +163,10 @@ final class ObjectStorageFailureTest extends TestCase
         );
     }
 
+    /**
+     * A product photo orphan is only wasted space, and is cleaned up for
+     * the same reason and by the same code path.
+     */
     #[Test]
     public function a_media_upload_that_rolls_back_removes_the_stored_object(): void
     {

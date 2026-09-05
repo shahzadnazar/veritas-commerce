@@ -48,6 +48,10 @@ final class DatabaseOutageTest extends TestCase
         });
     }
 
+    /**
+     * Readiness stops the traffic instead, and names the dependency
+     * coarsely enough to be useful without being a map.
+     */
     #[Test]
     public function readiness_reports_unready_while_the_database_is_gone(): void
     {

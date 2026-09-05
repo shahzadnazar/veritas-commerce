@@ -67,6 +67,12 @@ final class FinancialWriteOutageTest extends TestCase
         return ['order' => $order, 'reference' => $reference];
     }
 
+    /**
+     * An order that cannot be written is not an order.
+     *
+     * The customer sees a failure and can try again; what must not
+     * happen is a reference handed out for a row that does not exist.
+     */
     #[Test]
     public function checkout_cannot_create_an_order_while_the_database_is_gone(): void
     {
@@ -163,6 +169,14 @@ final class FinancialWriteOutageTest extends TestCase
         );
     }
 
+    /**
+     * A payout request reserves a seller's money, so it cannot be a
+     * promise made in memory.
+     *
+     * A request that appeared to succeed without persisting would leave
+     * the seller believing funds were on their way and the allocation
+     * that holds them nowhere at all.
+     */
     #[Test]
     public function a_payout_cannot_be_requested_while_the_database_is_gone(): void
     {

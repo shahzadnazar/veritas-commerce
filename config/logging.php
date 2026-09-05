@@ -57,7 +57,25 @@ return [
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
-            'ignore_exceptions' => false,
+            /*
+             * A log that cannot be written must not replace the error it
+             * was about.
+             *
+             * With this false, a handler that throws — a full disk, a
+             * revoked permission, a path that cannot be created —
+             * propagates out of the logging call. Laravel's exception
+             * handler calls the logger while reporting, so the M9 drills
+             * found the consequence: a payment verification failure was
+             * reported to the operator as a filesystem error, and the
+             * thing that actually went wrong disappeared.
+             *
+             * True means a broken handler drops its lines instead. That
+             * is the right trade for a *stack*: the other handlers in it
+             * still write, stderr in particular cannot fail this way, and
+             * losing log lines is strictly better than losing the
+             * exception they were describing.
+             */
+            'ignore_exceptions' => true,
         ],
 
         'single' => [

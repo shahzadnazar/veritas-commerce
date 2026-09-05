@@ -72,6 +72,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use RuntimeException;
+use Stripe\ApiRequestor;
+use Stripe\HttpClient\CurlClient;
 use Stripe\StripeClient;
 
 final class AppServiceProvider extends ServiceProvider
@@ -109,6 +111,27 @@ final class AppServiceProvider extends ServiceProvider
             if (config('veritas.payments.provider') !== 'stripe') {
                 return new FakePaymentProvider;
             }
+
+            /*
+             * Finite, and shorter than the library's own default.
+             *
+             * stripe-php waits 30 seconds to connect and 80 to read. Both
+             * are finite, so neither is a hang — but this call happens
+             * inside a checkout request, and eighty seconds is a PHP
+             * worker held for eighty seconds while a customer looks at a
+             * spinner. Under any real concurrency that is how a provider
+             * slowdown becomes an application outage: the workers are all
+             * waiting on Stripe and nothing else can be served.
+             *
+             * Twenty and five are long enough that a slow-but-working
+             * provider still succeeds, and short enough that a stuck one
+             * costs one request rather than the pool. Set on the request
+             * layer because that is where the library keeps them.
+             */
+            $http = new CurlClient;
+            $http->setTimeout((int) config('veritas.payments.stripe.timeout_seconds'));
+            $http->setConnectTimeout((int) config('veritas.payments.stripe.connect_timeout_seconds'));
+            ApiRequestor::setHttpClient($http);
 
             return new StripePaymentProvider(
                 new StripeClient([

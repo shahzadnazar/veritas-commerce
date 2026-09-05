@@ -287,7 +287,18 @@ return [
     'payments' => [
         'provider' => env('PAYMENT_PROVIDER', env('PAYMENT_GATEWAY', 'fake')),
 
+        /*
+         * How long a synchronous provider call may hold a PHP worker.
+         *
+         * stripe-php's own defaults are 30 seconds to connect and 80 to
+         * read. Finite, but this call sits inside a checkout request, and
+         * a worker held for eighty seconds is how a provider slowdown
+         * becomes an application outage.
+         */
         'stripe' => [
+            'timeout_seconds' => max(1, (int) env('STRIPE_TIMEOUT_SECONDS', 20)),
+            'connect_timeout_seconds' => max(1, (int) env('STRIPE_CONNECT_TIMEOUT_SECONDS', 5)),
+
             'key' => env('STRIPE_KEY'),
             'secret' => env('STRIPE_SECRET'),
             'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
