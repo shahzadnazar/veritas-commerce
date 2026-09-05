@@ -353,7 +353,9 @@ final class PaymentSecurityTest extends TestCase
 
             $this->assertStringNotContainsString('sk_test_never_leaves', $body);
             $this->assertStringNotContainsString('whsec_never_leaves', $body);
-            $this->assertStringNotContainsString('sk_', $body);
+            // The real prefixes, not `sk_` alone: a ULID reference will
+            // eventually contain those letters by chance.
+            $this->assertDoesNotMatchRegularExpression('/sk_(test|live)_/', $body);
             $this->assertStringNotContainsString('whsec_', $body);
             $this->assertStringNotContainsString('signature_fingerprint', $body);
         }

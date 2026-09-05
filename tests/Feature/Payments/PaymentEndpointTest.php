@@ -276,7 +276,15 @@ final class PaymentEndpointTest extends TestCase
 
         $this->assertStringNotContainsString('sk_test_never_leaves', $body);
         $this->assertStringNotContainsString('whsec_never_leaves', $body);
-        $this->assertStringNotContainsString('sk_', $body);
+
+        /*
+         * Matched on the real key prefixes rather than on `sk_` alone: a
+         * provider reference is a ULID, and one of those will eventually
+         * contain those two letters followed by an underscore by pure
+         * chance — which is a test that fails on a coin flip rather than
+         * on a leak.
+         */
+        $this->assertDoesNotMatchRegularExpression('/sk_(test|live)_/', $body);
         $this->assertStringNotContainsString('whsec_', $body);
 
         $status = (string) $this->asUser($user)
