@@ -10,9 +10,16 @@ use App\Modules\Inventory\Enums\StockState;
  * Schema.org JSON-LD for a product page.
  *
  * The rule that governs every line here: nothing is emitted that the
- * database cannot support. No aggregateRating, because there are no
- * reviews. No availability claim beyond "this seller lists it", because
- * inventory arrives in M3. No price when nobody is offering one.
+ * database cannot support. No availability claim beyond what the inventory
+ * ledger says. No price when nobody is offering one. And — the M8 addition
+ * — no aggregateRating until real customers have left real reviews.
+ *
+ * That last one is worth being explicit about. `aggregateRating` is
+ * emitted only when the rating summary reports at least one PUBLISHED
+ * review, and the values come from the same summary the visible page
+ * reads. A product nobody has reviewed emits nothing at all rather than a
+ * zero, and a review a moderator hides stops contributing to both the page
+ * and the markup in the same transaction.
  *
  * Structured data is a statement to a search engine on the marketplace's
  * behalf. A rich result showing four stars for a product nobody has
@@ -64,7 +71,56 @@ final class ProductStructuredData
             $data['offers'] = $offers;
         }
 
+        $rating = self::aggregateRating($page);
+
+        if ($rating !== null) {
+            $data['aggregateRating'] = $rating;
+        }
+
         return $data;
+    }
+
+    /**
+     * The rating, when there is one. §67 and §69.
+     *
+     * Reads the same `rating` block the visible page renders, so the two
+     * cannot drift: a product page saying 4.6 while its markup claims 4.8
+     * is the failure §16 exists to prevent, and it is prevented by there
+     * being one number rather than by two computations agreeing.
+     *
+     * `ratingValue` is emitted at the precision it was computed to, and
+     * `reviewCount` counts published reviews only — a hidden review is not
+     * in the summary, so it is not in the markup either.
+     *
+     * @param  array<string, mixed>  $page
+     * @return array<string, mixed>|null
+     */
+    private static function aggregateRating(array $page): ?array
+    {
+        /** @var array<string, mixed>|null $rating */
+        $rating = $page['rating'] ?? null;
+
+        if ($rating === null || ($rating['hasRating'] ?? false) !== true) {
+            return null;
+        }
+
+        $count = (int) ($rating['reviewCount'] ?? 0);
+        $average = $rating['average'] ?? null;
+
+        // Belt and braces: a summary claiming an average with no reviews
+        // behind it would be a corrupt row, and it must not become a
+        // structured-data claim on the marketplace's behalf.
+        if ($count < 1 || ! is_numeric($average)) {
+            return null;
+        }
+
+        return [
+            '@type' => 'AggregateRating',
+            'ratingValue' => number_format((float) $average, 2, '.', ''),
+            'reviewCount' => $count,
+            'bestRating' => 5,
+            'worstRating' => 1,
+        ];
     }
 
     /**

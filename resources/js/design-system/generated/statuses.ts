@@ -546,6 +546,24 @@ export const STATUS_PRESENTATION = {
             "label": "Reversal"
         }
     },
+    "product_review": {
+        "published": {
+            "tone": "neutral",
+            "label": "Published"
+        },
+        "hidden": {
+            "tone": "pending",
+            "label": "Hidden"
+        },
+        "rejected": {
+            "tone": "critical",
+            "label": "Rejected"
+        },
+        "withdrawn": {
+            "tone": "inactive",
+            "label": "Withdrawn"
+        }
+    },
     "inventory_movement_reason": {
         "opening_stock": {
             "tone": "neutral",

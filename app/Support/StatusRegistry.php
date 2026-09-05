@@ -25,6 +25,7 @@ use App\Modules\Payouts\Enums\PayoutAccountType;
 use App\Modules\Payouts\Enums\PayoutAllocationStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
 use App\Modules\Payouts\Enums\SettlementAttemptStatus;
+use App\Modules\Reviews\Enums\ReviewStatus;
 use App\Modules\Sellers\Enums\InvitationStatus;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Enums\SellerStatus;
@@ -73,6 +74,7 @@ final class StatusRegistry
             'payout_settlement_attempt' => SettlementAttemptStatus::class,
             'ledger_entry_status' => LedgerEntryStatus::class,
             'ledger_entry_type' => LedgerEntryType::class,
+            'product_review' => ReviewStatus::class,
             'inventory_movement_reason' => InventoryMovementReason::class,
             'inventory_reservation' => ReservationStatus::class,
             'stock' => StockState::class,

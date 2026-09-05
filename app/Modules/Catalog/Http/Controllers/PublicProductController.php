@@ -9,6 +9,7 @@ use App\Modules\Catalog\Queries\FindPublicProduct;
 use App\Modules\Catalog\Support\ProductStructuredData;
 use App\Modules\Events\Actions\RecordInteraction;
 use App\Modules\Events\Enums\InteractionEventType;
+use App\Modules\Reviews\Queries\GetRatingSummary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,6 +29,7 @@ final class PublicProductController
         private readonly FindPublicProduct $findProduct,
         private readonly BuildProductPage $buildPage,
         private readonly RecordInteraction $interactions,
+        private readonly GetRatingSummary $rating,
     ) {}
 
     public function __invoke(Request $request, string $slug): Response|RedirectResponse
@@ -46,7 +48,18 @@ final class PublicProductController
             abort(404);
         }
 
-        $page = ($this->buildPage)($product);
+        /*
+         * The rating is merged in here rather than built inside
+         * BuildProductPage, so the catalogue does not have to know that
+         * reviews exist. One number reaches the page and the structured
+         * data from one read — which is what makes it impossible for the
+         * visible rating and the JSON-LD to disagree (§16).
+         */
+        $page = [
+            ...($this->buildPage)($product),
+            'rating' => ($this->rating)((int) $product->id)->toArray(),
+        ];
+
         $base = rtrim((string) config('veritas.identity.public_url'), '/');
 
         // Queued, so a view is recorded without the customer waiting for

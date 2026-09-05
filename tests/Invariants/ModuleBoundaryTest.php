@@ -104,10 +104,10 @@ final class ModuleBoundaryTest extends TestCase
     public function every_module_directory_is_a_declared_module(): void
     {
         $expected = [
-            'AdminPortal', 'Audit', 'Cart', 'Catalog', 'Checkout', 'Commission', 'Customers',
-            'Events', 'Fulfillment', 'Identity', 'Inventory', 'Ledger',
+            'AdminPortal', 'Analytics', 'Audit', 'Cart', 'Catalog', 'Checkout', 'Commission',
+            'Customers', 'Events', 'Fulfillment', 'Identity', 'Inventory', 'Ledger',
             'Media', 'Notifications', 'Offers', 'Orders', 'Payments',
-            'Payouts', 'Search', 'Sellers', 'Stores',
+            'Payouts', 'Recommendations', 'Reviews', 'Search', 'Sellers', 'Stores',
         ];
 
         $actual = array_map('basename', glob(app_path('Modules/*'), GLOB_ONLYDIR) ?: []);
@@ -179,6 +179,25 @@ final class ModuleBoundaryTest extends TestCase
             'Payouts' => ['Ledger', 'Identity'],
             'Ledger' => ['Orders'],
             'Stores' => ['Sellers'],
+            /*
+             * A review is about a canonical product, written by a
+             * customer. Both are the coupling rather than a leak through
+             * it — a review with no product is not a review — and the
+             * evidence it rests on is read through Queries rather than by
+             * importing the order models.
+             */
+            'Reviews' => ['Catalog', 'Identity'],
+            /*
+             * Recommendations and Analytics read widely and write nothing
+             * outside their own projections. Catalog because a
+             * recommendation IS a canonical product; Identity because a
+             * dashboard names a customer count. Everything commercial and
+             * financial is read through DB queries rather than models, and
+             * `AnalyticsBoundaryTest` proves no write reaches it.
+             */
+            'Recommendations' => ['Catalog'],
+            'Analytics' => ['Catalog', 'Identity'],
+            'Customers' => ['Catalog', 'Identity'],
         ];
 
         if (in_array($importedModule, $allowed['*'], true)) {
