@@ -6,6 +6,7 @@ namespace App\Modules\Payments\Queries;
 
 use App\Modules\Orders\Enums\MarketplaceOrderStatus;
 use App\Modules\Orders\Models\MarketplaceOrder;
+use App\Modules\Orders\Support\OrderPayability;
 use App\Modules\Payments\Enums\PaymentAttemptStatus;
 use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Models\PaymentAttempt;
@@ -58,7 +59,7 @@ final class DescribePaymentState
             return array_merge($base, $this->closedOrder($order));
         }
 
-        if ($order->payment_expires_at !== null && $order->payment_expires_at->isPast()) {
+        if (OrderPayability::reasonNotPayable($order) === OrderPayability::EXPIRED) {
             return array_merge($base, [
                 'state' => 'expired',
                 'headline' => 'The payment window for this order has closed.',

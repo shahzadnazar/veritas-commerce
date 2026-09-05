@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Payments\Actions;
 
-use App\Modules\Orders\Enums\MarketplaceOrderStatus;
 use App\Modules\Orders\Models\MarketplaceOrder;
+use App\Modules\Orders\Support\OrderPayability;
 use App\Modules\Payments\Contracts\PaymentProvider;
 use App\Modules\Payments\Data\PreparedPayment;
 use App\Modules\Payments\Enums\PaymentAttemptStatus;
@@ -122,24 +122,26 @@ final class PreparePayment
     /**
      * Whether this order may be paid at all.
      *
-     * An order that has been cancelled, expired or already paid is not a
-     * candidate. §10's other half: if an order should no longer be payable,
-     * the mechanism is expiry or cancellation — never quietly repricing it.
+     * The decision lives in OrderPayability, which also carries the
+     * distinction this depends on: a failed or cancelled payment *attempt*
+     * never ends an order, and only an explicit cancellation or the
+     * checkout expiry does. §10's other half — if an order should no
+     * longer be payable, the mechanism is expiry or cancellation, never
+     * quietly repricing it.
      */
     private function guardPayable(MarketplaceOrder $order): void
     {
-        if ($order->status !== MarketplaceOrderStatus::PendingPayment) {
-            // Everything past pending_payment has already been paid for,
-            // one way or another; cancelled is the one that has not, and
-            // is equally not payable now.
-            throw $order->status === MarketplaceOrderStatus::Cancelled
-                ? PaymentRefused::orderNotPayable()
-                : PaymentRefused::alreadyPaid();
+        $reason = OrderPayability::reasonNotPayable($order);
+
+        if ($reason === null) {
+            return;
         }
 
-        if ($order->payment_expires_at !== null && $order->payment_expires_at->isPast()) {
-            throw PaymentRefused::expired();
-        }
+        throw match ($reason) {
+            OrderPayability::ALREADY_PAID => PaymentRefused::alreadyPaid(),
+            OrderPayability::EXPIRED => PaymentRefused::expired(),
+            default => PaymentRefused::orderNotPayable(),
+        };
     }
 
     /**

@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\Event;
  * lose the sale and put their held stock back on the shelf while they were
  * still typing.
  *
+ * That distinction is written down in OrderPayability: a failed or
+ * cancelled payment *attempt* is one try at moving money, and only an
+ * explicit cancellation or the checkout expiry ends the order itself. A
+ * provider's `payment_intent.canceled` is the former, never the latter.
+ *
  * So the attempt is closed and the order stays pending payment with its
  * hold intact, until the existing M4 expiry sweep closes it on the ordinary
  * schedule. Nothing new decides when an order dies; the mechanism that
