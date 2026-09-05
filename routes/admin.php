@@ -39,9 +39,16 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         // Reachable while enrolment is incomplete — this is the only area
         // that is, and RequireAdminTwoFactor sends everyone else here.
         Route::get('two-factor', [AdminTwoFactorController::class, 'setup'])->name('mfa.setup');
-        Route::post('two-factor/start', [AdminTwoFactorController::class, 'start'])->name('mfa.start');
-        Route::post('two-factor', [AdminTwoFactorController::class, 'store'])->name('mfa.store');
+        // Enrolment confirmation verifies a code, and recovery-code
+        // regeneration hands out new ones. Both are limited per admin, per
+        // source — the challenge itself is limited inside the login
+        // controller alongside the password attempt.
+        Route::post('two-factor/start', [AdminTwoFactorController::class, 'start'])
+            ->middleware('throttle:admin-mfa')->name('mfa.start');
+        Route::post('two-factor', [AdminTwoFactorController::class, 'store'])
+            ->middleware('throttle:admin-mfa')->name('mfa.store');
         Route::post('two-factor/recovery-codes', [AdminTwoFactorController::class, 'regenerate'])
+            ->middleware('throttle:admin-mfa')
             ->name('mfa.recovery');
 
         Route::middleware('admin.mfa')->group(function (): void {

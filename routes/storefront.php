@@ -122,15 +122,29 @@ Route::get('checkout/{reference}/payment/status', [OrderPaymentController::class
 
 Route::middleware('guest')->group(function (): void {
     Route::get('register', [RegisterController::class, 'show'])->name('register');
-    Route::post('register', [RegisterController::class, 'store']);
+    Route::post('register', [RegisterController::class, 'store'])
+        ->middleware('throttle:register');
 
     Route::get('login', [LoginController::class, 'show'])->name('login');
     Route::post('login', [LoginController::class, 'store']);
 
     Route::get('forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
-    Route::post('forgot-password', [PasswordResetController::class, 'email'])->name('password.email');
+    /*
+     * Reset initiation is throttled on the address being reset AND the
+     * source together, plus a looser cap on the source alone. Keying it on
+     * the account alone would turn password recovery into a way to lock
+     * somebody out of their own account by spending their bucket for them.
+     */
+    Route::post('forgot-password', [PasswordResetController::class, 'email'])
+        ->middleware('throttle:password-reset-request')
+        ->name('password.email');
     Route::get('reset-password/{token}', [PasswordResetController::class, 'reset'])->name('password.reset');
-    Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+    // The token's entropy is the real defence here; this is the second
+    // lock, and it is looser because mistyping a new password twice is a
+    // thing people do.
+    Route::post('reset-password', [PasswordResetController::class, 'update'])
+        ->middleware('throttle:password-reset-submit')
+        ->name('password.update');
 });
 
 Route::middleware('auth')->group(function (): void {
@@ -155,7 +169,12 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('account', [ProfileController::class, 'show'])->name('account');
     Route::put('account', [ProfileController::class, 'update'])->name('account.update');
-    Route::put('account/password', [ProfileController::class, 'updatePassword'])->name('account.password');
+    // Verifying the current password is what stops a borrowed session
+    // locking the owner out — and is also what a borrowed session would
+    // guess at, so it is limited.
+    Route::put('account/password', [ProfileController::class, 'updatePassword'])
+        ->middleware('throttle:password-change')
+        ->name('account.password');
 
     /*
      * The wishlist. Behind `auth` because it is personal, and every action
