@@ -47,6 +47,17 @@ Schedule::job(new ExpireCheckoutAttempts)->everyMinute()->withoutOverlapping();
  * runs would be harmless — every write is a conditional UPDATE — but there
  * is no reason to have two.
  */
+/*
+ * Provider events that were recorded but never queued.
+ *
+ * The webhook endpoint writes the event row before it queues the work,
+ * so a queue that is away for that one second leaves a signed, verified
+ * payment sitting in the database with nothing scheduled to look at it.
+ * Every five minutes, because the window it covers is a customer who has
+ * paid and whose order still says pending_payment.
+ */
+Schedule::command('payments:replay-stranded')->everyFiveMinutes()->withoutOverlapping();
+
 Schedule::command('earnings:clear')->hourly()->withoutOverlapping();
 
 Schedule::command('inventory:reconcile')->dailyAt('03:15');
