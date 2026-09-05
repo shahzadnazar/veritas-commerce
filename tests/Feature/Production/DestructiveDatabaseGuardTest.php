@@ -196,6 +196,57 @@ final class DestructiveDatabaseGuardTest extends TestCase
     }
 
     #[Test]
+    public function a_cached_configuration_cannot_empty_the_protected_list(): void
+    {
+        /*
+         * The regression that cost a database twice.
+         *
+         * Moving the list into config was right — `config:cache` severs
+         * `env()` from the .env file, so a list read only that way empties
+         * itself on deployments that cache their configuration. But
+         * caching also FREEZES the list at build time, and M9 found that
+         * the hard way: with a cache built before the variable was set,
+         * `VERITAS_PROTECTED_DATABASES=veritas migrate:fresh` announced
+         * the right database and then dropped it.
+         *
+         * The list is now the union of config and the live process
+         * environment. A union can only protect more than either source
+         * alone, which is the correct direction for a guard to fail in.
+         */
+        config()->set('veritas.database.protected', []);
+
+        $guard = new DestructiveDatabaseGuard('local');
+
+        $this->assertSame([], $guard->protectedDatabases(), 'Nothing configured, nothing in the environment.');
+
+        // The operator reaching for the variable in the moment — the case
+        // this guard exists for, and the one that silently did not work.
+        $target = $guard->targetDatabase();
+
+        $this->setEnvironmentVariable('VERITAS_PROTECTED_DATABASES', $target.',somewhere_else');
+
+        $this->assertSame([$target, 'somewhere_else'], $guard->protectedDatabases());
+        $this->assertTrue($guard->isProtected($target));
+        $this->assertNotNull(
+            $guard->refusalReason(),
+            'An operator reaching for the variable in the moment must be heard, cached config or not.',
+        );
+    }
+
+    #[Test]
+    public function the_two_sources_of_protection_are_combined_and_never_chosen_between(): void
+    {
+        config()->set('veritas.database.protected', ['from_config']);
+        $this->setEnvironmentVariable('VERITAS_PROTECTED_DATABASES', ' from_environment , from_config ');
+
+        $guard = new DestructiveDatabaseGuard('local');
+
+        // Both, de-duplicated, whitespace trimmed. Neither source can
+        // shrink what the other protects.
+        $this->assertSame(['from_config', 'from_environment'], $guard->protectedDatabases());
+    }
+
+    #[Test]
     public function the_override_is_explicit_and_loudly_named(): void
     {
         config()->set('veritas.database.protected', [
@@ -286,8 +337,21 @@ final class DestructiveDatabaseGuardTest extends TestCase
             base_path('app/Support/Diagnostics/DestructiveDatabaseGuard.php'),
         );
 
-        $this->assertStringNotContainsString("env('VERITAS_PROTECTED_DATABASES'", $source);
+        // Config is read, so a deployment that caches its configuration
+        // keeps whatever was set when the cache was built.
         $this->assertStringContainsString("config('veritas.database.protected'", $source);
+
+        // And Laravel's env() helper is NOT — it returns null once the
+        // configuration is cached, which is the failure this whole
+        // arrangement exists to avoid. The live process environment is
+        // read through getenv() instead, deliberately, and the companion
+        // test above proves the two are combined rather than chosen
+        // between.
+        $this->assertSame(
+            0,
+            preg_match('/(?<!get)env\(\s*.VERITAS_PROTECTED_DATABASES/', $source),
+            'The guard reads its protected list through env(), which is null under a cached config.',
+        );
 
         config()->set('veritas.database.protected', ['one', 'two']);
         $this->assertSame(['one', 'two'], (new DestructiveDatabaseGuard('local'))->protectedDatabases());

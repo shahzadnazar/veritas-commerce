@@ -159,25 +159,66 @@ final class DestructiveDatabaseGuard
     /**
      * The databases the environment has declared off limits.
      *
-     * Via config, not `env()` directly: `config:cache` stops `env()`
-     * seeing the `.env` file, so a list read that way would quietly
-     * empty itself on exactly the deployments that cache config. A
-     * protection that disappears when it matters is not a protection.
+     * The UNION of two sources, and it took losing a database twice to
+     * get this right.
+     *
+     * Config is the first, because `config:cache` severs `env()` from the
+     * `.env` file — a list read only through `env()` would empty itself on
+     * exactly the deployments that cache their configuration.
+     *
+     * But config caching freezes the list at BUILD time, which M9 found
+     * the hard way: with a cache built before the variable was set,
+     * `VERITAS_PROTECTED_DATABASES=veritas php artisan migrate:fresh`
+     * announced the right database and then dropped it, because the
+     * cached list was empty. An operator reaching for the variable in the
+     * moment is the case this guard exists for, and it was the one case
+     * that did not work.
+     *
+     * So the live process environment is read as well, and the two are
+     * combined rather than chosen between. A union can only ever protect
+     * MORE than either source alone — which is the correct direction for
+     * a guard to fail in.
      *
      * @return array<int, string>
      */
     public function protectedDatabases(): array
     {
+        $names = [];
+
         $configured = config('veritas.database.protected', []);
 
-        if (! is_array($configured)) {
-            return [];
+        if (is_array($configured)) {
+            foreach ($configured as $name) {
+                $names[] = (string) $name;
+            }
         }
 
-        return array_values(array_filter(array_map(
-            static fn (mixed $name): string => trim((string) $name),
-            $configured,
-        )));
+        foreach (explode(',', $this->environmentList()) as $name) {
+            $names[] = $name;
+        }
+
+        $names = array_filter(array_map(trim(...), $names), static fn (string $n): bool => $n !== '');
+
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * The protected list as this process was actually started with.
+     *
+     * Read from the process environment rather than through `env()`, for
+     * the same reason the override is: this has to work when the
+     * configuration cache has already been built, and that is precisely
+     * when `env()` stops seeing anything.
+     */
+    private function environmentList(): string
+    {
+        $value = getenv('VERITAS_PROTECTED_DATABASES');
+
+        if ($value === false) {
+            $value = $_SERVER['VERITAS_PROTECTED_DATABASES'] ?? $_ENV['VERITAS_PROTECTED_DATABASES'] ?? '';
+        }
+
+        return (string) $value;
     }
 
     /**

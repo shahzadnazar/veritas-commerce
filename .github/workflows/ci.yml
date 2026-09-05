@@ -114,6 +114,28 @@ jobs:
             - name: Migrate a clean database
               run: php artisan migrate:fresh --seed --force
 
+            # Advisories move without the code changing, so they are asked
+            # on every build rather than pinned into the test suite — a
+            # suite that fails because an advisory was published overnight
+            # is a suite people learn to ignore.
+            - name: Dependency advisories (PHP)
+              run: composer audit --locked --no-interaction
+
+            - name: Dependency advisories (JavaScript)
+              run: npm audit --omit=dev
+
+            # Both caches must build. config:cache severs env() from the
+            # .env file, so anything reading env() at runtime silently
+            # becomes null — the failure mode behind the destructive-DB
+            # guard finding. route:cache refuses closures, so it also
+            # proves the new health and throttle routes stay cacheable.
+            - name: Configuration and routes cache cleanly
+              run: |
+                  php artisan config:cache
+                  php artisan route:cache
+                  php artisan config:clear
+                  php artisan route:clear
+
             - name: Code style
               run: ./vendor/bin/pint --test
 
