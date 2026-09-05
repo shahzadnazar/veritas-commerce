@@ -16,6 +16,7 @@
   "resources/js/design-system/statusTone.ts": [],
   "resources/js/storefront/components/DiscoveryFilters.tsx": [],
   "resources/js/storefront/components/PaymentPanel.tsx": [],
+  "resources/js/storefront/components/TrackingGroups.tsx": [],
   "resources/js/storefront/pages/Account/Orders/Index.tsx": [],
   "resources/js/storefront/pages/Account/Orders/Show.tsx": [],
   "resources/js/storefront/pages/Account/Profile.tsx": [],

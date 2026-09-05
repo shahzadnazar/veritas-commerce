@@ -1033,6 +1033,123 @@ function OrderTotals({ itemsTotal, shippingTotal, taxTotal, grandTotal, shipping
 	});
 }
 //#endregion
+//#region resources/js/storefront/components/TrackingGroups.tsx
+/**
+* Each seller's part of the order, kept visually apart.
+*
+* A customer who bought from three sellers is waiting on three deliveries
+* that will arrive at three different times from three different couriers.
+* Merging that into one progress bar would be tidier and wrong: it would
+* say "shipped" when a third of the order had left, and the customer would
+* find out at the door.
+*
+* The parent summary above the groups is derived on the server, from the
+* least advanced seller, so this page and the order list cannot disagree.
+*/
+function TrackingGroups({ fulfilment }) {
+	return /* @__PURE__ */ jsxs("section", {
+		"aria-labelledby": "tracking-heading",
+		className: "mb-10",
+		children: [
+			/* @__PURE__ */ jsx("h2", {
+				id: "tracking-heading",
+				className: "mb-3 text-[22px]",
+				children: "Where your order is"
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				role: "status",
+				className: "mb-6 border-2 border-[var(--vc-text)] px-5 py-4",
+				children: [/* @__PURE__ */ jsx("p", {
+					className: "text-[16px] font-semibold",
+					children: fulfilment.summary.label
+				}), /* @__PURE__ */ jsx("p", {
+					className: "mt-1 text-[14px] text-[var(--vc-neutral-700)]",
+					children: fulfilment.summary.detail
+				})]
+			}),
+			/* @__PURE__ */ jsx("ul", { children: fulfilment.groups.map((group) => /* @__PURE__ */ jsx(TrackingGroup, { group }, group.reference)) })
+		]
+	});
+}
+function TrackingGroup({ group }) {
+	return /* @__PURE__ */ jsxs("li", {
+		className: "mb-6 border-2 border-[var(--vc-divider)] p-5",
+		children: [/* @__PURE__ */ jsxs("div", {
+			className: "mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1",
+			children: [
+				/* @__PURE__ */ jsx("h3", {
+					className: "text-[16px]",
+					children: group.storeName
+				}),
+				/* @__PURE__ */ jsx("span", {
+					className: "vc-tabular text-[12px] text-[var(--vc-neutral-600)]",
+					children: group.reference
+				}),
+				/* @__PURE__ */ jsx(StatusBadge, {
+					domain: "seller_order",
+					value: group.status
+				})
+			]
+		}), group.shipments.length === 0 ? /* @__PURE__ */ jsx("p", {
+			className: "text-[14px] text-[var(--vc-neutral-700)]",
+			children: group.confirmedAt ? "This seller is preparing your items." : "This seller has not started on your items yet."
+		}) : /* @__PURE__ */ jsx("ul", {
+			className: "border-t border-[var(--vc-divider)]",
+			children: group.shipments.map((shipment) => /* @__PURE__ */ jsxs("li", {
+				className: "border-b border-[var(--vc-divider)] py-3 text-[14px]",
+				children: [
+					/* @__PURE__ */ jsxs("div", {
+						className: "flex flex-wrap items-baseline gap-x-3 gap-y-1",
+						children: [/* @__PURE__ */ jsx(StatusBadge, {
+							domain: "shipment",
+							value: shipment.status
+						}), shipment.carrierName ? /* @__PURE__ */ jsxs("span", { children: [shipment.carrierName, shipment.trackingNumber ? /* @__PURE__ */ jsxs(Fragment, { children: [" · ", shipment.trackingUrl ? /* @__PURE__ */ jsx("a", {
+							href: shipment.trackingUrl,
+							target: "_blank",
+							rel: "noreferrer noopener",
+							className: "vc-tabular underline underline-offset-4",
+							children: shipment.trackingNumber
+						}) : /* @__PURE__ */ jsx("span", {
+							className: "vc-tabular",
+							children: shipment.trackingNumber
+						})] }) : null] }) : null]
+					}),
+					/* @__PURE__ */ jsx("ul", {
+						className: "mt-1 text-[13px] text-[var(--vc-neutral-700)]",
+						children: shipment.items.map((item) => /* @__PURE__ */ jsxs("li", { children: [
+							item.quantity,
+							" × ",
+							item.title,
+							item.variantName ? ` — ${item.variantName}` : ""
+						] }, `${shipment.reference}-${item.title}-${item.quantity}`))
+					}),
+					shipment.deliveredAt ? /* @__PURE__ */ jsxs("p", {
+						className: "mt-1 text-[12px] text-[var(--vc-neutral-600)]",
+						children: [
+							"Delivered",
+							" ",
+							/* @__PURE__ */ jsx("time", {
+								dateTime: shipment.deliveredAt,
+								children: new Date(shipment.deliveredAt).toLocaleString()
+							})
+						]
+					}) : shipment.shippedAt ? /* @__PURE__ */ jsxs("p", {
+						className: "mt-1 text-[12px] text-[var(--vc-neutral-600)]",
+						children: [
+							"Sent",
+							" ",
+							/* @__PURE__ */ jsx("time", {
+								dateTime: shipment.shippedAt,
+								children: new Date(shipment.shippedAt).toLocaleString()
+							})
+						]
+					}) : null
+				]
+			}, shipment.reference))
+		})]
+	});
+}
+//#endregion
 //#region resources/js/storefront/pages/Account/Orders/Show.tsx
 var Show_exports$3 = /* @__PURE__ */ __exportAll({ default: () => OrderShow });
 /**
@@ -1049,7 +1166,7 @@ var Show_exports$3 = /* @__PURE__ */ __exportAll({ default: () => OrderShow });
 * a single merged list would mislead them about that.
 */
 function OrderShow() {
-	const { order, payment } = usePage().props;
+	const { order, payment, fulfilment } = usePage().props;
 	return /* @__PURE__ */ jsxs(StorefrontLayout, {
 		title: `Order ${order.reference}`,
 		children: [
@@ -1110,6 +1227,7 @@ function OrderShow() {
 					}) : null
 				]
 			}),
+			payment.isPaid ? /* @__PURE__ */ jsx(TrackingGroups, { fulfilment }) : null,
 			/* @__PURE__ */ jsxs("div", {
 				className: "grid gap-14 lg:grid-cols-[1fr_320px]",
 				children: [/* @__PURE__ */ jsxs("div", { children: [/* @__PURE__ */ jsx("h2", {

@@ -7,6 +7,7 @@ namespace App\Modules\Orders\Http\Controllers;
 use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Orders\Models\SellerOrder;
 use App\Modules\Orders\Queries\BuildOrderDetail;
+use App\Modules\Orders\Queries\SummariseOrderFulfilment;
 use App\Modules\Payments\Queries\DescribePaymentState;
 use App\Support\Money;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ final class CustomerOrderController
     public function __construct(
         private readonly BuildOrderDetail $detail,
         private readonly DescribePaymentState $payment,
+        private readonly SummariseOrderFulfilment $fulfilment,
     ) {}
 
     public function index(Request $request): Response
@@ -69,6 +71,12 @@ final class CustomerOrderController
     {
         $order = $this->ownedOrFail($request, $reference);
 
+        $sellerOrders = SellerOrder::query()
+            ->withoutGlobalScopes()
+            ->where('marketplace_order_id', $order->id)
+            ->orderBy('position')
+            ->get();
+
         return Inertia::render('Account/Orders/Show', [
             // A customer sees what they paid, never what the platform
             // took from the seller: that is the seller's business and the
@@ -78,12 +86,20 @@ final class CustomerOrderController
             // so a customer is never told two different things about one
             // payment. No provider identifiers, no decline codes (§53).
             'payment' => ($this->payment)($order),
-            'sellerOrderStatuses' => SellerOrder::query()
-                ->withoutGlobalScopes()
-                ->where('marketplace_order_id', $order->id)
-                ->orderBy('position')
-                ->pluck('status', 'reference')
-                ->all(),
+            /*
+             * Per-seller tracking, kept apart on purpose.
+             *
+             * A customer who bought from three sellers has three parcels
+             * arriving at three times, and flattening that into one status
+             * would tell them their order shipped when a third of it had.
+             * The parent's own summary is derived in one place so this
+             * page and every other cannot disagree.
+             */
+            'fulfilment' => [
+                'summary' => $this->fulfilment->forOrder($order),
+                'groups' => $this->fulfilment->groups($sellerOrders),
+            ],
+            'sellerOrderStatuses' => $sellerOrders->pluck('status', 'reference')->all(),
         ]);
     }
 

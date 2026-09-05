@@ -266,3 +266,38 @@ export interface SellerFulfilmentView {
     issues: FulfilmentIssueView[];
     carriers: { code: string; name: string }[];
 }
+
+/** One seller's part of a customer order, as the customer sees it. */
+export interface CustomerTrackingShipment {
+    reference: string;
+    status: string;
+    carrierName: string | null;
+    trackingNumber: string | null;
+    trackingUrl: string | null;
+    shippedAt: string | null;
+    deliveredAt: string | null;
+    items: { title: string; variantName: string | null; quantity: number }[];
+}
+
+export interface CustomerTrackingGroup {
+    reference: string;
+    storeName: string;
+    status: string;
+    confirmedAt: string | null;
+    shippedAt: string | null;
+    deliveredAt: string | null;
+    shipments: CustomerTrackingShipment[];
+}
+
+export interface OrderFulfilmentSummary {
+    state: string;
+    label: string;
+    detail: string;
+    sellerCount: number;
+    deliveredCount: number;
+}
+
+export interface CustomerFulfilmentView {
+    summary: OrderFulfilmentSummary;
+    groups: CustomerTrackingGroup[];
+}

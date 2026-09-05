@@ -2,13 +2,15 @@ import { Link, usePage } from '@inertiajs/react';
 import { StorefrontLayout } from '../../../../design-system/layout/StorefrontLayout';
 import { AddressBlock, OrderTotals } from '../../../../design-system/patterns/OrderPieces';
 import { StatusBadge } from '../../../../design-system/primitives/StatusBadge';
-import type { MarketplaceOrderView } from '../../../../shared/commerce';
+import type { CustomerFulfilmentView, MarketplaceOrderView } from '../../../../shared/commerce';
 import type { SharedPageProps } from '../../../../shared/types';
+import { TrackingGroups } from '../../../components/TrackingGroups';
 import type { PaymentState } from '../../../components/PaymentPanel';
 
 interface OrderShowProps extends SharedPageProps {
     order: MarketplaceOrderView;
     payment: PaymentState;
+    fulfilment: CustomerFulfilmentView;
 }
 
 /**
@@ -25,7 +27,7 @@ interface OrderShowProps extends SharedPageProps {
  * a single merged list would mislead them about that.
  */
 export default function OrderShow() {
-    const { order, payment } = usePage<OrderShowProps>().props;
+    const { order, payment, fulfilment } = usePage<OrderShowProps>().props;
 
     return (
         <StorefrontLayout title={`Order ${order.reference}`}>
@@ -76,6 +78,8 @@ export default function OrderShow() {
                     </p>
                 ) : null}
             </div>
+
+            {payment.isPaid ? <TrackingGroups fulfilment={fulfilment} /> : null}
 
             <div className="grid gap-14 lg:grid-cols-[1fr_320px]">
                 <div>
