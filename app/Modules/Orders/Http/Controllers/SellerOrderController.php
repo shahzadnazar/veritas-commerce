@@ -8,6 +8,7 @@ use App\Modules\Orders\Enums\SellerOrderStatus;
 use App\Modules\Orders\Models\MarketplaceOrder;
 use App\Modules\Orders\Models\OrderItem;
 use App\Modules\Orders\Models\SellerOrder;
+use App\Modules\Orders\Queries\BuildFulfilmentView;
 use App\Modules\Orders\Queries\BuildOrderDetail;
 use App\Modules\Payments\Queries\DescribePaymentState;
 use App\Modules\Sellers\Concerns\CurrentSeller;
@@ -40,6 +41,7 @@ final class SellerOrderController
     public function __construct(
         private readonly BuildOrderDetail $detail,
         private readonly DescribePaymentState $payment,
+        private readonly BuildFulfilmentView $fulfilmentView,
     ) {}
 
     public function index(Request $request): Response
@@ -135,6 +137,7 @@ final class SellerOrderController
         }
 
         $withFinance = CurrentSeller::can(SellerPermission::FinanceView);
+        $canManage = CurrentSeller::can(SellerPermission::OrdersManage);
 
         $items = OrderItem::query()
             ->where('seller_order_id', $sellerOrder->id)
@@ -173,12 +176,31 @@ final class SellerOrderController
              * any case; that this flag is false before payment is the
              * part that has to be true now.
              */
-            'fulfilment' => [
-                'actionable' => $sellerOrder->status !== SellerOrderStatus::PendingPayment,
-                'reason' => $sellerOrder->status === SellerOrderStatus::PendingPayment
-                    ? 'This order cannot be packed or shipped until payment is confirmed.'
-                    : null,
-            ],
+            'fulfilment' => array_merge(
+                [
+                    'actionable' => $sellerOrder->status->isActionable(),
+                    'reason' => $sellerOrder->status === SellerOrderStatus::PendingPayment
+                        ? 'This order cannot be packed or shipped until payment is confirmed.'
+                        : null,
+                    'canConfirm' => $sellerOrder->status === SellerOrderStatus::Paid,
+                    'canProcess' => $sellerOrder->status === SellerOrderStatus::Confirmed,
+                    'canPack' => in_array($sellerOrder->status, [
+                        SellerOrderStatus::Confirmed,
+                        SellerOrderStatus::Processing,
+                        SellerOrderStatus::Packed,
+                        SellerOrderStatus::PartiallyShipped,
+                        SellerOrderStatus::PartiallyDelivered,
+                    ], true),
+                    'canManage' => $canManage,
+                    /*
+                     * §56: no courier integration exists, so delivery is
+                     * recorded by a person. The page says so rather than
+                     * implying the platform watched it happen.
+                     */
+                    'deliveryIsManual' => true,
+                ],
+                $this->fulfilmentView->forSellerOrder($sellerOrder, withHistory: true),
+            ),
             /*
              * Two facts and no more: whether the money cleared, and when.
              * A seller needs the first to know they may ship and the

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Catalog\Http\Controllers\SellerCatalogueController;
 use App\Modules\Inventory\Http\Controllers\SellerInventoryController;
 use App\Modules\Offers\Http\Controllers\SellerOfferController;
+use App\Modules\Orders\Http\Controllers\SellerFulfilmentController;
 use App\Modules\Orders\Http\Controllers\SellerOrderController;
 use App\Modules\Sellers\Http\Controllers\SellerApplicationController;
 use App\Modules\Sellers\Http\Controllers\SellerDashboardController;
@@ -102,6 +103,36 @@ Route::prefix('seller')->name('seller.')->middleware('auth')->group(function ():
             ->middleware('seller.can:orders.view')->name('orders');
         Route::get('orders/{reference}', [SellerOrderController::class, 'show'])
             ->middleware('seller.can:orders.view')->name('orders.show');
+
+        /*
+         * Fulfilment writes.
+         *
+         * `orders.manage` throughout, which is the permission the role
+         * matrix already gives to the people who run a warehouse — owner,
+         * administrator and fulfilment manager — and withholds from
+         * catalogue, inventory and finance roles. A separate
+         * `fulfilment.manage` would have drawn the same line twice.
+         *
+         * Every one of these re-resolves the seller order and the parcel
+         * through the tenant scope, so an identifier from another seller
+         * reaches no action.
+         */
+        Route::prefix('orders/{reference}')->name('orders.')->group(function (): void {
+            Route::post('confirm', [SellerFulfilmentController::class, 'confirm'])
+                ->middleware('seller.can:orders.manage')->name('confirm');
+            Route::post('process', [SellerFulfilmentController::class, 'process'])
+                ->middleware('seller.can:orders.manage')->name('process');
+            Route::post('shipments', [SellerFulfilmentController::class, 'createShipment'])
+                ->middleware('seller.can:orders.manage')->name('shipments.store');
+            Route::post('shipments/{shipment}/tracking', [SellerFulfilmentController::class, 'updateTracking'])
+                ->middleware('seller.can:orders.manage')->name('shipments.tracking');
+            Route::post('shipments/{shipment}/ship', [SellerFulfilmentController::class, 'ship'])
+                ->middleware('seller.can:orders.manage')->name('shipments.ship');
+            Route::post('shipments/{shipment}/deliver', [SellerFulfilmentController::class, 'deliver'])
+                ->middleware('seller.can:orders.manage')->name('shipments.deliver');
+            Route::post('issues', [SellerFulfilmentController::class, 'reportIssue'])
+                ->middleware('seller.can:orders.manage')->name('issues.store');
+        });
 
         Route::get('team', [SellerTeamController::class, 'index'])
             ->middleware('seller.can:members.view')->name('team');

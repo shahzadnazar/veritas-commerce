@@ -83,9 +83,31 @@ enum AdminPermission: string
     case ViewPaymentsSensitive = 'payments.view_sensitive';
     case ViewProviderEvents = 'payments.events.view';
 
+    /*
+     * Fulfilment, split three ways because the three are different jobs.
+     *
+     * Reading it answers "where is the customer's parcel", which is
+     * support's question. Correcting tracking rewrites what a customer was
+     * told about a delivery, and overriding fulfilment state decides that
+     * a parcel arrived — both are the platform contradicting a seller's
+     * own record of their own shipment, so neither is something every
+     * member of staff should hold.
+     */
+    case ViewFulfilment = 'fulfilment.view';
+    case OverrideFulfilment = 'fulfilment.override';
+    case CorrectTracking = 'fulfilment.tracking.correct';
+
     // Money
     case ManageCommission = 'commission.manage';
     case ViewSellerEarnings = 'earnings.view';
+
+    /*
+     * What a seller is owed and when it becomes theirs. Separate from
+     * `earnings.view` because it is the number M7 will pay out against,
+     * and because seeing a balance is not the same as seeing the schedule
+     * that produces it.
+     */
+    case ViewEarningsClearing = 'earnings.clearing.view';
     case DecidePayouts = 'payouts.decide';
 
     // Platform

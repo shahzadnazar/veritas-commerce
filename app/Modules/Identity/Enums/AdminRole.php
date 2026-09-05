@@ -42,6 +42,9 @@ enum AdminRole: string
                 AdminPermission::ViewOrdersSensitive,
                 AdminPermission::ViewPayments,
                 AdminPermission::ViewProviderEvents,
+                AdminPermission::ViewFulfilment,
+                AdminPermission::OverrideFulfilment,
+                AdminPermission::CorrectTracking,
                 AdminPermission::ManageOperationalSettings,
                 AdminPermission::ViewQueues,
                 // Can see the catalogue and move a proposal through
@@ -71,6 +74,7 @@ enum AdminRole: string
                 AdminPermission::SellerReactivate,
                 AdminPermission::SellerViewSensitive,
                 AdminPermission::ViewOrders,
+                AdminPermission::ViewFulfilment,
                 // Reads stock to answer a seller's question; correcting it
                 // is the marketplace admin's call, not theirs.
                 AdminPermission::InventoryView,
@@ -105,6 +109,8 @@ enum AdminRole: string
                 AdminPermission::ViewProviderEvents,
                 AdminPermission::ManageCommission,
                 AdminPermission::ViewSellerEarnings,
+                AdminPermission::ViewEarningsClearing,
+                AdminPermission::ViewFulfilment,
                 AdminPermission::DecidePayouts,
             ],
 
@@ -113,6 +119,9 @@ enum AdminRole: string
                 AdminPermission::SellerApplicationView,
                 AdminPermission::ViewOrders,
                 AdminPermission::ViewPayments,
+                // "Where is my parcel" is the question support is asked
+                // most; deciding that it arrived is not their call.
+                AdminPermission::ViewFulfilment,
                 // Reading a product to answer a customer's question is
                 // support's job; deciding one is not.
                 AdminPermission::CatalogueView,
