@@ -138,6 +138,55 @@ return [
         'require_destination' => (bool) env('VERITAS_PAYOUT_REQUIRE_DESTINATION', true),
     ],
 
+    /*
+     * Discovery: how popularity is scored and when a co-occurrence is
+     * evidence rather than a coincidence.
+     *
+     * Every number a recommendation depends on is here rather than spread
+     * through jobs and controllers (§36). Changing what the marketplace
+     * considers popular is an edit to this block and a rebuild.
+     */
+    'recommendations' => [
+        /*
+         * What each behaviour is worth. Commercial intent outweighs
+         * curiosity by design: somebody who bought a thing told us far
+         * more than somebody who looked at it, and a "popular" list built
+         * from views alone ranks whatever is easiest to stumble upon.
+         */
+        'weights' => [
+            'view' => (int) env('VERITAS_RECO_WEIGHT_VIEW', 1),
+            'search_click' => (int) env('VERITAS_RECO_WEIGHT_SEARCH_CLICK', 2),
+            'wishlist' => (int) env('VERITAS_RECO_WEIGHT_WISHLIST', 4),
+            'cart' => (int) env('VERITAS_RECO_WEIGHT_CART', 6),
+            'purchase' => (int) env('VERITAS_RECO_WEIGHT_PURCHASE', 12),
+        ],
+
+        // The windows popularity is computed over. Both are kept so a
+        // caller can ask for "this week" or "this month" and get an
+        // answer that was actually computed over that period (§35).
+        'windows' => [7, 30],
+
+        /*
+         * How many distinct sessions or orders make a pair evidence.
+         *
+         * §37 and §38: one shared session is a coincidence. Below the
+         * threshold the strategy returns nothing and the fallback chain
+         * takes over, rather than a recommendation being fabricated from
+         * a single visit.
+         */
+        'minimum_support' => [
+            'viewed_together' => (int) env('VERITAS_RECO_MIN_SUPPORT_VIEWED', 3),
+            'bought_together' => (int) env('VERITAS_RECO_MIN_SUPPORT_BOUGHT', 2),
+        ],
+
+        // How far a similar-product price may sit from the anchor before
+        // it stops counting as a comparable, as a percentage.
+        'price_band_percent' => (int) env('VERITAS_RECO_PRICE_BAND_PERCENT', 35),
+
+        // How long a computed set of ids may be reused.
+        'cache_seconds' => (int) env('VERITAS_RECO_CACHE_SECONDS', 300),
+    ],
+
     'inventory' => [
         'low_stock_threshold' => (int) env('VERITAS_LOW_STOCK_THRESHOLD', 5),
         'reservation_ttl_minutes' => (int) env('VERITAS_RESERVATION_TTL_MINUTES', 20),
