@@ -53,8 +53,10 @@ use App\Modules\Payouts\Providers\ManualPayoutProvider;
 use App\Modules\Search\Adapters\PostgresSearchIndex;
 use App\Modules\Search\Contracts\IndexableProductSource;
 use App\Modules\Search\Contracts\SearchIndex;
+use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Sellers\Events\SellerApproved;
 use App\Modules\Sellers\Listeners\NotifyApprovedSeller;
+use App\Modules\Sellers\Models\SellerMembership;
 use App\Support\Diagnostics\DestructiveDatabaseGuard;
 use App\Support\Diagnostics\DestructiveDatabaseRefused;
 use Illuminate\Auth\Events\Login;
@@ -268,6 +270,21 @@ final class AppServiceProvider extends ServiceProvider
         // Failing loudly outside production is how it gets caught in review.
         Model::preventLazyLoading(! $this->app->environment('production'));
         Model::preventSilentlyDiscardingAttributes(! $this->app->environment('production'));
+
+        /*
+         * A membership write invalidates the request-scoped membership
+         * cache in CurrentSeller. Accepting an invitation, changing a
+         * role or removing a member all change the answer to "what may
+         * this actor do", and the rest of that same request must not go
+         * on answering from the membership it read beforehand.
+         */
+        SellerMembership::saved(static function (): void {
+            CurrentSeller::flushCache();
+        });
+
+        SellerMembership::deleted(static function (): void {
+            CurrentSeller::flushCache();
+        });
 
         $this->guardDestructiveDatabaseCommands();
     }

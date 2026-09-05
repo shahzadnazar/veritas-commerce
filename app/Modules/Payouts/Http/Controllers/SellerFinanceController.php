@@ -52,8 +52,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final class SellerFinanceController
 {
-    private ?SellerMembership $membership = null;
-
     public function __construct(
         private readonly GetSellerFinancialPosition $position,
         private readonly EvaluatePayoutEligibility $eligibility,
@@ -245,9 +243,26 @@ final class SellerFinanceController
      * goes to CurrentSeller::allows() — which is still the one place the
      * suspension rule lives.
      */
+    /**
+     * Resolved every time, never cached on this object.
+     *
+     * It used to be memoised into a property, which is wrong for a reason
+     * that is not visible from here: Laravel caches the controller
+     * instance on the Route object, and a Route outlives a request. Under
+     * php-fpm the process ends with the request and nothing is noticed.
+     * Under any runtime that keeps the application alive between requests
+     * — Octane, RoadRunner, Swoole — the second seller to hit this
+     * controller is served the first seller's membership, and reads their
+     * payouts. M9 reproduced exactly that, in-process, before this line
+     * changed.
+     *
+     * The saving was four indexed single-row lookups on a page nobody
+     * loads in a loop. That is not a trade worth a cross-tenant leak, and
+     * `ControllerStateTest` now stops the pattern coming back anywhere.
+     */
     private function membership(): ?SellerMembership
     {
-        return $this->membership ??= CurrentSeller::membership();
+        return CurrentSeller::membership();
     }
 
     private function seller(): SellerAccount

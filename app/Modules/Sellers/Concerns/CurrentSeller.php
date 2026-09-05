@@ -38,6 +38,31 @@ final class CurrentSeller
         return self::membership()?->role;
     }
 
+    /**
+     * Where the resolved membership is remembered for the rest of a request.
+     *
+     * On the Request object, and that choice is the whole point. It used to
+     * be memoised into a controller property, which looked equivalent and
+     * was not: Laravel caches a controller instance on the Route, and a
+     * Route outlives the request that used it. Under php-fpm the process
+     * ends with the request and nothing is ever noticed; under a runtime
+     * that keeps the application alive between requests — Octane,
+     * RoadRunner, Swoole — the second seller to reach that controller is
+     * served the first seller's membership and reads their payouts. M9
+     * reproduced exactly that, two requests, one leak.
+     *
+     * A Request, by contrast, is genuinely one request under every runtime.
+     */
+    private const CACHE_KEY = 'veritas.current_seller_membership';
+
+    /**
+     * The acting user's membership, resolved once per request.
+     *
+     * Resolved once because several screens ask four or five times and the
+     * answer cannot change underneath them; `flushCache()` below is bound
+     * to membership writes so that even that assumption is enforced rather
+     * than assumed.
+     */
     public static function membership(): ?SellerMembership
     {
         $user = auth('web')->user();
@@ -46,13 +71,40 @@ final class CurrentSeller
             return null;
         }
 
+        $userId = (int) $user->getAuthIdentifier();
+        $request = request();
+        $cached = $request->attributes->get(self::CACHE_KEY);
+
+        // Keyed by user as well as scoped to the request, because a test —
+        // and an Octane worker — can put two different people through one
+        // application without either of them being wrong to expect their
+        // own data.
+        if (is_array($cached) && $cached['user'] === $userId) {
+            return $cached['membership'];
+        }
+
         /** @var SellerMembership|null $membership */
         $membership = SellerMembership::query()
-            ->where('user_id', $user->getAuthIdentifier())
+            ->where('user_id', $userId)
             ->whereNotNull('accepted_at')
             ->first();
 
+        $request->attributes->set(self::CACHE_KEY, ['user' => $userId, 'membership' => $membership]);
+
         return $membership;
+    }
+
+    /**
+     * Forget the resolved membership.
+     *
+     * Bound to membership writes in AppServiceProvider, so that a request
+     * which changes a role — accepting an invitation, promoting a member,
+     * removing one — cannot go on answering authorisation questions from
+     * the membership it had before it made the change.
+     */
+    public static function flushCache(): void
+    {
+        request()->attributes->remove(self::CACHE_KEY);
     }
 
     public static function isActing(): bool

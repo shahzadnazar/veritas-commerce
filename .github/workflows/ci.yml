@@ -127,6 +127,13 @@ jobs:
                       || { echo "Larastan is missing; CI must run the strict configuration."; exit 1; }
                   php tools/phpstan.php analyse --memory-limit=2G --no-progress
 
+            # Generated documents are only worth having while they are
+            # true. The IDOR matrix is rendered from the probes that run
+            # it, so a probe added without regenerating the document is a
+            # security table that has quietly stopped describing the tests.
+            - name: Generated documents are current
+              run: php tools/idor-matrix.php --check
+
             # The architectural invariants run first and on their own: if
             # money or tenant isolation is broken, nothing else in the suite
             # is interesting.
