@@ -312,8 +312,23 @@ stops a customer's double-click becoming two orders.
 
 ## Sustained load
 
-See `ops/load/.run/soak/` for the raw output of the twelve-minute hold at
-25 virtual users, and the summary below.
+Twelve minutes at 25 virtual users — just under the knee — serving
+**31,424 requests with no failures**.
+
+| | 30-second level | 12-minute hold |
+|---|---|---|
+| req/s | 42.7 | 43.6 |
+| p50 | 58 ms | 62 ms |
+| p95 | 151 ms | 152 ms |
+| p99 | 245 ms | 213 ms |
+| worst | 399 ms | 557 ms |
+
+**The number the application gives in the first minute is the number it
+gives in the twelfth.** A p95 of 152 ms against the short level's 151 ms
+is not a system that degrades under sustained load; it is the same system,
+measured for longer. The resource picture, read in thirds, is in the
+appendix — CPU, memory and connections flat, zero lock waits throughout,
+and one line that climbed.
 
 ## What should change, and when to scale
 
@@ -451,9 +466,9 @@ password and is gitignored; it is never committed and never printed.
 
 ## Appendix: Redis growth under sustained load
 
-Redis was the only thing that moved during a twelve-minute hold at 25
-virtual users, and it moved a lot: 103 MB in the first third to 127 MB in
-the last, +22% and still climbing when the run ended.
+Redis was the only thing that moved during the twelve-minute hold, and it
+moved a lot: 113 MB in the first third to 169 MB in the last, +50% and
+still climbing when the run ended.
 
 Measured by key prefix, **90% of it is Horizon's own bookkeeping**:
 
@@ -493,11 +508,11 @@ the whole run hides exactly the drift a soak is asked about.
 ```
               first third       middle   last third   drift
 ------------------------------------------------------------------
-cpu busy %           63.7         63.4         65.1   +2%
-memory MB         1,985.6      2,023.2      2,048.4   +3%
-pg conns             12.9         13.3         13.2   +2%
-lock waits            0.0          0.0          0.0   +0%
-redis MB            103.9        115.9        126.9   +22%
+cpu busy %           63.7         64.8         63.8    +0%
+memory MB         2,012.0      2,066.8      2,077.2    +3%
+pg conns             13.1         13.3         13.2    +1%
+lock waits            0.0          0.0          0.0    +0%
+redis MB            112.8        141.0        169.4   +50%
 ```
 
 CPU, process memory and database connections were flat. Lock waits stayed
@@ -507,3 +522,21 @@ the only line that drifted is the one explained above.
 The sampler now also records an uncontended probe request each second, so
 later runs show the latency trend directly rather than inferring it from
 flat CPU; this run predates that column.
+
+## Gates
+
+Run with the load stack stopped, so the suite used the test database and
+not the performance one.
+
+| Gate | Result |
+|---|---|
+| Pint | passed |
+| PHPStan (Larastan, level 8) | passed, 0 errors |
+| TypeScript | passed |
+| ESLint | passed, 0 warnings |
+| PHPUnit | 1,580 tests, 21,395 assertions, 0 failures |
+| Vite build + SSR build | passed |
+
+The suite grew by four tests against the block's baseline of 1,576: three
+covering reference allocation under a lost race, one pinning the rating
+histogram's payload shape.
