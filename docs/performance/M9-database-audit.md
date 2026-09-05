@@ -210,12 +210,54 @@ The three read surfaces over this table (`search health`,
 Local `pg_stat_user_indexes` counts were not used as evidence either way:
 on a freshly generated database they say nothing about production.
 
-### Foreign keys without indexes
+### Twenty-nine foreign keys without indexes
 
-`payout_settlement_attempts`, `payout_status_history`, `shipment_items`
-and the event tables all carry foreign keys, and all of them already have
-an index on the column a measured query looks up. No index was added to a
-foreign key merely for being one.
+At launch scale, 29 single-column foreign keys on tables of more than
+5,000 rows have no index of their own — `order_items.product_id`,
+`seller_ledger_entries.seller_order_id`, `interaction_events.offer_id`
+and so on. Indexing all of them would be a defensible-sounding change and
+the wrong one: it is roughly 29 more indexes to maintain on the tables
+that are written most.
+
+Two questions decide it, and both were answered.
+
+*Does a measured read need one?* No. Every read surface in the report is
+either index-served on a different column or scanning a table small
+enough for it not to matter.
+
+*Does a parent deletion cascade through one?* Also no — and this is the
+argument that actually settles it, because an unindexed foreign key makes
+the parent's `DELETE` scan the child. Nothing in the domain deletes any
+of these parents. Searching for deletions across `app/Modules` turns up
+seller memberships, application documents, admin recovery codes,
+attribute values, wishlist items, cart items, rebuilt daily metrics and
+search documents — all small, all already indexed. Products, categories,
+brands, stores, offers, orders, order items and ledger entries are never
+deleted at all; the financial tables are append-only by design.
+
+So none were added. The list is worth re-running after any change that
+introduces a deletion path.
+
+### The integrity checks that already passed
+
+Recorded because "we looked and it was fine" is a result:
+
+- **139 foreign keys, every one with an explicit `ON DELETE` action** —
+  67 cascade, 52 set null, 20 restrict, and zero falling back to
+  PostgreSQL's `NO ACTION` default. A default there is not a decision; it
+  is the absence of one, surfacing later as a delete that inexplicably
+  fails.
+- **No `ON DELETE SET NULL` on a `NOT NULL` column.** The two halves live
+  in different migrations, and when they contradict each other the parent
+  simply cannot be deleted.
+- **Every table has a primary key.**
+- **Every `*_minor` column is `bigint`**, and nothing anywhere in the
+  schema is `double precision`, `real` or `money`. The rate columns are
+  `numeric`, which is exact.
+
+All four are now asserted by `tests/Invariants/DatabaseConstraintTest`,
+read from `pg_catalog` rather than from the migrations — a migration file
+says what somebody intended, the catalogue says what the database is.
 
 ## Connections and sessions
 
