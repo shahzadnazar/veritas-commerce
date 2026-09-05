@@ -100,6 +100,19 @@ jobs:
             # The architectural invariants run first and on their own: if
             # money or tenant isolation is broken, nothing else in the suite
             # is interesting.
+            #
+            # These two steps share `veritas_test` and must never overlap.
+            # Steps within a GitHub Actions job are serial by definition, so
+            # this is already safe — but the constraint is real rather than
+            # incidental, and worth writing down: two PHPUnit runs against
+            # one database migrate against each other, producing deadlocks
+            # on DDL and a half-migrated schema whose failures look like
+            # defects in code that is fine. tests/bootstrap.php takes a
+            # PostgreSQL advisory lock so a second run fails fast with that
+            # explanation instead of hanging.
+            #
+            # If these are ever split across jobs, or run with --parallel,
+            # each worker needs its own DB_DATABASE.
             - name: Architectural invariants
               run: ./vendor/bin/phpunit --testsuite=Invariants
 

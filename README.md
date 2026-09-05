@@ -38,6 +38,17 @@ npm run typecheck && npm run lint && npm run format:check
 npm run build:ssr                       # production client + SSR build
 ```
 
+Run one PHPUnit invocation at a time. The suites share `veritas_test`, and
+two runs against one database migrate against each other — you get
+deadlocks on DDL and a half-migrated schema whose failures look like
+defects in code that is fine. `tests/bootstrap.php` takes an advisory lock
+and a second run stops immediately with an explanation rather than
+hanging. To run two genuinely in parallel, give each its own database:
+
+```bash
+DB_DATABASE=veritas_test_2 ./vendor/bin/phpunit
+```
+
 ## Stack
 
 Laravel 13 · React 19 + TypeScript (strict) via Inertia 2, SSR for the storefront · PostgreSQL 16 · Redis 7 · Vite 8 with one bundle per area · Tailwind 4 over the Modernist token sheet · a provider-agnostic payment port (fake driver at M0, Stripe from M3).

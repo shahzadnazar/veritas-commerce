@@ -91,13 +91,17 @@ export function ProductReviews({
 
             {reviews.total === 0 ? (
                 <p className="mt-8 text-[15px] text-[var(--vc-neutral-600)]">
-                    No reviews yet. Only customers who bought and received this product can write one.
+                    No reviews yet. Only customers who bought and received this product can write
+                    one.
                 </p>
             ) : (
                 <>
                     <ul className="mt-8 border-t-2 border-[var(--vc-text)]">
                         {reviews.data.map((review) => (
-                            <li key={review.publicId} className="border-b border-[var(--vc-divider)] py-6">
+                            <li
+                                key={review.publicId}
+                                className="border-b border-[var(--vc-divider)] py-6"
+                            >
                                 <ReviewBody review={review} />
                             </li>
                         ))}
@@ -119,9 +123,7 @@ export function ProductReviews({
  */
 function RatingSummary({ rating }: { rating: RatingSummaryData }) {
     if (!rating.hasRating || rating.average === null) {
-        return (
-            <p className="text-[15px] text-[var(--vc-neutral-600)]">Not yet rated.</p>
-        );
+        return <p className="text-[15px] text-[var(--vc-neutral-600)]">Not yet rated.</p>;
     }
 
     return (
@@ -132,7 +134,9 @@ function RatingSummary({ rating }: { rating: RatingSummaryData }) {
             </p>
             <p className="text-[14px] text-[var(--vc-neutral-600)]">
                 {rating.reviewCount} {rating.reviewCount === 1 ? 'review' : 'reviews'}
-                {rating.verifiedCount > 0 ? `, ${rating.verifiedCount} from verified purchases` : ''}
+                {rating.verifiedCount > 0
+                    ? `, ${rating.verifiedCount} from verified purchases`
+                    : ''}
             </p>
 
             <dl className="mt-2 w-full max-w-[320px]">
@@ -181,7 +185,9 @@ function ReviewBody({ review }: { review: ReviewRow }) {
                 ) : null}
             </div>
 
-            {review.title ? <h3 className="mb-1 text-[16px] font-semibold">{review.title}</h3> : null}
+            {review.title ? (
+                <h3 className="mb-1 text-[16px] font-semibold">{review.title}</h3>
+            ) : null}
 
             <p className="text-[15px] whitespace-pre-line">{review.body}</p>
         </article>
@@ -331,7 +337,10 @@ function ReviewForm({
             <h3 className="mb-4 text-[16px] font-semibold">{heading}</h3>
 
             {refusal ? (
-                <p role="alert" className="mb-4 border-2 border-[var(--vc-text)] px-3 py-2 text-[14px]">
+                <p
+                    role="alert"
+                    className="mb-4 border-2 border-[var(--vc-text)] px-3 py-2 text-[14px]"
+                >
                     {refusal}
                 </p>
             ) : null}

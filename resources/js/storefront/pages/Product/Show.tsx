@@ -339,17 +339,13 @@ export default function Show() {
                 </section>
             ) : null}
 
-            <ProductReviews
-                productPublicId={product.publicId}
-                reviews={reviews}
-                rating={rating}
-            />
+            <ProductReviews productPublicId={product.publicId} reviews={reviews} rating={rating} />
 
             {/*
-              * Shelves in the order the server listed them, and each one
-              * already excludes what the one above it showed — a product
-              * cannot appear twice down the page.
-              */}
+             * Shelves in the order the server listed them, and each one
+             * already excludes what the one above it showed — a product
+             * cannot appear twice down the page.
+             */}
             {Object.values(shelves).map((shelf) => (
                 <RecommendationShelf key={shelf.slot} set={shelf} />
             ))}

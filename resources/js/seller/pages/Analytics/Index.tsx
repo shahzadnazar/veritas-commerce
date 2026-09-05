@@ -77,7 +77,12 @@ export default function SellerAnalytics() {
                     </a>
                 ),
         },
-        { key: 'units', header: 'Units', numeric: true, render: (row) => row.units.toLocaleString() },
+        {
+            key: 'units',
+            header: 'Units',
+            numeric: true,
+            render: (row) => row.units.toLocaleString(),
+        },
         { key: 'gross', header: 'Gross', numeric: true, render: (row) => row.gross },
         { key: 'earnings', header: 'Your earnings', numeric: true, render: (row) => row.earnings },
     ];

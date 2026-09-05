@@ -44,11 +44,21 @@ export interface RecommendationSetData {
 export function RecommendationShelf({ set }: { set: RecommendationSetData | null | undefined }) {
     const recorded = useRef(false);
 
-    const products = set?.products ?? [];
-    const slot = set?.slot ?? '';
-
+    /*
+     * The effect depends on `set` — the prop itself — rather than on a
+     * `set?.products ?? []` derived above it. That fallback would be a
+     * fresh array on every render, so the dependency would never compare
+     * equal and the effect would re-run each time; only the ref stopped
+     * it firing a second beacon. Depending on the prop makes the
+     * dependency genuinely stable, and the ref goes back to guarding what
+     * it was written for: React 18's double-invoked effects in
+     * development.
+     */
     useEffect(() => {
-        if (recorded.current || products.length === 0 || slot === '') {
+        const shown = set?.products ?? [];
+        const slot = set?.slot ?? '';
+
+        if (recorded.current || shown.length === 0 || slot === '') {
             return;
         }
 
@@ -63,20 +73,25 @@ export function RecommendationShelf({ set }: { set: RecommendationSetData | null
             },
             body: JSON.stringify({
                 slot,
-                products: products.map((product) => product.slug),
+                products: shown.map((product) => product.slug),
             }),
             keepalive: true,
         }).catch(() => {
             /* Analytics must never break the page it is measuring. */
         });
-    }, [products, slot]);
+    }, [set]);
 
-    if (!set || products.length === 0) {
+    if (!set || set.products.length === 0) {
         return null;
     }
 
+    const products = set.products;
+
     return (
-        <section className="mt-16 border-t-2 border-[var(--vc-text)] pt-8" aria-labelledby={`shelf-${set.slot}`}>
+        <section
+            className="mt-16 border-t-2 border-[var(--vc-text)] pt-8"
+            aria-labelledby={`shelf-${set.slot}`}
+        >
             <h2 id={`shelf-${set.slot}`} className="mb-8 text-[24px]">
                 {set.title}
             </h2>
@@ -151,7 +166,9 @@ function RecommendationCard({
                     </h3>
 
                     {product.price === '' ? (
-                        <span className="text-[13px] text-[var(--vc-neutral-600)]">No sellers yet</span>
+                        <span className="text-[13px] text-[var(--vc-neutral-600)]">
+                            No sellers yet
+                        </span>
                     ) : (
                         <span className="vc-tabular text-[15px]">
                             {product.hasPriceRange ? 'From ' : ''}

@@ -392,6 +392,20 @@ would have meant changing `SearchHit` and `ProductCard`, which are M3
 shapes with M3 tests, for a modest gain. It is a deliberate stopping
 point, not an oversight.
 
+The tree was audited against that decision after the fact, and one piece
+of scaffolding was found and removed: `GetWishlist::savedAmong()`, a bulk
+"which of these products are saved" helper written for a page of cards,
+with a test but no production caller. A tested, documented method for a
+surface that does not exist is worse than no method — the next person
+reads it as evidence the surface is coming. `has()` remains, because the
+product page asks about one product.
+
+`WishlistTest::listing_cards_carry_no_wishlist_control` now asserts the
+decision directly: `ProductCard.tsx` and the search, category and store
+pages contain no wishlist control, and `savedAmong()` does not exist. A
+later milestone that wants listing hearts will re-open the decision on
+purpose rather than by accident.
+
 ## 22. Test matrix
 
 | File | Tests | Covers |
@@ -419,7 +433,10 @@ where it says otherwise.
 | Laravel Pint | **passed** — no files needed fixing |
 | PHPStan + Larastan, level 8 | **passed** — 0 errors |
 | TypeScript `tsc --noEmit` | **passed** — 0 errors |
-| Vite production build | **passed** |
+| ESLint (`--max-warnings=0`) | **passed**, after a fix — see below |
+| Prettier `--check` | **passed**, after a fix — see below |
+| Vite client build | **passed** |
+| Vite SSR build (`build:ssr`) | **passed** — `bootstrap/ssr/ssr.js`, 157 kB |
 | `php artisan statuses:export` | **current** — no diff after regeneration |
 | `reviews:reconcile-ratings` | **clean** — "Every product rating summary matches its reviews." |
 | `finance:reconcile-sellers` | **clean** — "Seller finance reconciles in USD." (M7, unaffected) |
@@ -431,6 +448,28 @@ where it says otherwise.
 
 The test count moved from **1,123** at the M7 baseline to **1,269**: 146
 new tests, no test removed and no assertion weakened.
+
+### Two gates that were not clean when this report was first written
+
+ESLint and Prettier are in `package.json` and were not run during M8
+development; both failed on the first invocation afterwards, and both are
+now fixed.
+
+ESLint's `react-hooks/exhaustive-deps` caught a real defect rather than a
+style point. `RecommendationShelf` derived `const products = set?.products
+?? []` and used it as a `useEffect` dependency. That fallback allocates a
+fresh array on every render, so the dependency never compared equal and
+the effect re-ran each time — only the `recorded` ref stopped a second
+impression beacon going out. The effect now depends on the `set` prop
+itself and reads the products inside, which makes the dependency genuinely
+stable and returns the ref to guarding what it was written for: React's
+double-invoked effects in development.
+
+Prettier reformatted eight files, all added by M8. No behaviour changed.
+
+The lesson is recorded rather than smoothed over: a gate that exists in
+`package.json` and is not in the milestone's own checklist is a gate that
+does not run.
 
 ### The M8 smoke, run locally
 
@@ -485,7 +524,43 @@ is the fake one by default, and no M8 code touches payments. No network
 call to Stripe was made in this milestone, and none is needed for
 anything M8 added.
 
-## 25. What M9 inherits
+## 25. One PHPUnit run at a time
+
+The M8 progress run demonstrated a real hazard: two PHPUnit runs against
+`veritas_test` do not merely interleave, they migrate against each other.
+One run's `migrate:fresh` drops tables the other is mid-transaction on,
+PostgreSQL reports a deadlock on the DDL rather than on anything a test
+did, and what remains is a half-migrated schema whose failures look like
+defects in code that is fine. Diagnosing it cost a full re-run.
+
+Three things now hold the line.
+
+**CI was already serial, and now says so.** Steps within a GitHub Actions
+job never overlap, so the invariants step and the full-suite step have
+always run one after the other. The workflow now records that this is a
+requirement rather than a coincidence, and what to do if the suites are
+ever split across jobs or run with `--parallel`: give each worker its own
+`DB_DATABASE`.
+
+**A guard makes the failure loud and immediate.** `tests/bootstrap.php`
+takes a PostgreSQL session-level advisory lock keyed on the database name.
+A second run gets `pg_try_advisory_lock` returning false, prints what is
+happening and how to fix it, and exits 1 — in under a second, instead of
+deadlocking minutes later on a confusing DDL error. The lock is held by a
+PDO connection kept alive for the process, so PostgreSQL releases it when
+the process ends, including when it crashes.
+
+`VERITAS_ALLOW_CONCURRENT_TESTS=1` opts out, because a per-worker database
+is the other correct answer and somebody who has built that should not
+have to fight this.
+
+**It was tested by doing it.** A holder process takes the lock; a second
+`phpunit` invocation exits 1 with the explanation; the holder is released
+and a fresh run passes. The guard also caught a genuine mistake during
+this very verification — an attempt to run a suite while the full run was
+still going — which is the behaviour it exists for.
+
+## 26. What M9 inherits
 
 Four things are worth knowing before the next milestone builds on this.
 
@@ -513,3 +588,13 @@ gate each time, so a product withdrawn since the ids were computed
 disappears on the next request rather than five minutes later. Any future
 change to caching should preserve that: cache the work, never the
 decision.
+
+**Two things remain unverified, and neither is a defect.** Docker cannot
+start in this environment — `service docker start` fails with `ulimit:
+error setting limit (Operation not permitted)` — so the containerised CI
+job has never been executed here, in any milestone. And the real Stripe
+test network has never been reached, because no credentials or outbound
+connectivity to it exist here; the fake driver is the default and every
+payment test runs against it. Both are carried forward as **unverified**
+rather than assumed, and both stay that way until an environment supplies
+what they need.

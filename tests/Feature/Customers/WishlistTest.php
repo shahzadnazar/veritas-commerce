@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionNamedType;
 use RuntimeException;
 use Tests\Feature\Recommendations\BuildsRecommendationFixtures;
 use Tests\TestCase;
@@ -216,7 +219,7 @@ final class WishlistTest extends TestCase
     }
 
     #[Test]
-    public function membership_is_answered_for_a_whole_page_at_once(): void
+    public function membership_is_answered_for_one_product_at_a_time(): void
     {
         $user = User::factory()->create();
         $saved = $this->listedProduct('Saved')['product'];
@@ -225,14 +228,66 @@ final class WishlistTest extends TestCase
         app(SaveToWishlist::class)((int) $user->id, (int) $saved->id);
 
         $query = app(GetWishlist::class);
-        $ids = [(int) $saved->id, (int) $unsaved->id];
 
-        $this->assertSame([(int) $saved->id], $query->savedAmong((int) $user->id, $ids));
-        $this->assertSame([], $query->savedAmong(null, $ids), 'A signed-out visitor has saved nothing.');
         $this->assertTrue($query->has((int) $user->id, (int) $saved->id));
         $this->assertFalse($query->has((int) $user->id, (int) $unsaved->id));
-        $this->assertSame(1, $query->count((int) $user->id));
-        $this->assertSame(0, $query->count(null));
+        $this->assertFalse(
+            $query->has(null, (int) $saved->id),
+            'A signed-out visitor has saved nothing.',
+        );
+    }
+
+    /**
+     * The wishlist control lives on the product page and the wishlist,
+     * and nowhere else.
+     *
+     * That was a deliberate M8 stopping point rather than an oversight:
+     * putting a heart on a search card would mean reshaping SearchHit and
+     * ProductCard, which are M3 types with M3 tests. This asserts the
+     * decision so a later edit re-opens it on purpose rather than by
+     * accident — and so no bulk-membership helper survives as scaffolding
+     * for a surface that does not exist.
+     */
+    #[Test]
+    public function listing_cards_carry_no_wishlist_control(): void
+    {
+        $card = (string) file_get_contents(
+            base_path('resources/js/design-system/patterns/ProductCard.tsx')
+        );
+
+        $this->assertStringNotContainsString('wishlist', strtolower($card));
+
+        foreach (['Search/Index', 'Category/Show', 'Store/Show'] as $page) {
+            $source = (string) file_get_contents(
+                base_path("resources/js/storefront/pages/{$page}.tsx")
+            );
+
+            $this->assertStringNotContainsString(
+                'wishlist',
+                strtolower($source),
+                "The {$page} listing grew a wishlist control.",
+            );
+        }
+
+        /*
+         * And the read side offers nothing shaped for a page of cards.
+         *
+         * Checked structurally rather than by name: the rule is "no bulk
+         * membership query", and one called `savedFor` or `membershipFor`
+         * would be the same scaffolding. A bulk query is one that takes a
+         * list of product ids, so that is what this looks for.
+         */
+        foreach ((new ReflectionClass(GetWishlist::class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            foreach ($method->getParameters() as $parameter) {
+                $type = $parameter->getType();
+
+                $this->assertFalse(
+                    $type instanceof ReflectionNamedType && $type->getName() === 'array',
+                    "GetWishlist::{$method->getName()}() takes a list — that is a bulk membership ".
+                    'query for a surface M8 chose not to build.',
+                );
+            }
+        }
     }
 
     // ---------------------------------------------------------------

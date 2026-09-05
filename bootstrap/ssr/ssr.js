@@ -150,19 +150,6 @@ function EmptyState({ title, body, actions }) {
 		]
 	});
 }
-function CardGridSkeleton({ count = 8 }) {
-	return /* @__PURE__ */ jsx("div", {
-		"aria-busy": "true",
-		className: "grid gap-[var(--vc-grid-gap)] [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]",
-		children: Array.from({ length: count }).map((_, index) => /* @__PURE__ */ jsxs("div", {
-			className: "bg-[var(--vc-surface)]",
-			children: [/* @__PURE__ */ jsx("div", { className: "aspect-square animate-pulse bg-[var(--vc-neutral-300)]" }), /* @__PURE__ */ jsxs("div", {
-				className: "p-3",
-				children: [/* @__PURE__ */ jsx("div", { className: "mb-2 h-[12px] w-1/2 bg-[var(--vc-neutral-300)]" }), /* @__PURE__ */ jsx("div", { className: "h-[14px] w-4/5 bg-[var(--vc-neutral-300)]" })]
-			})]
-		}, index))
-	});
-}
 //#endregion
 //#region resources/js/design-system/primitives/Button.tsx
 /**
@@ -733,6 +720,24 @@ var STATUS_PRESENTATION = {
 		"reversal": {
 			"tone": "neutral",
 			"label": "Reversal"
+		}
+	},
+	"product_review": {
+		"published": {
+			"tone": "neutral",
+			"label": "Published"
+		},
+		"hidden": {
+			"tone": "pending",
+			"label": "Hidden"
+		},
+		"rejected": {
+			"tone": "critical",
+			"label": "Rejected"
+		},
+		"withdrawn": {
+			"tone": "inactive",
+			"label": "Withdrawn"
 		}
 	},
 	"inventory_movement_reason": {
@@ -1405,6 +1410,13 @@ function Input({ invalid = false, className = "", ...rest }) {
 		className: `${CONTROL_BASE} ${borderFor(invalid)} ${className}`
 	});
 }
+function Textarea({ invalid = false, className = "", ...rest }) {
+	return /* @__PURE__ */ jsx("textarea", {
+		...rest,
+		"aria-invalid": invalid || void 0,
+		className: `${CONTROL_BASE} min-h-[96px] ${borderFor(invalid)} ${className}`
+	});
+}
 function Select({ invalid = false, className = "", children, ...rest }) {
 	return /* @__PURE__ */ jsx("select", {
 		...rest,
@@ -1577,6 +1589,268 @@ function Profile() {
 				})]
 			})
 		]
+	});
+}
+//#endregion
+//#region resources/js/storefront/components/RecommendationShelf.tsx
+/**
+* One shelf of recommendations.
+*
+* Renders nothing at all when the set is empty — §39's fallback chain has
+* already tried everything it can, and an empty carousel with a heading
+* above it is worse than no heading. The component never decides *what* to
+* show: the products, their order and the heading all arrive from the
+* server, so a shelf cannot quietly become a different shelf in the
+* browser.
+*
+* Impressions are recorded once per mount, and only for products actually
+* rendered, so the click-through rate on the analytics page has a
+* denominator that means something. The beacon is fire-and-forget: a
+* failed analytics call must never break a page a customer is reading.
+*/
+function RecommendationShelf({ set }) {
+	const recorded = useRef(false);
+	useEffect(() => {
+		const shown = set?.products ?? [];
+		const slot = set?.slot ?? "";
+		if (recorded.current || shown.length === 0 || slot === "") return;
+		recorded.current = true;
+		fetch("/recommendations/impressions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Requested-With": "XMLHttpRequest",
+				"X-CSRF-TOKEN": csrfToken()
+			},
+			body: JSON.stringify({
+				slot,
+				products: shown.map((product) => product.slug)
+			}),
+			keepalive: true
+		}).catch(() => {});
+	}, [set]);
+	if (!set || set.products.length === 0) return null;
+	const products = set.products;
+	return /* @__PURE__ */ jsxs("section", {
+		className: "mt-16 border-t-2 border-[var(--vc-text)] pt-8",
+		"aria-labelledby": `shelf-${set.slot}`,
+		children: [/* @__PURE__ */ jsx("h2", {
+			id: `shelf-${set.slot}`,
+			className: "mb-8 text-[24px]",
+			children: set.title
+		}), /* @__PURE__ */ jsx("div", {
+			className: "grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4",
+			children: products.map((product, index) => /* @__PURE__ */ jsx(RecommendationCard, {
+				product,
+				slot: set.slot,
+				position: index + 1
+			}, product.productId))
+		})]
+	});
+}
+function RecommendationCard({ product, slot, position }) {
+	return /* @__PURE__ */ jsx("article", {
+		className: "flex flex-col",
+		children: /* @__PURE__ */ jsxs(Link, {
+			href: `/products/${product.slug}`,
+			className: "group flex flex-col gap-3",
+			onClick: () => {
+				fetch("/recommendations/clicks", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Requested-With": "XMLHttpRequest",
+						"X-CSRF-TOKEN": csrfToken()
+					},
+					body: JSON.stringify({
+						slot,
+						product: product.slug,
+						position
+					}),
+					keepalive: true
+				}).catch(() => {});
+			},
+			children: [/* @__PURE__ */ jsx("div", {
+				className: "aspect-square border-2 border-[var(--vc-text)] bg-[var(--vc-surface)]",
+				children: product.imageUrl ? /* @__PURE__ */ jsx("img", {
+					src: product.imageUrl,
+					alt: product.imageAlt ?? "",
+					loading: "lazy",
+					className: "h-full w-full object-cover"
+				}) : /* @__PURE__ */ jsx("div", {
+					className: "flex h-full w-full items-center justify-center text-[12px] text-[var(--vc-neutral-600)]",
+					children: "No photograph yet"
+				})
+			}), /* @__PURE__ */ jsxs("div", {
+				className: "flex flex-col gap-1",
+				children: [
+					product.brand ? /* @__PURE__ */ jsx("span", {
+						className: "text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+						children: product.brand
+					}) : null,
+					/* @__PURE__ */ jsx("h3", {
+						className: "text-[15px] leading-snug font-semibold underline-offset-4 group-hover:underline",
+						children: product.title
+					}),
+					product.price === "" ? /* @__PURE__ */ jsx("span", {
+						className: "text-[13px] text-[var(--vc-neutral-600)]",
+						children: "No sellers yet"
+					}) : /* @__PURE__ */ jsxs("span", {
+						className: "vc-tabular text-[15px]",
+						children: [product.hasPriceRange ? "From " : "", product.price]
+					}),
+					/* @__PURE__ */ jsx(RatingLine, {
+						average: product.ratingAverage,
+						count: product.ratingCount
+					})
+				]
+			})]
+		})
+	});
+}
+/**
+* The rating, or nothing.
+*
+* A product with no published reviews shows no stars rather than an empty
+* five — an unrated product and a badly rated one must never look alike.
+*/
+function RatingLine({ average, count }) {
+	if (average === null || count < 1) return null;
+	return /* @__PURE__ */ jsxs("span", {
+		className: "text-[12px] text-[var(--vc-neutral-600)]",
+		children: [
+			/* @__PURE__ */ jsx("span", {
+				className: "vc-tabular",
+				children: average.toFixed(1)
+			}),
+			/* @__PURE__ */ jsx("span", {
+				"aria-hidden": "true",
+				children: " ★ "
+			}),
+			/* @__PURE__ */ jsx("span", {
+				className: "sr-only",
+				children: " out of 5, "
+			}),
+			count,
+			" ",
+			count === 1 ? "review" : "reviews"
+		]
+	});
+}
+function csrfToken() {
+	return document.querySelector("meta[name=\"csrf-token\"]")?.content ?? "";
+}
+//#endregion
+//#region resources/js/storefront/pages/Account/Wishlist.tsx
+var Wishlist_exports = /* @__PURE__ */ __exportAll({ default: () => Wishlist });
+/**
+* The customer's saved products.
+*
+* A withdrawn product stays on the list, marked unavailable, rather than
+* disappearing: a list that quietly shrinks makes the customer think the
+* site lost something, and "no longer sold" is information they can act
+* on.
+*
+* `noindex` in the markup as well as in the response header. The header is
+* what actually protects the page — it reaches a crawler even when SSR is
+* misconfigured — and this is the belt to its braces.
+*/
+function Wishlist() {
+	const { items, suggestions, status } = usePage().props;
+	return /* @__PURE__ */ jsxs(StorefrontLayout, {
+		title: "Your wishlist",
+		children: [
+			/* @__PURE__ */ jsx(Head, { children: /* @__PURE__ */ jsx("meta", {
+				name: "robots",
+				content: "noindex, nofollow"
+			}) }),
+			/* @__PURE__ */ jsx("h1", {
+				className: "mb-2 text-[42px]",
+				children: "Your wishlist"
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "mb-8 text-[14px] text-[var(--vc-neutral-600)]",
+				children: items.length === 0 ? "Nothing saved yet." : `${items.length} ${items.length === 1 ? "product" : "products"} saved.`
+			}),
+			status ? /* @__PURE__ */ jsx("p", {
+				role: "status",
+				className: "mb-8 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]",
+				children: status
+			}) : null,
+			items.length === 0 ? /* @__PURE__ */ jsx("p", {
+				className: "max-w-[52ch] text-[15px]",
+				children: "Save a product from its page and it will wait for you here — across devices, and for as long as you want it."
+			}) : /* @__PURE__ */ jsx("ul", {
+				className: "grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4",
+				children: items.map((item) => /* @__PURE__ */ jsx("li", {
+					className: "flex flex-col",
+					children: /* @__PURE__ */ jsx(SavedCard, { item })
+				}, item.productId))
+			}),
+			/* @__PURE__ */ jsx(RecommendationShelf, { set: suggestions })
+		]
+	});
+}
+function SavedCard({ item }) {
+	const remove = () => {
+		router.delete("/account/wishlist", {
+			preserveScroll: true,
+			data: { product: item.slug }
+		});
+	};
+	return /* @__PURE__ */ jsxs("article", {
+		className: "flex h-full flex-col gap-3",
+		children: [/* @__PURE__ */ jsxs(Link, {
+			href: `/products/${item.slug}`,
+			className: "group flex flex-col gap-3",
+			children: [/* @__PURE__ */ jsx("div", {
+				className: "aspect-square border-2 border-[var(--vc-text)] bg-[var(--vc-surface)]",
+				children: item.imageUrl ? /* @__PURE__ */ jsx("img", {
+					src: item.imageUrl,
+					alt: item.imageAlt ?? "",
+					loading: "lazy",
+					className: `h-full w-full object-cover ${item.isAvailable ? "" : "opacity-40"}`
+				}) : /* @__PURE__ */ jsx("div", {
+					className: "flex h-full w-full items-center justify-center text-[12px] text-[var(--vc-neutral-600)]",
+					children: "No photograph yet"
+				})
+			}), /* @__PURE__ */ jsxs("div", {
+				className: "flex flex-col gap-1",
+				children: [
+					item.brand ? /* @__PURE__ */ jsx("span", {
+						className: "text-[11px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase",
+						children: item.brand
+					}) : null,
+					/* @__PURE__ */ jsx("h2", {
+						className: "text-[15px] leading-snug font-semibold underline-offset-4 group-hover:underline",
+						children: item.title
+					}),
+					item.isAvailable ? /* @__PURE__ */ jsxs("span", {
+						className: "vc-tabular text-[15px]",
+						children: [item.hasPriceRange ? "From " : "", item.price]
+					}) : /* @__PURE__ */ jsx("span", {
+						className: "text-[13px] text-[var(--vc-neutral-600)]",
+						children: "No longer sold"
+					}),
+					/* @__PURE__ */ jsx(RatingLine, {
+						average: item.ratingAverage,
+						count: item.ratingCount
+					}),
+					item.isAvailable && item.stockState === "out_of_stock" ? /* @__PURE__ */ jsx("span", {
+						className: "mt-1",
+						children: /* @__PURE__ */ jsx(StatusBadge, {
+							domain: "stock",
+							value: item.stockState
+						})
+					}) : null
+				]
+			})]
+		}), /* @__PURE__ */ jsx("button", {
+			type: "button",
+			onClick: remove,
+			className: "mt-auto self-start text-[13px] underline underline-offset-4",
+			children: "Remove"
+		})]
 	});
 }
 //#endregion
@@ -2647,7 +2921,7 @@ function SortSelect({ url, applied, sorts }) {
 	});
 }
 /** Page links, server-side paged. */
-function Pagination({ url, applied, page, lastPage }) {
+function Pagination$1({ url, applied, page, lastPage }) {
 	if (lastPage <= 1) return null;
 	const go = (target) => {
 		router.get(url, {
@@ -2797,7 +3071,7 @@ function Show$2() {
 						title: "Nothing here yet",
 						body: applied.hasFilters ? "No products match these filters. Removing one may help." : "No products are listed in this category at the moment."
 					}) : /* @__PURE__ */ jsx(ProductGrid, { products: results.data }),
-					/* @__PURE__ */ jsx(Pagination, {
+					/* @__PURE__ */ jsx(Pagination$1, {
 						url,
 						applied,
 						page: results.page,
@@ -3582,7 +3856,8 @@ var Home_exports = /* @__PURE__ */ __exportAll({ default: () => Home });
 * real here is the layout, the density, the tokens and the SSR path.
 */
 function Home() {
-	const { stats, platform } = usePage().props;
+	const { stats, platform, shelves } = usePage().props;
+	const rendered = Object.values(shelves);
 	return /* @__PURE__ */ jsxs(StorefrontLayout, { children: [
 		/* @__PURE__ */ jsxs("p", {
 			className: "mb-4 text-[11px] font-semibold tracking-[0.11em] text-[var(--vc-accent-700)] uppercase",
@@ -3606,20 +3881,437 @@ function Home() {
 				children: "Meet the sellers"
 			})]
 		}),
-		/* @__PURE__ */ jsx("hr", { className: "mb-8 border-0 border-t-2 border-[var(--vc-text)]" }),
-		/* @__PURE__ */ jsx("h2", {
-			className: "mb-6 text-[32px]",
-			children: "Featured this week"
-		}),
-		stats.products === 0 ? /* @__PURE__ */ jsx(EmptyState, {
+		stats.products === 0 ? /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("hr", { className: "mb-8 border-0 border-t-2 border-[var(--vc-text)]" }), /* @__PURE__ */ jsx(EmptyState, {
 			title: "The catalogue is empty",
 			body: "No offers have been published yet. Sellers list products from the seller portal, and they appear here once approved.",
 			actions: /* @__PURE__ */ jsx(Button, {
 				variant: "secondary",
 				children: "Apply to sell"
 			})
-		}) : /* @__PURE__ */ jsx(CardGridSkeleton, { count: 8 })
+		})] }) : null,
+		rendered.map((shelf) => /* @__PURE__ */ jsx(RecommendationShelf, { set: shelf }, shelf.slot))
 	] });
+}
+//#endregion
+//#region resources/js/storefront/components/ProductReviews.tsx
+/**
+* Reviews, on the canonical product page.
+*
+* Reviews belong to the product, not to a seller's offer of it (§3), so
+* there is exactly one list here however many sellers are competing above
+* it.
+*
+* The form posts a rating, a body and a title. It cannot post a verified
+* flag, an order or a status — those are not fields it has, and the
+* server would have nowhere to put them if it did (§4). The badge a
+* customer sees is the server's conclusion about their order history, not
+* a claim the browser made.
+*
+* Every review body is rendered as text through JSX. There is no
+* dangerouslySetInnerHTML anywhere in this file, and the server has
+* already stripped markup — two independent defences, because §13 says
+* not to assume React escaping is the only rendering context this text
+* will ever reach.
+*/
+function ProductReviews({ productPublicId, reviews, rating }) {
+	return /* @__PURE__ */ jsxs("section", {
+		className: "mt-16 max-w-[720px]",
+		"aria-labelledby": "reviews-heading",
+		children: [
+			/* @__PURE__ */ jsx("h2", {
+				id: "reviews-heading",
+				className: "mb-6 text-[22px]",
+				children: "Reviews"
+			}),
+			/* @__PURE__ */ jsx(RatingSummary, { rating }),
+			/* @__PURE__ */ jsx(MyReviewPanel, {
+				productPublicId,
+				reviews
+			}),
+			reviews.total === 0 ? /* @__PURE__ */ jsx("p", {
+				className: "mt-8 text-[15px] text-[var(--vc-neutral-600)]",
+				children: "No reviews yet. Only customers who bought and received this product can write one."
+			}) : /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("ul", {
+				className: "mt-8 border-t-2 border-[var(--vc-text)]",
+				children: reviews.data.map((review) => /* @__PURE__ */ jsx("li", {
+					className: "border-b border-[var(--vc-divider)] py-6",
+					children: /* @__PURE__ */ jsx(ReviewBody, { review })
+				}, review.publicId))
+			}), /* @__PURE__ */ jsx(Pagination, { reviews })] })
+		]
+	});
+}
+/**
+* The average, the count and the distribution.
+*
+* A product with no published reviews shows no average at all — never a
+* 0.0, which is not on the scale and would make an unreviewed product look
+* like a rejected one (§69).
+*/
+function RatingSummary({ rating }) {
+	if (!rating.hasRating || rating.average === null) return /* @__PURE__ */ jsx("p", {
+		className: "text-[15px] text-[var(--vc-neutral-600)]",
+		children: "Not yet rated."
+	});
+	return /* @__PURE__ */ jsxs("div", {
+		className: "flex flex-wrap items-baseline gap-x-6 gap-y-2",
+		children: [
+			/* @__PURE__ */ jsxs("p", {
+				className: "text-[15px]",
+				children: [/* @__PURE__ */ jsx("span", {
+					className: "vc-tabular text-[28px]",
+					children: rating.average.toFixed(1)
+				}), /* @__PURE__ */ jsx("span", {
+					className: "text-[var(--vc-neutral-600)]",
+					children: " out of 5"
+				})]
+			}),
+			/* @__PURE__ */ jsxs("p", {
+				className: "text-[14px] text-[var(--vc-neutral-600)]",
+				children: [
+					rating.reviewCount,
+					" ",
+					rating.reviewCount === 1 ? "review" : "reviews",
+					rating.verifiedCount > 0 ? `, ${rating.verifiedCount} from verified purchases` : ""
+				]
+			}),
+			/* @__PURE__ */ jsx("dl", {
+				className: "mt-2 w-full max-w-[320px]",
+				children: [
+					5,
+					4,
+					3,
+					2,
+					1
+				].map((star) => {
+					const count = rating.distribution[String(star)] ?? 0;
+					const share = rating.reviewCount === 0 ? 0 : count / rating.reviewCount * 100;
+					return /* @__PURE__ */ jsxs("div", {
+						className: "flex items-center gap-3 py-[3px] text-[13px]",
+						children: [/* @__PURE__ */ jsxs("dt", {
+							className: "w-[52px] shrink-0 text-[var(--vc-neutral-600)]",
+							children: [star, " star"]
+						}), /* @__PURE__ */ jsxs("dd", {
+							className: "flex flex-1 items-center gap-2",
+							children: [/* @__PURE__ */ jsx("span", {
+								"aria-hidden": "true",
+								className: "h-[8px] flex-1 border border-[var(--vc-text)]",
+								children: /* @__PURE__ */ jsx("span", {
+									className: "block h-full bg-[var(--vc-text)]",
+									style: { width: `${share}%` }
+								})
+							}), /* @__PURE__ */ jsx("span", {
+								className: "vc-tabular w-[32px] text-right",
+								children: count
+							})]
+						})]
+					}, star);
+				})
+			})
+		]
+	});
+}
+function ReviewBody({ review }) {
+	return /* @__PURE__ */ jsxs("article", { children: [
+		/* @__PURE__ */ jsxs("div", {
+			className: "mb-2 flex flex-wrap items-center gap-3 text-[13px]",
+			children: [
+				/* @__PURE__ */ jsxs("span", {
+					className: "vc-tabular font-semibold",
+					children: [review.rating, "/5"]
+				}),
+				/* @__PURE__ */ jsx("span", {
+					className: "text-[var(--vc-neutral-600)]",
+					children: review.author
+				}),
+				review.verifiedPurchase ? /* @__PURE__ */ jsx("span", {
+					className: "border border-[var(--vc-text)] px-2 py-[2px] text-[11px] tracking-[0.06em] uppercase",
+					children: "Verified purchase"
+				}) : null,
+				review.isMine ? /* @__PURE__ */ jsx("span", {
+					className: "text-[12px] text-[var(--vc-neutral-600)]",
+					children: "Your review"
+				}) : null
+			]
+		}),
+		review.title ? /* @__PURE__ */ jsx("h3", {
+			className: "mb-1 text-[16px] font-semibold",
+			children: review.title
+		}) : null,
+		/* @__PURE__ */ jsx("p", {
+			className: "text-[15px] whitespace-pre-line",
+			children: review.body
+		})
+	] });
+}
+/**
+* The customer's own review: writing it, editing it, or being told why
+* they cannot.
+*/
+function MyReviewPanel({ productPublicId, reviews }) {
+	const [editing, setEditing] = useState(false);
+	const mine = reviews.mine;
+	if (mine !== null && !editing) return /* @__PURE__ */ jsxs("div", {
+		className: "mt-8 border-2 border-[var(--vc-text)] p-5",
+		children: [
+			/* @__PURE__ */ jsx("h3", {
+				className: "mb-2 text-[16px] font-semibold",
+				children: "Your review"
+			}),
+			!mine.isPublic ? /* @__PURE__ */ jsxs("p", {
+				className: "mb-3 text-[14px]",
+				children: ["This review is not shown on the page. ", mine.moderationReason ?? ""]
+			}) : null,
+			/* @__PURE__ */ jsxs("p", {
+				className: "mb-1 text-[14px]",
+				children: [/* @__PURE__ */ jsxs("span", {
+					className: "vc-tabular font-semibold",
+					children: [mine.rating, "/5"]
+				}), mine.title ? ` — ${mine.title}` : ""]
+			}),
+			/* @__PURE__ */ jsx("p", {
+				className: "text-[15px] whitespace-pre-line",
+				children: mine.body
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "mt-4 flex gap-3",
+				children: [mine.isEditable ? /* @__PURE__ */ jsx(Button, {
+					type: "button",
+					variant: "secondary",
+					onClick: () => setEditing(true),
+					children: "Edit"
+				}) : null, /* @__PURE__ */ jsx(Button, {
+					type: "button",
+					variant: "secondary",
+					onClick: () => {
+						router.delete(`/reviews/${mine.publicId}`, { preserveScroll: true });
+					},
+					children: "Remove"
+				})]
+			})
+		]
+	});
+	if (mine !== null && editing) return /* @__PURE__ */ jsx(ReviewForm, {
+		heading: "Edit your review",
+		action: `/reviews/${mine.publicId}`,
+		method: "put",
+		initial: {
+			rating: mine.rating,
+			title: mine.title ?? "",
+			body: mine.body
+		},
+		onDone: () => setEditing(false)
+	}, "edit");
+	if (!reviews.canWrite.allowed) return /* @__PURE__ */ jsx("p", {
+		className: "mt-8 border-2 border-[var(--vc-divider)] px-4 py-3 text-[14px] text-[var(--vc-neutral-600)]",
+		children: reviews.canWrite.reason === "sign_in" ? /* @__PURE__ */ jsxs(Fragment, { children: [
+			/* @__PURE__ */ jsx("a", {
+				href: "/login",
+				className: "underline underline-offset-4",
+				children: "Sign in"
+			}),
+			" ",
+			"to review a product you bought."
+		] }) : reviews.canWrite.message
+	});
+	return /* @__PURE__ */ jsx(ReviewForm, {
+		heading: "Write a review",
+		action: "/reviews",
+		method: "post",
+		productPublicId,
+		initial: {
+			rating: 5,
+			title: "",
+			body: ""
+		}
+	}, "write");
+}
+function ReviewForm({ heading, action, method, productPublicId, initial, onDone }) {
+	const form = useForm({
+		...productPublicId === void 0 ? {} : { product: productPublicId },
+		rating: initial.rating,
+		title: initial.title,
+		body: initial.body
+	});
+	const refusal = usePage().props.errors.review;
+	return /* @__PURE__ */ jsxs("form", {
+		className: "mt-8 border-2 border-[var(--vc-text)] p-5",
+		onSubmit: (event) => {
+			event.preventDefault();
+			const options = {
+				preserveScroll: true,
+				onSuccess: () => onDone?.()
+			};
+			if (method === "put") {
+				form.put(action, options);
+				return;
+			}
+			form.post(action, options);
+		},
+		children: [
+			/* @__PURE__ */ jsx("h3", {
+				className: "mb-4 text-[16px] font-semibold",
+				children: heading
+			}),
+			refusal ? /* @__PURE__ */ jsx("p", {
+				role: "alert",
+				className: "mb-4 border-2 border-[var(--vc-text)] px-3 py-2 text-[14px]",
+				children: refusal
+			}) : null,
+			/* @__PURE__ */ jsx(Field, {
+				label: "Rating",
+				error: form.errors.rating,
+				children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx("select", {
+					id,
+					"aria-describedby": describedBy,
+					"aria-invalid": invalid,
+					value: form.data.rating,
+					onChange: (event) => form.setData("rating", Number(event.target.value)),
+					className: "w-full border-2 border-[var(--vc-text)] bg-[var(--vc-surface)] px-3 py-2 text-[15px]",
+					children: [
+						5,
+						4,
+						3,
+						2,
+						1
+					].map((star) => /* @__PURE__ */ jsxs("option", {
+						value: star,
+						children: [star, " out of 5"]
+					}, star))
+				})
+			}),
+			/* @__PURE__ */ jsx(Field, {
+				label: "Title",
+				hint: "Optional.",
+				error: form.errors.title,
+				children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Input, {
+					id,
+					"aria-describedby": describedBy,
+					"aria-invalid": invalid,
+					value: form.data.title,
+					maxLength: 120,
+					onChange: (event) => form.setData("title", event.target.value)
+				})
+			}),
+			/* @__PURE__ */ jsx(Field, {
+				label: "Your review",
+				hint: "What you bought, how it arrived, whether it did what you expected.",
+				error: form.errors.body,
+				children: ({ id, describedBy, invalid }) => /* @__PURE__ */ jsx(Textarea, {
+					id,
+					"aria-describedby": describedBy,
+					"aria-invalid": invalid,
+					rows: 6,
+					value: form.data.body,
+					maxLength: 4e3,
+					onChange: (event) => form.setData("body", event.target.value)
+				})
+			}),
+			/* @__PURE__ */ jsxs("div", {
+				className: "mt-4 flex gap-3",
+				children: [/* @__PURE__ */ jsx(Button, {
+					type: "submit",
+					disabled: form.processing,
+					children: method === "put" ? "Save changes" : "Publish review"
+				}), onDone ? /* @__PURE__ */ jsx(Button, {
+					type: "button",
+					variant: "secondary",
+					onClick: onDone,
+					children: "Cancel"
+				}) : null]
+			})
+		]
+	});
+}
+function Pagination({ reviews }) {
+	if (reviews.lastPage <= 1) return null;
+	return /* @__PURE__ */ jsxs("nav", {
+		"aria-label": "Reviews pages",
+		className: "mt-6 flex items-center gap-4 text-[14px]",
+		children: [
+			/* @__PURE__ */ jsx("button", {
+				type: "button",
+				disabled: reviews.page <= 1,
+				onClick: () => go(reviews.page - 1),
+				className: "underline underline-offset-4 disabled:opacity-40 disabled:no-underline",
+				children: "Previous"
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "vc-tabular text-[var(--vc-neutral-600)]",
+				children: [
+					"Page ",
+					reviews.page,
+					" of ",
+					reviews.lastPage
+				]
+			}),
+			/* @__PURE__ */ jsx("button", {
+				type: "button",
+				disabled: reviews.page >= reviews.lastPage,
+				onClick: () => go(reviews.page + 1),
+				className: "underline underline-offset-4 disabled:opacity-40 disabled:no-underline",
+				children: "Next"
+			})
+		]
+	});
+}
+function go(page) {
+	router.get(window.location.pathname, { reviews: page }, {
+		preserveScroll: true,
+		preserveState: true,
+		only: ["reviews"]
+	});
+}
+//#endregion
+//#region resources/js/storefront/components/WishlistButton.tsx
+/**
+* Save, or unsave, one product.
+*
+* The server decides whether it is saved; this only reports what the
+* server said and asks it to change. There is no optimistic local state
+* that survives a failed request, because a heart that stays filled after
+* a save failed is the interface lying to the person using it.
+*
+* A signed-out visitor is sent to sign in rather than shown a disabled
+* button: "you can't do that" is a worse answer than "sign in first",
+* and the wishlist is one of the better reasons to have an account.
+*/
+function WishlistButton({ productPublicId, isSaved, isAuthenticated, label = "Save for later" }) {
+	const [busy, setBusy] = useState(false);
+	if (!isAuthenticated) return /* @__PURE__ */ jsxs("a", {
+		href: "/login",
+		className: "inline-flex items-center gap-2 border-2 border-[var(--vc-text)] px-4 py-2 text-[14px] font-semibold",
+		children: [/* @__PURE__ */ jsx("span", {
+			"aria-hidden": "true",
+			children: "♡"
+		}), "Sign in to save"]
+	});
+	const submit = () => {
+		setBusy(true);
+		const options = {
+			preserveScroll: true,
+			onFinish: () => setBusy(false)
+		};
+		if (isSaved) {
+			router.delete("/account/wishlist", {
+				...options,
+				data: { product: productPublicId }
+			});
+			return;
+		}
+		router.post("/account/wishlist", { product: productPublicId }, options);
+	};
+	return /* @__PURE__ */ jsxs("button", {
+		type: "button",
+		onClick: submit,
+		disabled: busy,
+		"aria-pressed": isSaved,
+		className: "inline-flex items-center gap-2 border-2 border-[var(--vc-text)] px-4 py-2 text-[14px] font-semibold disabled:opacity-50",
+		children: [/* @__PURE__ */ jsx("span", {
+			"aria-hidden": "true",
+			children: isSaved ? "♥" : "♡"
+		}), isSaved ? "Saved" : label]
+	});
 }
 //#endregion
 //#region resources/js/storefront/pages/Product/Show.tsx
@@ -3632,7 +4324,7 @@ var Show_exports$1 = /* @__PURE__ */ __exportAll({ default: () => Show$1 });
 * disabled rather than pretending to work.
 */
 function Show$1() {
-	const { product, breadcrumbs, media, specifications, variants, offers, priceRange, seo, structuredData } = usePage().props;
+	const { product, breadcrumbs, media, specifications, variants, offers, priceRange, seo, structuredData, rating, reviews, wishlist, shelves } = usePage().props;
 	const [selectedImage, setSelectedImage] = useState(0);
 	const [selectedVariant, setSelectedVariant] = useState(null);
 	const visibleOffers = selectedVariant ? offers.filter((offer) => offer.variantPublicId === selectedVariant) : offers;
@@ -3813,6 +4505,14 @@ function Show$1() {
 					})
 				] })]
 			}),
+			/* @__PURE__ */ jsx("div", {
+				className: "mt-10",
+				children: /* @__PURE__ */ jsx(WishlistButton, {
+					productPublicId: product.publicId,
+					isSaved: wishlist.isSaved,
+					isAuthenticated: wishlist.isAuthenticated
+				})
+			}),
 			specifications.length > 0 ? /* @__PURE__ */ jsxs("section", {
 				className: "mt-12 max-w-[720px]",
 				children: [/* @__PURE__ */ jsx("h2", {
@@ -3828,7 +4528,13 @@ function Show$1() {
 						}), /* @__PURE__ */ jsx("dd", { children: specification.value })]
 					}, specification.name))
 				})]
-			}) : null
+			}) : null,
+			/* @__PURE__ */ jsx(ProductReviews, {
+				productPublicId: product.publicId,
+				reviews,
+				rating
+			}),
+			Object.values(shelves).map((shelf) => /* @__PURE__ */ jsx(RecommendationShelf, { set: shelf }, shelf.slot))
 		]
 	});
 }
@@ -3971,7 +4677,7 @@ function Index() {
 						products: results.data,
 						onSelect: recordClick
 					}),
-					/* @__PURE__ */ jsx(Pagination, {
+					/* @__PURE__ */ jsx(Pagination$1, {
 						url: "/search",
 						applied,
 						page: results.page,
@@ -4079,7 +4785,7 @@ function Show() {
 						title: "No products listed yet",
 						body: "This seller has not published anything to the marketplace catalogue. Their listings will appear here once they do."
 					}) : /* @__PURE__ */ jsx(ProductGrid, { products: results.data }),
-					/* @__PURE__ */ jsx(Pagination, {
+					/* @__PURE__ */ jsx(Pagination$1, {
 						url,
 						applied,
 						page: results.page,
@@ -4132,6 +4838,7 @@ createServer((page) => createInertiaApp({
 			"./pages/Account/Orders/Index.tsx": Index_exports$3,
 			"./pages/Account/Orders/Show.tsx": Show_exports$3,
 			"./pages/Account/Profile.tsx": Profile_exports,
+			"./pages/Account/Wishlist.tsx": Wishlist_exports,
 			"./pages/Auth/ForgotPassword.tsx": ForgotPassword_exports,
 			"./pages/Auth/Login.tsx": Login_exports,
 			"./pages/Auth/Register.tsx": Register_exports,

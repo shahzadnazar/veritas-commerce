@@ -132,7 +132,12 @@ export default function AnalyticsIndex() {
                     </a>
                 ),
         },
-        { key: 'views', header: 'Views', numeric: true, render: (row) => row.views.toLocaleString() },
+        {
+            key: 'views',
+            header: 'Views',
+            numeric: true,
+            render: (row) => row.views.toLocaleString(),
+        },
         {
             key: 'cartAdds',
             header: 'Cart adds',
@@ -186,8 +191,18 @@ export default function AnalyticsIndex() {
 
     const sellerColumns: Column<SellerRow>[] = [
         { key: 'name', header: 'Seller', render: (row) => row.name },
-        { key: 'orders', header: 'Orders', numeric: true, render: (row) => row.orders.toLocaleString() },
-        { key: 'units', header: 'Units', numeric: true, render: (row) => row.units.toLocaleString() },
+        {
+            key: 'orders',
+            header: 'Orders',
+            numeric: true,
+            render: (row) => row.orders.toLocaleString(),
+        },
+        {
+            key: 'units',
+            header: 'Units',
+            numeric: true,
+            render: (row) => row.units.toLocaleString(),
+        },
         { key: 'gross', header: 'Gross', numeric: true, render: (row) => row.gross },
         { key: 'refunds', header: 'Refunds', numeric: true, render: (row) => row.refunds },
         { key: 'earnings', header: 'Earnings', numeric: true, render: (row) => row.earnings },
@@ -200,7 +215,11 @@ export default function AnalyticsIndex() {
     ];
 
     const apply = (next: Partial<{ period: string; currency: string }>) => {
-        router.get('/admin/analytics', { ...filters, ...next }, { preserveState: true, replace: true });
+        router.get(
+            '/admin/analytics',
+            { ...filters, ...next },
+            { preserveState: true, replace: true },
+        );
     };
 
     return (
@@ -310,7 +329,11 @@ export default function AnalyticsIndex() {
                     columns={productColumns}
                     rows={products.topSellers}
                     rowKey={(row) => row.productId}
-                    empty={<p className="text-[14px] text-[var(--vc-neutral-600)]">Nothing sold in this period.</p>}
+                    empty={
+                        <p className="text-[14px] text-[var(--vc-neutral-600)]">
+                            Nothing sold in this period.
+                        </p>
+                    }
                 />
             </section>
 
@@ -324,7 +347,11 @@ export default function AnalyticsIndex() {
                     columns={productColumns}
                     rows={products.topViewed}
                     rowKey={(row) => row.productId}
-                    empty={<p className="text-[14px] text-[var(--vc-neutral-600)]">Nothing was viewed in this period.</p>}
+                    empty={
+                        <p className="text-[14px] text-[var(--vc-neutral-600)]">
+                            Nothing was viewed in this period.
+                        </p>
+                    }
                 />
             </section>
 
@@ -336,7 +363,9 @@ export default function AnalyticsIndex() {
                     <Figure label="Clicks" value={search.totals.clicks.toLocaleString()} />
                     <Figure
                         label="Click rate"
-                        value={search.totals.clickRate === null ? '—' : `${search.totals.clickRate}%`}
+                        value={
+                            search.totals.clickRate === null ? '—' : `${search.totals.clickRate}%`
+                        }
                     />
                     <Figure
                         label="Found nothing"
@@ -350,14 +379,18 @@ export default function AnalyticsIndex() {
 
                 <h3 className="mb-1 text-[16px] font-semibold">Phrases that never find anything</h3>
                 <p className="mb-3 max-w-[60ch] text-[13px] text-[var(--vc-neutral-600)]">
-                    The most actionable list here: each is either a product to stock or a synonym the
-                    index should know.
+                    The most actionable list here: each is either a product to stock or a synonym
+                    the index should know.
                 </p>
                 <Table
                     columns={phraseColumns}
                     rows={search.zeroResultPhrases}
                     rowKey={(row) => row.phrase}
-                    empty={<p className="text-[14px] text-[var(--vc-neutral-600)]">Every phrase found something.</p>}
+                    empty={
+                        <p className="text-[14px] text-[var(--vc-neutral-600)]">
+                            Every phrase found something.
+                        </p>
+                    }
                 />
 
                 <h3 className="mt-8 mb-3 text-[16px] font-semibold">Most searched</h3>
@@ -365,7 +398,11 @@ export default function AnalyticsIndex() {
                     columns={phraseColumns}
                     rows={search.topPhrases}
                     rowKey={(row) => row.phrase}
-                    empty={<p className="text-[14px] text-[var(--vc-neutral-600)]">Nobody searched in this period.</p>}
+                    empty={
+                        <p className="text-[14px] text-[var(--vc-neutral-600)]">
+                            Nobody searched in this period.
+                        </p>
+                    }
                 />
             </section>
 
@@ -376,7 +413,11 @@ export default function AnalyticsIndex() {
                         columns={sellerColumns}
                         rows={sellers}
                         rowKey={(row) => row.publicId}
-                        empty={<p className="text-[14px] text-[var(--vc-neutral-600)]">No seller traded in this period.</p>}
+                        empty={
+                            <p className="text-[14px] text-[var(--vc-neutral-600)]">
+                                No seller traded in this period.
+                            </p>
+                        }
                     />
                 </section>
             )}

@@ -114,14 +114,14 @@ export default function ReviewsIndex() {
             </div>
 
             {reviews.data.length === 0 ? (
-                <EmptyState
-                    title="No reviews here"
-                    body="Nothing matches this filter."
-                />
+                <EmptyState title="No reviews here" body="Nothing matches this filter." />
             ) : (
                 <ul className="border-t-2 border-[var(--vc-text)]">
                     {reviews.data.map((review) => (
-                        <li key={review.publicId} className="border-b border-[var(--vc-divider)] py-5">
+                        <li
+                            key={review.publicId}
+                            className="border-b border-[var(--vc-divider)] py-5"
+                        >
                             <ReviewRowView
                                 review={review}
                                 onDecide={(decision) => setDialog({ review, decision })}
@@ -223,7 +223,11 @@ function ReviewRowView({
                         <Button type="button" variant="secondary" onClick={() => onDecide('hide')}>
                             Hide
                         </Button>
-                        <Button type="button" variant="secondary" onClick={() => onDecide('reject')}>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => onDecide('reject')}
+                        >
                             Reject
                         </Button>
                     </>

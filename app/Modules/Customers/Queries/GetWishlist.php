@@ -53,41 +53,20 @@ final class GetWishlist
     }
 
     /**
-     * Which of these products the customer has saved.
+     * Whether this customer has saved this product.
      *
-     * One query for a whole page of cards, so a listing can render a
-     * filled or empty heart on each without asking per product.
-     *
-     * @param  array<int, int>  $productIds
-     * @return array<int, int> the saved subset
+     * One product, because one product page asks. There is deliberately
+     * no bulk "which of these are saved" companion: the wishlist control
+     * lives on the product page and the wishlist itself, not on listing
+     * cards, and a helper written for a surface that does not exist is a
+     * surface somebody will assume exists.
      */
-    public function savedAmong(?int $userId, array $productIds): array
-    {
-        if ($userId === null || $productIds === []) {
-            return [];
-        }
-
-        return DB::table('wishlist_items')
-            ->where('user_id', $userId)
-            ->whereIn('product_id', array_values(array_unique(array_map(intval(...), $productIds))))
-            ->pluck('product_id')
-            ->map(intval(...))
-            ->all();
-    }
-
     public function has(?int $userId, int $productId): bool
     {
         return $userId !== null && DB::table('wishlist_items')
             ->where('user_id', $userId)
             ->where('product_id', $productId)
             ->exists();
-    }
-
-    public function count(?int $userId): int
-    {
-        return $userId === null
-            ? 0
-            : DB::table('wishlist_items')->where('user_id', $userId)->count();
     }
 
     private function toEntry(stdClass $row): WishlistEntry

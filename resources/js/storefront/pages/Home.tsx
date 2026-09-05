@@ -2,10 +2,7 @@ import { usePage } from '@inertiajs/react';
 import { Button } from '../../design-system/primitives/Button';
 import { EmptyState } from '../../design-system/patterns/States';
 import { StorefrontLayout } from '../../design-system/layout/StorefrontLayout';
-import {
-    RecommendationShelf,
-    type RecommendationSetData,
-} from '../components/RecommendationShelf';
+import { RecommendationShelf, type RecommendationSetData } from '../components/RecommendationShelf';
 import type { SharedPageProps } from '../../shared/types';
 
 interface HomeProps extends SharedPageProps {
@@ -55,11 +52,11 @@ export default function Home() {
             ) : null}
 
             {/*
-              * Shelves in the order the server chose, each already
-              * excluding what the one above it showed. A shelf with
-              * nothing in it renders nothing at all — a heading over an
-              * empty carousel is worse than no heading.
-              */}
+             * Shelves in the order the server chose, each already
+             * excluding what the one above it showed. A shelf with
+             * nothing in it renders nothing at all — a heading over an
+             * empty carousel is worse than no heading.
+             */}
             {rendered.map((shelf) => (
                 <RecommendationShelf key={shelf.slot} set={shelf} />
             ))}

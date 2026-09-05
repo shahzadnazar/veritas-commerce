@@ -61,15 +61,18 @@ export default function Wishlist() {
             </p>
 
             {status ? (
-                <p role="status" className="mb-8 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]">
+                <p
+                    role="status"
+                    className="mb-8 border-2 border-[var(--vc-text)] px-4 py-3 text-[14px]"
+                >
                     {status}
                 </p>
             ) : null}
 
             {items.length === 0 ? (
                 <p className="max-w-[52ch] text-[15px]">
-                    Save a product from its page and it will wait for you here — across devices, and for
-                    as long as you want it.
+                    Save a product from its page and it will wait for you here — across devices, and
+                    for as long as you want it.
                 </p>
             ) : (
                 <ul className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
