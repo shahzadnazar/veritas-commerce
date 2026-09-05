@@ -27,19 +27,49 @@ interface DashboardProps extends SharedPageProps {
         publicUrl: string;
     } | null;
     setup: SetupStep[];
-    can: { manageStore: boolean; manageMembers: boolean };
+    /** Null when this member's role cannot see orders. */
+    fulfilment: {
+        awaitingConfirmation: number;
+        preparing: number;
+        inTransit: number;
+        delivered: number;
+        completed: number;
+        lowStock: number;
+    } | null;
+    /** Null when this member's role cannot see the money. */
+    earnings: {
+        pending: string;
+        clearing: string;
+        available: string;
+        pendingMinor: number;
+        clearingMinor: number;
+        availableMinor: number;
+        nextReleaseAt: string | null;
+        payoutsAvailable: boolean;
+    } | null;
+    can: {
+        manageStore: boolean;
+        manageMembers: boolean;
+        seeFinance: boolean;
+        seeOrders: boolean;
+    };
 }
 
 /**
- * Deliberately thin.
+ * What needs doing, and where the money is.
  *
- * A seller who has just been approved has no orders, no earnings and no
- * stock, so this screen shows what is true — who they are, that they are
- * approved, and what is left to set up — instead of stat cards reading
- * zero, or worse, sample figures.
+ * A seller who has just been approved still sees only the setup steps: the
+ * counts and the balances are real numbers or they are not shown, never
+ * sample figures and never a chart of a trend with one data point.
+ *
+ * The three money figures are kept apart deliberately. One "earnings"
+ * number would reasonably be read as spendable, and pending, clearing and
+ * available are three different promises — only the last is money the
+ * seller will be able to ask for, and only from M7.
  */
 export default function Dashboard() {
-    const { seller, store, setup, can, flash } = usePage<DashboardProps>().props;
+    const { seller, store, setup, fulfilment, earnings, can, flash } =
+        usePage<DashboardProps>().props;
 
     const remaining = setup.filter((step) => !step.done);
 
@@ -55,6 +85,88 @@ export default function Dashboard() {
             }
         >
             <FlashBanner success={flash.success} error={flash.error} />
+
+            {fulfilment !== null ? (
+                <section aria-labelledby="work-heading" className="mb-10">
+                    <h2 id="work-heading" className="mb-3 text-[20px]">
+                        Waiting on you
+                    </h2>
+
+                    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <WorkCount
+                            label="To confirm"
+                            value={fulfilment.awaitingConfirmation}
+                            href="/seller/orders?status=paid"
+                            urgent
+                        />
+                        <WorkCount
+                            label="Being prepared"
+                            value={fulfilment.preparing}
+                            href="/seller/orders?status=processing"
+                        />
+                        <WorkCount
+                            label="On their way"
+                            value={fulfilment.inTransit}
+                            href="/seller/orders?status=shipped"
+                        />
+                        <WorkCount
+                            label="Delivered"
+                            value={fulfilment.delivered}
+                            href="/seller/orders?status=delivered"
+                        />
+                        <WorkCount
+                            label="Completed"
+                            value={fulfilment.completed}
+                            href="/seller/orders?status=completed"
+                        />
+                        <WorkCount
+                            label="Listings low on stock"
+                            value={fulfilment.lowStock}
+                            href="/seller/inventory"
+                            urgent={fulfilment.lowStock > 0}
+                        />
+                    </ul>
+                </section>
+            ) : null}
+
+            {earnings !== null ? (
+                <section aria-labelledby="earnings-heading" className="mb-10">
+                    <h2 id="earnings-heading" className="mb-1 text-[20px]">
+                        Your earnings
+                    </h2>
+                    <p className="mb-3 text-[13px] text-[var(--vc-neutral-700)]">
+                        Money is recorded when a customer pays, starts clearing when you deliver,
+                        and becomes available after the clearing period.
+                    </p>
+
+                    <dl className="grid gap-3 sm:grid-cols-3">
+                        <Balance
+                            label="Pending"
+                            amount={earnings.pending}
+                            note="Paid for, not yet delivered."
+                        />
+                        <Balance
+                            label="Clearing"
+                            amount={earnings.clearing}
+                            note={
+                                earnings.nextReleaseAt
+                                    ? `Next release ${new Date(earnings.nextReleaseAt).toLocaleDateString()}.`
+                                    : 'Delivered, inside the clearing period.'
+                            }
+                        />
+                        <Balance
+                            label="Available"
+                            amount={earnings.available}
+                            note={
+                                earnings.payoutsAvailable
+                                    ? 'Ready to withdraw.'
+                                    : 'Cleared. Withdrawals are not open yet.'
+                            }
+                            emphasis
+                        />
+                    </dl>
+                </section>
+            ) : null}
 
             <section className="mb-10 border-2 border-[var(--vc-divider)] p-5">
                 <div className="flex flex-wrap items-center gap-3">
@@ -161,5 +273,65 @@ export default function Dashboard() {
                 ) : null}
             </section>
         </SellerLayout>
+    );
+}
+
+/**
+ * One count, and where to act on it.
+ *
+ * A number with nowhere to go is a decoration; every one of these is a
+ * link to the filtered list that contains exactly those orders.
+ */
+function WorkCount({
+    label,
+    value,
+    href,
+    urgent = false,
+}: {
+    label: string;
+    value: number;
+    href: string;
+    urgent?: boolean;
+}) {
+    return (
+        <li
+            className={[
+                'border-2 p-4',
+                urgent && value > 0 ? 'border-[var(--vc-accent)]' : 'border-[var(--vc-divider)]',
+            ].join(' ')}
+        >
+            <Link href={href} className="block">
+                <span className="vc-tabular block text-[28px] leading-none">{value}</span>
+                <span className="mt-1 block text-[13px] text-[var(--vc-neutral-700)]">{label}</span>
+            </Link>
+        </li>
+    );
+}
+
+/** One of the three states a seller's money can be in. */
+function Balance({
+    label,
+    amount,
+    note,
+    emphasis = false,
+}: {
+    label: string;
+    amount: string;
+    note: string;
+    emphasis?: boolean;
+}) {
+    return (
+        <div
+            className={[
+                'border-2 p-4',
+                emphasis ? 'border-[var(--vc-text)]' : 'border-[var(--vc-divider)]',
+            ].join(' ')}
+        >
+            <dt className="text-[12px] tracking-[0.08em] text-[var(--vc-neutral-600)] uppercase">
+                {label}
+            </dt>
+            <dd className="vc-tabular mt-1 text-[24px] leading-none">{amount}</dd>
+            <p className="mt-2 text-[12px] text-[var(--vc-neutral-700)]">{note}</p>
+        </div>
     );
 }
