@@ -133,10 +133,28 @@ final class AreaShellsTest extends TestCase
         $response = $this->get('/');
 
         $response->assertHeader('X-Frame-Options', 'DENY');
-        $response->assertHeader(
-            'Content-Security-Policy',
-            "frame-ancestors 'none'; frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
-        );
+
+        /*
+         * The content policy is asserted by its meaning rather than as one
+         * literal string. It was a literal here until M9 tightened the
+         * policy, at which point this test failed for a change that made
+         * the application safer — which is how a pinned header ends up
+         * being loosened by whoever is in a hurry.
+         *
+         * SecurityHeaderTest owns the detail: no wildcard, no eval, the
+         * one documented inline relaxation, Stripe scoped to the payment
+         * page. What belongs here is that a storefront response carries a
+         * policy at all, and that its floor holds.
+         */
+        $policy = (string) $response->baseResponse->headers->get('Content-Security-Policy');
+
+        foreach (["default-src 'self'", "object-src 'none'", "base-uri 'self'", "frame-ancestors 'none'"] as $directive) {
+            $this->assertStringContainsString($directive, $policy);
+        }
+
+        $this->assertStringNotContainsString('*', $policy);
+        $this->assertStringNotContainsString("'unsafe-eval'", $policy);
+
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->assertHeader('Permissions-Policy');
