@@ -429,7 +429,7 @@ where it says otherwise.
 
 | Gate | Result |
 | ---- | ------ |
-| PHPUnit (full suite) | **1,269 tests / 13,960 assertions, all passing** |
+| PHPUnit (full suite) | **1,270 tests / 13,966 assertions, all passing** |
 | Laravel Pint | **passed** — no files needed fixing |
 | PHPStan + Larastan, level 8 | **passed** — 0 errors |
 | TypeScript `tsc --noEmit` | **passed** — 0 errors |
@@ -446,8 +446,10 @@ where it says otherwise.
 | M8 CI smoke script, run locally | **every assertion held** — see below |
 | Docker local | **unverified — no daemon** |
 
-The test count moved from **1,123** at the M7 baseline to **1,269**: 146
-new tests, no test removed and no assertion weakened.
+The test count moved from **1,123** at the M7 baseline to **1,270**: 147
+new tests, no test removed and no assertion weakened. (M8 closed at 1,269;
+the post-milestone audit in §21 added one more — the test that asserts the
+wishlist boundary the milestone chose.)
 
 ### Two gates that were not clean when this report was first written
 
