@@ -22,7 +22,8 @@ interface PayoutDetailProps extends SharedPageProps {
         statusLabel: string;
     } | null;
     position: SellerFinancialPositionView;
-    withdrawableAfter: string;
+    /** Null once the payout is decided: the question no longer applies. */
+    withdrawableAfter: string | null;
     can: {
         review: boolean;
         approve: boolean;
@@ -115,7 +116,7 @@ export default function PayoutDetail() {
                     <Fact label="Available" value={position.available} />
                     <Fact label="Reserved" value={position.reserved} />
                     <Fact label="Withdrawable" value={position.withdrawable} />
-                    <Fact label="After this payout" value={withdrawableAfter} />
+                    <Fact label="After this payout" value={withdrawableAfter ?? '—'} />
                 </dl>
                 {position.isNegative ? (
                     <p className="mt-3 border-l-2 border-[var(--vc-accent)] bg-[var(--vc-accent-100)] p-3 text-[13px]">

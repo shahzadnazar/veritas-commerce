@@ -71,16 +71,29 @@ export function BalancePanel({ position, eligibility, nextReleaseAt }: BalancePa
 
             <div
                 className={`mt-3 border-l-2 p-3 ${
-                    position.isNegative
+                    position.isNegative || position.isShort
                         ? 'border-[var(--vc-accent)] bg-[var(--vc-accent-100)]'
                         : 'border-[var(--vc-text)]'
                 }`}
             >
+                {/*
+                 * Two different figures, never the same one relabelled.
+                 *
+                 * "Available to withdraw" is the clamped withdrawable and
+                 * can only ever be a positive amount or nothing — a screen
+                 * must never print "-$39.60 available to withdraw". A
+                 * store that is below zero is shown its net balance
+                 * instead, with the minus sign, because that is the number
+                 * that is actually negative and hiding it would be worse
+                 * than showing it (§44).
+                 */}
                 <dl className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <dt className="text-[11px] uppercase tracking-[0.08em] text-[var(--vc-neutral-700)]">
                         {position.isNegative ? 'Net available balance' : 'Available to withdraw'}
                     </dt>
-                    <dd className="text-[24px] tabular-nums">{position.withdrawable}</dd>
+                    <dd className="text-[24px] tabular-nums">
+                        {position.isNegative ? position.netBalance : position.withdrawable}
+                    </dd>
                 </dl>
 
                 <p className="mt-1 max-w-[62ch] text-[13px] text-[var(--vc-neutral-700)]">
@@ -91,6 +104,13 @@ export function BalancePanel({ position, eligibility, nextReleaseAt }: BalancePa
                      */}
                     {eligibility.message}
                 </p>
+
+                {position.isShort && !position.isNegative ? (
+                    <p className="mt-1 max-w-[62ch] text-[13px] text-[var(--vc-neutral-700)]">
+                        Your open payout is holding more than is currently available, so nothing
+                        further can be withdrawn until it is settled or released.
+                    </p>
+                ) : null}
 
                 {position.paidOutMinor > 0 ? (
                     <p className="mt-1 text-[13px] text-[var(--vc-neutral-700)]">

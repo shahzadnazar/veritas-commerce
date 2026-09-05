@@ -222,7 +222,8 @@ final class PostPayoutRefundTest extends TestCase
         // position, and nothing is withdrawable yet.
         $clearing = $this->positionOf($seller);
         $this->assertSame(17_600, $clearing->netBalanceMinor());
-        $this->assertSame(-8_800, $clearing->withdrawableMinor());
+        $this->assertSame(-8_800, $clearing->rawPayoutCapacityMinor(), 'Still 8,800 short.');
+        $this->assertSame(0, $clearing->withdrawableMinor(), 'So nothing may be withdrawn.');
 
         $this->travel(8)->days();
         app(CompleteDeliveredSellerOrders::class)();

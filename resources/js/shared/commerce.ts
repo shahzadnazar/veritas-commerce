@@ -315,6 +315,12 @@ export interface CustomerFulfilmentView {
  * SellerFinancialPosition::withdrawableMinor() returned, which also caps
  * it at the seller's overall net position. Two implementations of that
  * rule would disagree on the day it matters.
+ *
+ * `withdrawable` is NEVER NEGATIVE — it is the amount that may be asked
+ * for, and the only honest answers are a positive amount or nothing.
+ * `rawPayoutCapacity` is the signed figure behind it: below zero it says
+ * how far short the store is. `netBalance` is signed too, and is what a
+ * screen shows when a store is genuinely in deficit.
  */
 export interface SellerFinancialPositionView {
     currency: string;
@@ -324,6 +330,8 @@ export interface SellerFinancialPositionView {
     reservedMinor: number;
     paidOutMinor: number;
     netBalanceMinor: number;
+    rawPayoutCapacityMinor: number;
+    /** Always >= 0. */
     withdrawableMinor: number;
     pending: string;
     clearing: string;
@@ -331,8 +339,12 @@ export interface SellerFinancialPositionView {
     reserved: string;
     paidOut: string;
     netBalance: string;
+    rawPayoutCapacity: string;
     withdrawable: string;
+    /** The platform owes this store less than nothing. */
     isNegative: boolean;
+    /** An open hold exceeds what is available, so nothing may be withdrawn. */
+    isShort: boolean;
 }
 
 /** Whether a payout may be requested, decided on the server. */

@@ -89,6 +89,88 @@ final class PayoutInvariantsTest extends TestCase
         $this->assertSame(70_000, $position->withdrawableMinor());
     }
 
+    #[Test]
+    public function withdrawable_is_never_negative_however_short_the_store_is(): void
+    {
+        /*
+         * The definition, asserted directly:
+         *
+         *   raw payout capacity = min(available, net balance) - reserved
+         *   withdrawable        = max(0, raw payout capacity)
+         *
+         * A position may be below zero; the amount that may be withdrawn
+         * from it is nothing rather than a negative number. Every case
+         * that can produce a negative capacity is walked here, because a
+         * negative "available to withdraw" is the kind of figure that
+         * reaches a screen or a `min($requested, $withdrawable)` before
+         * anybody notices.
+         */
+        ['seller' => $seller] = $this->makeSeller();
+
+        // 1. A reversal larger than the available balance.
+        $this->availableEarning($seller, 10_000);
+        $this->reversal($seller, 25_000);
+
+        $position = $this->positionOf($seller);
+
+        $this->assertSame(-15_000, $position->availableMinor);
+        $this->assertSame(-15_000, $position->netBalanceMinor());
+        $this->assertSame(-15_000, $position->rawPayoutCapacityMinor());
+        $this->assertSame(0, $position->withdrawableMinor(), 'Never below zero.');
+        $this->assertTrue($position->isNegative());
+        $this->assertTrue($position->isShort());
+        $this->assertFalse($position->hasWithdrawableFunds());
+
+        // 2. Clearing money that does not rescue a negative available
+        // balance: the cap on `available` still binds.
+        $this->clearingEarning($seller, 40_000);
+
+        $capped = $this->positionOf($seller);
+
+        $this->assertSame(25_000, $capped->netBalanceMinor(), 'Owed overall...');
+        $this->assertSame(-15_000, $capped->availableMinor, '...but not yet spendable.');
+        $this->assertSame(-15_000, $capped->rawPayoutCapacityMinor());
+        $this->assertSame(0, $capped->withdrawableMinor());
+        $this->assertFalse($capped->isNegative(), 'The platform owes this store money.');
+        $this->assertTrue($capped->isShort(), 'And it still cannot withdraw any.');
+
+        // 3. Whatever the shape, the two figures agree on the clamp.
+        $this->assertSame(
+            max(0, $capped->rawPayoutCapacityMinor()),
+            $capped->withdrawableMinor(),
+        );
+
+        // 4. And the serialised shape never carries a negative one.
+        $serialised = $capped->toArray();
+
+        $this->assertSame(0, $serialised['withdrawableMinor']);
+        $this->assertSame('$0.00', $serialised['withdrawable']);
+        $this->assertSame(-15_000, $serialised['rawPayoutCapacityMinor']);
+        $this->assertSame('-$150.00', $serialised['rawPayoutCapacity']);
+        $this->assertSame('$250.00', $serialised['netBalance']);
+    }
+
+    #[Test]
+    public function a_healthy_store_sees_the_same_number_twice(): void
+    {
+        // The clamp must do nothing in the ordinary case, or it would be
+        // hiding something rather than defining something.
+        ['seller' => $seller] = $this->makeSeller();
+
+        $this->availableEarning($seller, 100_000);
+        $this->clearingEarning($seller, 30_000);
+        $this->destination($seller);
+
+        $this->requestPayout($seller, 40_000);
+
+        $position = $this->positionOf($seller);
+
+        $this->assertSame(60_000, $position->rawPayoutCapacityMinor());
+        $this->assertSame(60_000, $position->withdrawableMinor());
+        $this->assertFalse($position->isShort());
+        $this->assertFalse($position->isNegative());
+    }
+
     // ---------------------------------------------------------------
     // 2. A reservation reduces withdrawable immediately
     // ---------------------------------------------------------------
@@ -338,7 +420,13 @@ final class PayoutInvariantsTest extends TestCase
         $this->assertSame(-2_000, $position->availableMinor);
         $this->assertSame(-2_000, $position->netBalanceMinor());
         $this->assertTrue($position->isNegative());
-        $this->assertSame(-2_000, $position->withdrawableMinor());
+
+        // The position is below zero; what may be withdrawn from it is
+        // nothing, not a negative amount. The signed figure is kept
+        // separately, because "how far short am I" is a real question.
+        $this->assertSame(-2_000, $position->rawPayoutCapacityMinor());
+        $this->assertSame(0, $position->withdrawableMinor());
+        $this->assertFalse($position->hasWithdrawableFunds());
 
         // Neither historical record was rewritten.
         $this->assertSame(9_000, $earning->refresh()->amount_minor);
@@ -396,7 +484,8 @@ final class PayoutInvariantsTest extends TestCase
         $mid = $this->positionOf($seller);
         $this->assertSame(3_000, $mid->netBalanceMinor(), 'The debt is offset in the net position...');
         $this->assertSame(-2_000, $mid->availableMinor, '...but the new money has not cleared yet.');
-        $this->assertSame(-2_000, $mid->withdrawableMinor());
+        $this->assertSame(-2_000, $mid->rawPayoutCapacityMinor(), 'Still 2,000 short.');
+        $this->assertSame(0, $mid->withdrawableMinor(), 'And nothing may be withdrawn.');
 
         $clearing->forceFill(['status' => LedgerEntryStatus::Available->value])->save();
 

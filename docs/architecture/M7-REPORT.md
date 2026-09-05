@@ -22,16 +22,18 @@ published history was rewritten.
 | `8473497` | feat: implement seller finance, payout reservation and settlement |
 | `467898f` | feat: build the seller and admin finance surfaces            |
 | `17c659e` | test: add the M7 finance, payout and reconciliation suite     |
+| `(head~1)` | refactor: clamp the withdrawable balance at zero              |
 
-109 files changed, 12,462 insertions, 339 deletions.
+110 files changed. The tightened withdrawable definition (§6) landed as a
+fourth commit after the first three.
 
-The brief suggested twelve commits. Three were used instead, and that is a
+The brief suggested twelve commits. Four were used instead, and that is a
 deviation worth naming: the payout domain does not divide into
 independently correct halves. A commit that added allocations without the
 settlement that closes them, or the request action without the eligibility
 service it consults, would have been a commit where the money did not add
-up — and the whole point of this milestone is that it always does. Each of
-the three is internally complete and its own tests pass at that commit.
+up — and the whole point of this milestone is that it always does. Each is
+internally complete and its own tests pass at that commit.
 
 ## 3. Package/version changes
 
@@ -84,7 +86,8 @@ meanings everywhere in the code and on every screen.
 | **RESERVED_FOR_PAYOUT** | Available money an open payout request is holding. From `payout_allocations`, never from the ledger. |
 | **PAID OUT** | Lifetime total actually settled to the seller, as a positive figure. Reporting only — it is already inside AVAILABLE as a negative. |
 | **NET BALANCE** | pending + clearing + available. What the platform owes this seller. |
-| **WITHDRAWABLE** | What the seller may ask for right now. See §6. |
+| **RAW PAYOUT CAPACITY** | `min(available, net_balance) − reserved`. **Signed**: below zero it says how far short the store is. |
+| **WITHDRAWABLE** | `max(0, raw_payout_capacity)`. What the seller may ask for right now. **Never negative.** |
 
 AVAILABLE is the subtle one and the brief's §3 warns about exactly it. An
 earning of $500 that has been paid out leaves **$0** available, not $500,
@@ -100,23 +103,55 @@ nothing.
 
 ## 6. Withdrawable-balance formula
 
+Two figures, not one:
+
 ```
-withdrawable = min(available, net_balance) − reserved
+raw_payout_capacity = min(available, net_balance) − reserved
+withdrawable        = max(0, raw_payout_capacity)
 ```
 
-Implemented once, in `SellerFinancialPosition::withdrawableMinor()`.
+Implemented once each, in `SellerFinancialPosition::rawPayoutCapacityMinor()`
+and `::withdrawableMinor()`.
 
-The **cap** is the §48 requirement. A seller whose overall position is
-negative may not withdraw even when an individual available earning row
-exists — a refund sitting against money that is still clearing is money the
-platform is about to be owed back, and paying out against it turns a
-bookkeeping entry into a debt-collection problem. In the ordinary case,
-where pending and clearing are positive, the cap does nothing and this is
-plainly `available − reserved`.
+The **cap on available** is the §48 requirement. A seller whose overall
+position is negative may not withdraw even when an individual available
+earning row exists — a refund sitting against money that is still clearing
+is money the platform is about to be owed back, and paying out against it
+turns a bookkeeping entry into a debt-collection problem. In the ordinary
+case, where pending and clearing are positive, the cap does nothing and
+capacity is plainly `available − reserved`.
 
-`reserved` is subtracted **exactly once, here**. It is deliberately not
-also a ledger entry: that double subtraction at settlement is the specific
-bug §29 exists to prevent.
+The **clamp at zero** is a definition rather than a safety net.
+"Withdrawable" answers exactly one question — how much may be asked for —
+and the only honest answers are a positive amount or nothing. A negative
+withdrawable balance is a category error: it invites a screen to print
+"−$39.60 available to withdraw", and it invites arithmetic like
+`min($requested, $withdrawable)` to produce a negative payout.
+
+A seller's **position** may legitimately be below zero (§29), and it still
+is: `netBalanceMinor()` and `rawPayoutCapacityMinor()` both stay signed.
+Keeping the signed capacity beside the clamped withdrawable is what lets
+an operator answer "how much has to arrive before I can withdraw again" —
+a question a clamped zero cannot answer.
+
+Two predicates sit on the same distinction, and they are not the same
+question:
+
+- `isNegative()` — the platform owes this store **less than nothing**.
+- `isShort()` — the capacity is below zero. A store can owe nothing overall
+  and still be short: a refund landing while a payout is open leaves the
+  hold standing against money that is no longer there.
+
+`reserved` is subtracted **exactly once**, in the capacity. It is
+deliberately not also a ledger entry: that double subtraction at settlement
+is the specific bug §29 exists to prevent.
+
+`PayoutInvariantsTest::withdrawable_is_never_negative_however_short_the_store_is`
+walks every shape that can produce a negative capacity — a reversal larger
+than the available balance, and clearing money that does not rescue it —
+and asserts the clamp holds in the DTO and in the serialised props. A
+companion test asserts the clamp does **nothing** in the ordinary case, so
+it is defining something rather than hiding something.
 
 The projection reads two grouped queries — one over `seller_ledger_entries`,
 one over `payout_allocations` — and nothing else. It never touches orders,
@@ -550,18 +585,29 @@ been attempted.
 
 ## 28. Negative seller balance support
 
-Fully supported, never prevented. `SellerFinancialPosition` carries signed
-integers throughout; `Money::formatSigned()` is the single place a minus
-sign is printed.
+Fully supported, never prevented — with one deliberate exception, below.
+`SellerFinancialPosition` carries signed integers for the position;
+`Money::formatSigned()` is the single place a minus sign is printed.
 
 **No constraint requires a seller balance to be non-negative** — the brief's
 §43 forbids one, and adding it would make §42 impossible to represent.
 
-`withdrawableMinor()` caps at the net position, so a negative store cannot
-withdraw regardless of what any individual bucket says. The refusal reason
-is `negative_balance`, worded for the seller: "Your balance is below zero
-after recent refunds. New earnings will bring it back up before you can
-withdraw."
+The exception is the withdrawable balance itself, which is clamped at zero
+by definition (§6). A *position* below zero is a real financial fact and is
+reported as one; an *amount that may be withdrawn* below zero is a category
+error. `rawPayoutCapacityMinor()` keeps the signed figure, so nothing is
+lost — a store that is 3,960 short says so, and says separately that it may
+withdraw nothing.
+
+`rawPayoutCapacityMinor()` caps at the net position, so a negative store
+cannot withdraw regardless of what any individual bucket says. The refusal
+reason is `negative_balance`, worded for the seller: "Your balance is below
+zero after recent refunds. New earnings will bring it back up before you
+can withdraw."
+
+The seller's screen keeps the two apart: a store in deficit sees its **net
+balance** with the minus sign under the label "Net available balance"
+(§44). It never reads "−$39.60 available to withdraw".
 
 ## 29. Post-payout refund behaviour
 
@@ -596,7 +642,7 @@ follows §43's arithmetic exactly:
 
 - position −8,800, blocked with `negative_balance`
 - a second order pays and delivers: net becomes +8,800, but the new money
-  is **clearing**, so withdrawable is still −8,800
+  is **clearing**, so capacity is still −8,800 and withdrawable is 0
 - the sweep releases it: available 17,600, withdrawable 17,600
 - a payout is possible again
 
@@ -817,17 +863,17 @@ Plus foreign keys on every actor and owner column, and indexes on
 
 ## 41. Exact total tests and assertions
 
-**1,121 tests, 13,148 assertions.** All passing.
+**1,123 tests, 13,177 assertions.** All passing.
 
 M6 baseline: 1,007 / 12,591.
 
 ## 42. Exact M7-specific tests
 
-**113 tests** in `tests/Feature/Payouts`:
+**115 tests** in `tests/Feature/Payouts`:
 
 | File | Tests |
 | --- | --- |
-| `PayoutInvariantsTest` | 21 |
+| `PayoutInvariantsTest` | 23 |
 | `AdminPayoutOperationsTest` | 14 |
 | `SellerPayoutHttpTest` | 12 |
 | `FinanceReadSurfaceTest` | 11 |
@@ -981,9 +1027,12 @@ The settlement is recorded three times over; there is one debit.
 **Pass**, in the same run:
 
 ```
-post_refund a_net=-3960 a_paid_out=7920 payout_status=paid payout_amount=7920
+post_refund a_net=-3960 a_capacity=-3960 a_withdrawable=0 a_paid_out=7920 payout_status=paid payout_amount=7920
 blocked reason=negative_balance
 ```
+
+The capacity is −3,960 and the withdrawable is 0, in the same line: the
+store is short by a real amount and may ask for nothing.
 
 15,840 earned, 7,920 paid out, 11,880 refunded — the store owes 3,960 and
 cannot withdraw. The payout is still PAID for its original amount.
@@ -1032,7 +1081,8 @@ script and two extra seeded stores:
 
 1. **A payout is requested, approved, settled and refunded in the built
    image** — runs `.github/ci/m7-payout-smoke.php` and greps fourteen exact
-   figures.
+   figures, including the signed capacity and the clamped withdrawable
+   side by side.
 2. **The finance surfaces answer over HTTP and stay private** — logs in as
    the seller, checks the props, checks the noindex headers, checks a
    stranger gets 404 and a guest gets 302, and checks a seller session
@@ -1151,7 +1201,7 @@ first. The read models the export would serialise all exist
 (`BuildSellerStatement`, `BuildPayoutView`, `SummarisePlatformFinance`), so
 it is a controller and a queued job rather than new domain work.
 
-**7. Three commits rather than twelve.** See §2.
+**7. Four commits rather than twelve.** See §2.
 
 **8. No admin notification on new payout requests.** §62 is explicit that it
 is optional and warns against spamming; the queue is where finance looks.
@@ -1194,7 +1244,7 @@ webhooks to correlate against.
 | Gate | Result |
 | --- | --- |
 | `migrate:fresh --seed` | pass |
-| PHPUnit (full) | pass — **1,121 tests, 13,148 assertions** |
+| PHPUnit (full) | pass — **1,123 tests, 13,177 assertions** |
 | Invariants suite | pass — 80 tests, 1,235 assertions |
 | PHPStan + Larastan level 8 | pass — 0 errors, no baseline |
 | Pint | pass |

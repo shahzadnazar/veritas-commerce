@@ -412,7 +412,14 @@ final class PayoutConcurrencyTest extends TestCase
         $position = $this->positionOf($seller);
         $this->assertSame(10_000, $position->reservedMinor);
         $this->assertSame(4_000, $position->availableMinor);
-        $this->assertSame(-6_000, $position->withdrawableMinor());
+
+        // The store is short without being in deficit: it owes nothing
+        // overall, but its open payout is holding money that is no longer
+        // there. Withdrawable is nothing; the shortfall is its own figure.
+        $this->assertFalse($position->isNegative());
+        $this->assertTrue($position->isShort());
+        $this->assertSame(-6_000, $position->rawPayoutCapacityMinor());
+        $this->assertSame(0, $position->withdrawableMinor());
 
         // Approval now refuses, because the reservation no longer fits
         // inside what the seller has. Finance decides what happens next.
@@ -427,7 +434,7 @@ final class PayoutConcurrencyTest extends TestCase
             $this->assertSame('exceeds_withdrawable', $refused->reason);
         }
 
-        $this->assertLessThanOrEqual(
+        $this->assertSame(
             0,
             $this->positionOf($seller)->withdrawableMinor(),
             'Nothing further may be withdrawn while the position is short.',

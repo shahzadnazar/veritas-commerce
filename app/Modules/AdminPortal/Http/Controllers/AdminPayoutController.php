@@ -157,14 +157,20 @@ final class AdminPayoutController
                 'statusLabel' => $seller->status->label(),
             ],
             'position' => $position->toArray(),
-            // What the balance looks like once this payout is settled, so
-            // a reviewer sees the consequence rather than computing it.
-            'withdrawableAfter' => Money::formatSigned(
-                $payout->status->holdsBalance()
-                    ? $position->withdrawableMinor()
-                    : $position->withdrawableMinor() - $payout->amount_minor,
-                $payout->currency,
-            ),
+            /*
+             * What the store can still withdraw once this payout settles.
+             *
+             * For an OPEN payout that is simply the current withdrawable:
+             * the amount is already held out by its allocations, so
+             * settling it changes the figure by nothing. Asked of a payout
+             * that has already been paid or ended, the question is moot —
+             * and subtracting the amount again would double-count a debit
+             * the position already carries — so it is answered with
+             * nothing rather than with a number that looks like one.
+             */
+            'withdrawableAfter' => $payout->status->holdsBalance()
+                ? Money::of($position->withdrawableMinor(), $payout->currency)->format()
+                : null,
             'can' => $this->capabilities($request),
         ]);
     }

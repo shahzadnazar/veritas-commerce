@@ -43,8 +43,14 @@ use App\Support\Money;
  * NET BALANCE Everything the platform owes this seller: pending +
  *             clearing + available. The platform's liability.
  *
- * WITHDRAWABLE What the seller may ask for right now. See the formula on
- *             the property itself — it is not simply available - reserved.
+ * RAW PAYOUT CAPACITY
+ *             min(available, net balance) - reserved. SIGNED: below zero
+ *             it says how far short the seller is.
+ *
+ * WITHDRAWABLE What the seller may ask for right now: max(0, raw payout
+ *             capacity). NEVER NEGATIVE — a position may be below zero,
+ *             but the amount that may be withdrawn from it is nothing
+ *             rather than a negative number.
  */
 final readonly class SellerFinancialPosition
 {
@@ -67,33 +73,75 @@ final readonly class SellerFinancialPosition
     }
 
     /**
-     * What the seller may request right now.
-     *
-     * Two subtractions and a cap:
+     * How much payout capacity there is, SIGNED.
      *
      *   min(available, net balance) - reserved
      *
-     * The cap is §48. A seller whose OVERALL position is negative may not
-     * withdraw, even if some individual bucket looks healthy — a refund
-     * sitting against money that is still clearing is money the platform
-     * is about to be owed back, and paying out against it turns a
-     * bookkeeping entry into a debt collection problem. In the ordinary
-     * case, where pending and clearing are positive, the cap does nothing
-     * and this is plainly available - reserved.
+     * The cap on available is the §48 rule. A seller whose OVERALL
+     * position is negative may not withdraw, even if some individual
+     * bucket looks healthy — a refund sitting against money that is still
+     * clearing is money the platform is about to be owed back, and paying
+     * out against it turns a bookkeeping entry into a debt collection
+     * problem. In the ordinary case, where pending and clearing are
+     * positive, the cap does nothing and this is plainly
+     * available - reserved.
      *
      * Reserved is subtracted exactly once, here. It is deliberately NOT
      * also a ledger entry: that double subtraction, on settlement, is the
      * specific bug §29 exists to prevent.
+     *
+     * This figure CAN be negative, and that is the point of it existing
+     * separately from `withdrawableMinor()`. Below zero it says how far
+     * short the seller is — how much has to arrive before a withdrawal is
+     * possible again — which is exactly what an operator answering "when
+     * can I withdraw" needs and what a screen showing a clamped zero
+     * cannot tell them.
+     */
+    public function rawPayoutCapacityMinor(): int
+    {
+        return min($this->availableMinor, $this->netBalanceMinor()) - $this->reservedMinor;
+    }
+
+    /**
+     * What the seller may request right now. NEVER NEGATIVE.
+     *
+     *   max(0, raw payout capacity)
+     *
+     * The clamp is a definition rather than a safety net. "Withdrawable"
+     * answers one question — how much may be asked for — and the only
+     * honest answers are a positive amount or nothing. A negative
+     * withdrawable balance is a category error: it invites a screen to
+     * print "-$39.60 available to withdraw", and it invites arithmetic
+     * like `min($requested, $withdrawable)` to produce a negative payout.
+     *
+     * A seller's POSITION may legitimately be below zero (§42), and it is
+     * still reported as such by `netBalanceMinor()` and
+     * `rawPayoutCapacityMinor()`. What may be withdrawn from a position
+     * below zero is nothing, and this says nothing rather than saying a
+     * negative amount.
      */
     public function withdrawableMinor(): int
     {
-        return min($this->availableMinor, $this->netBalanceMinor()) - $this->reservedMinor;
+        return max(0, $this->rawPayoutCapacityMinor());
     }
 
     /** Whether any withdrawal at all is arithmetically possible. */
     public function hasWithdrawableFunds(): bool
     {
         return $this->withdrawableMinor() > 0;
+    }
+
+    /**
+     * Whether the seller is short — the capacity is below zero.
+     *
+     * Distinct from `isNegative()`, which asks about the platform's
+     * liability. A store can owe nothing overall and still be short: a
+     * refund landing while a payout is open leaves the hold standing
+     * against money that is no longer there.
+     */
+    public function isShort(): bool
+    {
+        return $this->rawPayoutCapacityMinor() < 0;
     }
 
     public function isNegative(): bool
@@ -129,6 +177,7 @@ final readonly class SellerFinancialPosition
             'reservedMinor' => $this->reservedMinor,
             'paidOutMinor' => $this->paidOutMinor,
             'netBalanceMinor' => $this->netBalanceMinor(),
+            'rawPayoutCapacityMinor' => $this->rawPayoutCapacityMinor(),
             'withdrawableMinor' => $this->withdrawableMinor(),
             'pending' => Money::formatSigned($this->pendingMinor, $this->currency),
             'clearing' => Money::formatSigned($this->clearingMinor, $this->currency),
@@ -136,8 +185,13 @@ final readonly class SellerFinancialPosition
             'reserved' => Money::formatSigned($this->reservedMinor, $this->currency),
             'paidOut' => Money::formatSigned($this->paidOutMinor, $this->currency),
             'netBalance' => Money::formatSigned($this->netBalanceMinor(), $this->currency),
-            'withdrawable' => Money::formatSigned($this->withdrawableMinor(), $this->currency),
+            'rawPayoutCapacity' => Money::formatSigned($this->rawPayoutCapacityMinor(), $this->currency),
+            // Never negative, so the plain formatter is correct here and
+            // a screen can print it beside "available to withdraw"
+            // without a minus sign ever appearing.
+            'withdrawable' => Money::of($this->withdrawableMinor(), $this->currency)->format(),
             'isNegative' => $this->isNegative(),
+            'isShort' => $this->isShort(),
         ];
     }
 }

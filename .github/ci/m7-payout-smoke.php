@@ -304,8 +304,12 @@ app(RequestRefund::class)(
 $afterRefund = $position($aId);
 $bAfterRefund = $position($bId);
 
-printf("post_refund a_net=%d a_paid_out=%d payout_status=%s payout_amount=%d\n",
+printf("post_refund a_net=%d a_capacity=%d a_withdrawable=%d a_paid_out=%d payout_status=%s payout_amount=%d\n",
     $afterRefund->netBalanceMinor(),
+    // Signed: how far short the store is. Clamped: what may be asked for,
+    // which is nothing rather than a negative amount.
+    $afterRefund->rawPayoutCapacityMinor(),
+    $afterRefund->withdrawableMinor(),
     $afterRefund->paidOutMinor,
     $payout->refresh()->status->value,
     $payout->amount_minor);

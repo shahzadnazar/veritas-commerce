@@ -652,7 +652,9 @@ jobs:
                   # Neither historical record moves and the store ends up
                   # owing the platform — 15,840 less 7,920 paid less
                   # 11,880 refunded is -3,960.
-                  grep -q 'post_refund a_net=-3960 a_paid_out=7920 payout_status=paid payout_amount=7920' m7.txt
+                  # The signed capacity says how far short; withdrawable
+                  # is clamped and says nothing may be asked for.
+                  grep -q 'post_refund a_net=-3960 a_capacity=-3960 a_withdrawable=0 a_paid_out=7920 payout_status=paid payout_amount=7920' m7.txt
                   grep -q 'isolation_after_refund b_net=5280 b_withdrawable=5280' m7.txt
 
                   # §48: and nothing further can be withdrawn.
