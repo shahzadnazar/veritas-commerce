@@ -113,6 +113,47 @@ final class RecordInteraction
         ]);
     }
 
+    /**
+     * A product saved to, or removed from, a wishlist.
+     *
+     * The wishlist row is the truth about what is saved; these events
+     * record *when* somebody changed their mind, which a table of current
+     * saves cannot answer — and give the popularity projection a signal
+     * with a date on it.
+     */
+    public function wishlistAdded(Request $request, int $productId): void
+    {
+        $this->record($request, InteractionEventType::WishlistItemAdded, productId: $productId);
+    }
+
+    public function wishlistRemoved(Request $request, int $productId): void
+    {
+        $this->record($request, InteractionEventType::WishlistItemRemoved, productId: $productId);
+    }
+
+    /**
+     * A recommendation shelf rendered, and one of its cards clicked.
+     *
+     * The impression is what makes the click meaningful: without it, a
+     * shelf that is clicked rarely and one that is shown rarely look the
+     * same, and the fallback chain cannot be judged at all.
+     */
+    public function recommendationShown(Request $request, int $productId, string $slot, int $position): void
+    {
+        $this->record($request, InteractionEventType::RecommendationShown, productId: $productId, payload: [
+            'context' => $slot,
+            'position' => $position,
+        ]);
+    }
+
+    public function recommendationClicked(Request $request, int $productId, string $slot, int $position): void
+    {
+        $this->record($request, InteractionEventType::RecommendationClicked, productId: $productId, payload: [
+            'context' => $slot,
+            'position' => $position,
+        ]);
+    }
+
     private function productIdFor(string $publicId): ?int
     {
         $id = DB::table('products')->where('public_id', $publicId)->value('id');

@@ -16,6 +16,17 @@ enum InteractionEventType: string
 {
     case SearchPerformed = 'search_performed';
     case SearchResultClicked = 'search_result_clicked';
+
+    /**
+     * A product appearing in a page of results.
+     *
+     * The denominator a click-through rate needs. Without it, "this
+     * product got four clicks" cannot be compared with "this one got
+     * forty", because the second may simply have been shown ten times as
+     * often — and a catalogue team acting on click counts alone will
+     * promote whatever already ranks first.
+     */
+    case SearchResultShown = 'search_result_shown';
     case ProductViewed = 'product_viewed';
     case ProductVariantSelected = 'product_variant_selected';
     case SellerStoreViewed = 'seller_store_viewed';
@@ -27,6 +38,27 @@ enum InteractionEventType: string
     case CheckoutValidationFailed = 'checkout_validation_failed';
     case CheckoutOrderCreated = 'checkout_order_created';
     case PurchaseCompleted = 'purchase_completed';
+
+    /**
+     * A product saved to a wishlist, and one removed from it.
+     *
+     * The wishlist row is the truth; these record *when* somebody changed
+     * their mind, which a table of current saves cannot answer.
+     */
+    case WishlistItemAdded = 'wishlist_item_added';
+    case WishlistItemRemoved = 'wishlist_item_removed';
+
+    /**
+     * A recommendation shelf rendered, and one of its cards clicked.
+     *
+     * Recorded so a shelf can be judged. Without the impression, a click
+     * count says only that some shelves get clicked; with it, the two
+     * together say which shelves are worth their space and which are
+     * furniture — which is the only honest way to decide whether the
+     * fallback chain is doing more harm than good.
+     */
+    case RecommendationShown = 'recommendation_shown';
+    case RecommendationClicked = 'recommendation_clicked';
 
     /**
      * A payment the provider refused.
@@ -61,7 +93,11 @@ enum InteractionEventType: string
         return match ($this) {
             self::ProductViewed, self::SellerStoreViewed, self::ProductVariantSelected,
             self::CategoryViewed => 1,
-            self::SearchResultClicked => 2,
+            self::SearchResultClicked, self::RecommendationClicked => 2,
+            // Saving something is a durable statement of intent —
+            // stronger than a look, weaker than a basket.
+            self::WishlistItemAdded => 3,
+            self::WishlistItemRemoved => -1,
             self::CartItemAdded => 4,
             self::CartItemRemoved => -2,
             self::CartQuantityChanged => 2,
@@ -76,6 +112,9 @@ enum InteractionEventType: string
             // simply not a purchase.
             self::PaymentFailed => 4,
             self::SearchPerformed => 0,
+            // Something being *shown* says nothing about the visitor. It
+            // is the denominator for the click, not a signal of its own.
+            self::SearchResultShown, self::RecommendationShown => 0,
             // Operational, not behavioural. See the cases above.
             self::OrderConfirmed, self::ShipmentCreated, self::ShipmentShipped,
             self::ShipmentDelivered, self::OrderDelivered => 0,
@@ -92,6 +131,7 @@ enum InteractionEventType: string
         return match ($this) {
             self::SearchPerformed => 'Search performed',
             self::SearchResultClicked => 'Search result clicked',
+            self::SearchResultShown => 'Search result shown',
             self::ProductViewed => 'Product viewed',
             self::ProductVariantSelected => 'Variant selected',
             self::SellerStoreViewed => 'Store viewed',
@@ -103,6 +143,10 @@ enum InteractionEventType: string
             self::CheckoutValidationFailed => 'Checkout validation failed',
             self::CheckoutOrderCreated => 'Order created',
             self::PurchaseCompleted => 'Purchase completed',
+            self::WishlistItemAdded => 'Added to wishlist',
+            self::WishlistItemRemoved => 'Removed from wishlist',
+            self::RecommendationShown => 'Recommendation shown',
+            self::RecommendationClicked => 'Recommendation clicked',
             self::PaymentFailed => 'Payment failed',
             self::OrderConfirmed => 'Order confirmed',
             self::ShipmentCreated => 'Shipment created',

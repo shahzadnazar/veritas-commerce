@@ -11,12 +11,14 @@ use App\Modules\Catalog\Http\Controllers\SitemapController;
 use App\Modules\Checkout\Http\Controllers\CheckoutController;
 use App\Modules\Checkout\Http\Controllers\OrderPaymentController;
 use App\Modules\Checkout\Http\Controllers\PaymentPendingController;
+use App\Modules\Customers\Http\Controllers\WishlistController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
 use App\Modules\Identity\Http\Controllers\LoginController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
 use App\Modules\Identity\Http\Controllers\ProfileController;
 use App\Modules\Identity\Http\Controllers\RegisterController;
 use App\Modules\Orders\Http\Controllers\CustomerOrderController;
+use App\Modules\Reviews\Http\Controllers\ProductReviewController;
 use App\Modules\Stores\Http\Controllers\PublicStoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -141,4 +143,31 @@ Route::middleware('auth')->group(function (): void {
     Route::get('account', [ProfileController::class, 'show'])->name('account');
     Route::put('account', [ProfileController::class, 'update'])->name('account.update');
     Route::put('account/password', [ProfileController::class, 'updatePassword'])->name('account.password');
+
+    /*
+     * The wishlist. Behind `auth` because it is personal, and every action
+     * takes the customer from the session rather than the request body —
+     * there is no parameter to change to reach somebody else's list.
+     */
+    Route::get('account/wishlist', [WishlistController::class, 'index'])->name('account.wishlist');
+    Route::post('account/wishlist', [WishlistController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('account.wishlist.store');
+    Route::delete('account/wishlist', [WishlistController::class, 'destroy'])
+        ->middleware('throttle:60,1')
+        ->name('account.wishlist.destroy');
+
+    /*
+     * Reviews. Writing one requires a delivered purchase, which
+     * SubmitReview establishes from the order record — never from
+     * anything the browser sends.
+     */
+    Route::post('reviews', [ProductReviewController::class, 'store'])
+        ->middleware('throttle:20,1')
+        ->name('reviews.store');
+    Route::put('reviews/{review}', [ProductReviewController::class, 'update'])
+        ->middleware('throttle:20,1')
+        ->name('reviews.update');
+    Route::delete('reviews/{review}', [ProductReviewController::class, 'destroy'])
+        ->name('reviews.destroy');
 });
