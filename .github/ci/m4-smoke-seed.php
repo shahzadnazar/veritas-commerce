@@ -94,6 +94,39 @@ InventoryBalance::query()->firstOrCreate(
 
 app(AdjustInventory::class)->openingStock($offer, 25, 'seller', $sellerUser->id);
 
+/*
+ * A second seller with a second listing, so the fulfilment smoke has a
+ * genuine two-seller order to prove independence on. One seller cannot
+ * demonstrate that delivering A leaves B alone.
+ */
+$grinderProduct = Product::factory()->create([
+    'title' => 'M6 Smoke Grinder',
+    'status' => ProductStatus::Published->value,
+    'published_at' => now(),
+]);
+
+$grinder = Offer::factory()->create([
+    'seller_account_id' => $other->id,
+    'store_id' => Store::query()->where('seller_account_id', $other->id)->value('id'),
+    'product_id' => $grinderProduct->id,
+    'product_variant_id' => null,
+    'price_minor' => 6_000,
+    'status' => OfferStatus::Published->value,
+]);
+
+$otherLocation = InventoryLocation::query()->firstOrCreate(
+    ['seller_account_id' => $other->id, 'is_default' => true],
+    ['name' => 'Default'],
+);
+
+InventoryBalance::query()->firstOrCreate(
+    ['offer_id' => $grinder->id, 'inventory_location_id' => $otherLocation->id],
+    ['on_hand' => 0],
+);
+
+app(AdjustInventory::class)->openingStock($grinder, 25, 'seller', $otherUser->id);
+
 echo 'offer='.$offer->public_id, PHP_EOL;
+echo 'grinder='.$grinder->public_id, PHP_EOL;
 echo 'product='.$product->slug, PHP_EOL;
 echo 'store='.$store->slug, PHP_EOL;

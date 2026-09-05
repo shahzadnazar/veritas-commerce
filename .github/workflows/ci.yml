@@ -499,6 +499,97 @@ jobs:
                       curl -sD - -o /dev/null -b "$jar" "${base}${path}" | grep -qi 'X-Robots-Tag: noindex, nofollow'
                   done
 
+            - name: An order is fulfilled, delivered and cleared in the built image
+              run: |
+                  # The whole fulfilment lifecycle against the container's
+                  # real PostgreSQL and Redis, through the domain actions
+                  # the seller portal calls: confirm, pack, ship, deliver,
+                  # clear, complete — plus a two-seller order, because
+                  # delivering one seller leaving the other alone is the
+                  # part only a marketplace has to get right.
+                  docker compose exec -T app php artisan tinker --execute \
+                      'require "/var/www/html/.github/ci/m6-fulfilment-smoke.php";' > m6.txt
+                  cat m6.txt
+
+                  # Fulfilment starts from a paid order and walks forward.
+                  grep -q 'paid seller_order=.* status=paid' m6.txt
+                  grep -q 'shipped shipment=.*-S01 status=shipped order=shipped carrier=UPS' m6.txt
+
+                  # §17: the sale took the stock at payment. Shipping is
+                  # fulfilment state, not a second debit.
+                  grep -qE 'inventory after_payment=([0-9]+) after_shipping=\1$' m6.txt
+
+                  # Delivery starts a clock and makes nothing spendable.
+                  grep -q 'delivered status=delivered' m6.txt
+                  grep -q 'clearing pending=0 clearing=7920 available=0' m6.txt
+
+                  # The real scheduled command: nothing before the date,
+                  # everything on it, and nothing again afterwards.
+                  grep -q 'early_sweep released=0 completed=0' m6.txt
+                  grep -q 'sweep released=1 completed=1' m6.txt
+                  grep -q 'resweep released=0 completed=0' m6.txt
+                  grep -q 'cleared available=7920 clearing=0 order_status=completed' m6.txt
+
+                  # Two sellers, delivered one at a time.
+                  grep -q 'multi seller_orders=2' m6.txt
+                  grep -q 'first_delivered a=delivered b=paid parent=partially_delivered' m6.txt
+                  grep -q 'independent_clocks a=.* b=null' m6.txt
+                  grep -q 'both_delivered a=delivered b=delivered parent=delivered' m6.txt
+
+            - name: The fulfilment surfaces answer over HTTP and stay private
+              run: |
+                  base=http://127.0.0.1:8000
+                  order=$(grep '^order_reference=' m6.txt | cut -d= -f2 | tr -d '\r')
+                  sellerOrder=$(grep '^seller_order_reference=' m6.txt | cut -d= -f2 | tr -d '\r')
+                  test -n "$order" && test -n "$sellerOrder"
+
+                  xsrf() { grep XSRF-TOKEN "$1" | awk '{print $7}' | python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))'; }
+
+                  # The customer sees their own tracking, per seller.
+                  jar=$(mktemp)
+                  curl -fsS -b "$jar" -c "$jar" -o /dev/null "$base/login"
+                  test "$(curl -s -b "$jar" -c "$jar" -o /dev/null -w '%{http_code}' -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf "$jar")" \
+                      -d 'email=m4-customer@veritas.test' -d 'password=m4-smoke-password')" = "302"
+
+                  tracking=$(curl -fsS -b "$jar" -c "$jar" "$base/account/orders/${order}")
+                  echo "$tracking" | grep -qi 'Where your order is'
+                  echo "$tracking" | grep -q "${sellerOrder}"
+                  echo "$tracking" | grep -qi 'UPS'
+
+                  # The seller sees their own fulfilment screen.
+                  seller=$(mktemp)
+                  curl -fsS -b "$seller" -c "$seller" -o /dev/null "$base/login"
+                  test "$(curl -s -b "$seller" -c "$seller" -o /dev/null -w '%{http_code}' -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf "$seller")" \
+                      -d 'email=m4-seller@veritas.test' -d 'password=m4-smoke-password')" = "302"
+
+                  fulfilment=$(curl -fsS -b "$seller" -c "$seller" "$base/seller/orders/${sellerOrder}")
+                  echo "$fulfilment" | grep -qi 'Fulfilment'
+                  echo "$fulfilment" | grep -q "${sellerOrder}-S01"
+
+                  # A stranger reaches neither, and nothing is indexable.
+                  stranger=$(mktemp)
+                  curl -fsS -b "$stranger" -c "$stranger" -o /dev/null "$base/login"
+                  curl -s -b "$stranger" -c "$stranger" -o /dev/null -X POST "$base/login" \
+                      -H "X-XSRF-TOKEN: $(xsrf "$stranger")" \
+                      -d 'email=m4-stranger@veritas.test' -d 'password=m4-smoke-password'
+
+                  test "$(curl -s -b "$stranger" -o /dev/null -w '%{http_code}' "$base/account/orders/${order}")" = "404"
+                  test "$(curl -s -b "$stranger" -o /dev/null -w '%{http_code}' "$base/seller/orders/${sellerOrder}")" = "404"
+
+                  # §44: an order number is not a credential.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/account/orders/${order}")" = "302"
+                  test "$(curl -s -o /dev/null -w '%{http_code}' "$base/track/${order}")" = "404"
+
+                  for path in "/account/orders/${order}" "/seller/orders/${sellerOrder}"; do
+                      curl -sD - -o /dev/null -b "$jar" -b "$seller" "${base}${path}" | grep -qi 'X-Robots-Tag: noindex, nofollow'
+                  done
+
+                  # And a customer cannot move a parcel.
+                  test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' -X POST \
+                      "$base/seller/orders/${sellerOrder}/confirm")" = "404"
+
             - name: The admin payment screens require the permission that opens them
               run: |
                   base=http://127.0.0.1:8000
