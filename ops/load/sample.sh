@@ -21,7 +21,7 @@ export PGPORT="${DB_PORT:-5432}"
 export PGUSER="${DB_USERNAME:-veritas}"
 export PGPASSWORD="${DB_PASSWORD:-veritas}"
 
-echo 'at,load1,cpu_idle_pct,mem_used_mb,pg_conns,pg_active,pg_longest_s,pg_waiting,redis_mem_mb,redis_blocked' >"$OUT"
+echo 'at,load1,cpu_idle_pct,mem_used_mb,pg_conns,pg_active,pg_longest_s,pg_waiting,redis_mem_mb,redis_blocked,probe_ms' >"$OUT"
 
 previous_idle=0
 previous_total=0
@@ -53,8 +53,15 @@ while true; do
     redis_mem=$(redis-cli info memory 2>/dev/null | awk -F: '/^used_memory:/ {printf "%.1f", $2/1048576}')
     redis_blocked=$(redis-cli info clients 2>/dev/null | awk -F: '/^blocked_clients:/ {print $2+0}')
 
-    printf '%s,%s,%s,%s,%s,%s,%s\n' \
-        "$(date -u +%H:%M:%S)" "$load1" "$cpu_idle" "$mem_used" "$pg" "${redis_mem:-}" "${redis_blocked:-}" \
+    # One un-contended request a second, so a sustained hold can show
+    # whether the latency it started with is the latency it ends with.
+    # It is a single request rather than a percentile: the generator owns
+    # the distribution, this owns the trend.
+    probe=$(curl -s -o /dev/null -w '%{time_total}' --max-time 10 "${LOAD_PROBE_URL:-http://127.0.0.1:8080/}" 2>/dev/null || echo 0)
+    probe_ms=$(awk "BEGIN{printf \"%.0f\", ${probe:-0} * 1000}")
+
+    printf '%s,%s,%s,%s,%s,%s,%s,%s\n' \
+        "$(date -u +%H:%M:%S)" "$load1" "$cpu_idle" "$mem_used" "$pg" "${redis_mem:-}" "${redis_blocked:-}" "$probe_ms" \
         | tr -d '\r' >>"$OUT"
 
     sleep 1
