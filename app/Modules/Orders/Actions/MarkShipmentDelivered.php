@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Orders\Actions;
 
+use App\Modules\Ledger\Actions\StartClearing;
 use App\Modules\Orders\Enums\SellerOrderStatus;
 use App\Modules\Orders\Enums\ShipmentStatus;
 use App\Modules\Orders\Events\SellerOrderDelivered;
@@ -46,6 +47,7 @@ final class MarkShipmentDelivered
     public function __construct(
         private readonly RecomputeSellerOrderFulfilment $recompute,
         private readonly ClearingPolicy $clearing,
+        private readonly StartClearing $startClearing,
     ) {}
 
     /** @return bool whether this call was the one that recorded the arrival */
@@ -121,9 +123,18 @@ final class MarkShipmentDelivered
                 $fresh = $sellerOrder->refresh();
                 $deliveredAt = $fresh->delivered_at ?? now();
 
-                $fresh->forceFill([
-                    'earnings_clear_at' => $this->clearing->availableAt($fresh, $deliveredAt),
-                ])->save();
+                $availableAt = $this->clearing->availableAt($fresh, $deliveredAt);
+
+                $fresh->forceFill(['earnings_clear_at' => $availableAt])->save();
+
+                /*
+                 * The money starts clearing in the same transaction as the
+                 * delivery that justifies it. Not in a queued listener: a
+                 * delivery recorded and a clock that failed to start is a
+                 * seller whose money is stuck pending forever, and nothing
+                 * would notice.
+                 */
+                ($this->startClearing)($fresh->id, $availableAt);
 
                 $orderDelivered = new SellerOrderDelivered(
                     sellerOrderId: $fresh->id,

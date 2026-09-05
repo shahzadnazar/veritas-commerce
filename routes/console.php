@@ -37,4 +37,16 @@ Schedule::job(new ExpireUnpaidOrders)->everyMinute()->withoutOverlapping();
 Schedule::job(new ExpireCheckoutAttempts)->everyMinute()->withoutOverlapping();
 
 // The stored `reserved` column is only safe because something checks it.
+/*
+ * Seller earnings whose clearing period has elapsed become spendable, and
+ * the orders they came from close.
+ *
+ * Hourly rather than daily: a seller whose money cleared at 09:00 should
+ * not wait until the small hours to see it, and the pass is cheap because
+ * it reads an indexed range of orders that are actually due. Overlapping
+ * runs would be harmless — every write is a conditional UPDATE — but there
+ * is no reason to have two.
+ */
+Schedule::command('earnings:clear')->hourly()->withoutOverlapping();
+
 Schedule::command('inventory:reconcile')->dailyAt('03:15');

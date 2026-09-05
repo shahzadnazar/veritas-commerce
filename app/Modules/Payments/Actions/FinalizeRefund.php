@@ -169,16 +169,40 @@ final class FinalizeRefund
             ->where('source_key', "sale:{$allocation->order_item_id}")
             ->first();
 
+        /*
+         * The reversal carries the same state as the entry it cancels.
+         *
+         * Not always PENDING, which is what M5 posted: a $20 reversal
+         * against an earning the seller can already spend has to reduce
+         * what they can spend, and one against an earning that is clearing
+         * has to clear alongside it. Left pending, the refund would sit
+         * invisibly behind a full available balance — and M7 would pay
+         * that balance out.
+         *
+         * Mirroring the original also means the two move together
+         * afterwards: the clearing sweep releases the pair, and the net is
+         * right at every stage rather than only at the end.
+         */
+        $status = match ($original?->status) {
+            LedgerEntryStatus::Clearing => LedgerEntryStatus::Clearing,
+            LedgerEntryStatus::Available => LedgerEntryStatus::Available,
+            // Pending, reversed, or an earning this refund cannot find:
+            // pending is the state nobody can reach money from.
+            default => LedgerEntryStatus::Pending,
+        };
+
         ($this->ledger)(
             seller: $seller,
             type: LedgerEntryType::RefundReversal,
             // Negative: a reversal is a debit against the seller.
             amountMinor: -$allocation->earning_reversed_minor,
-            status: LedgerEntryStatus::Pending,
+            status: $status,
             sellerOrderId: $allocation->seller_order_id,
             orderItemId: $allocation->order_item_id,
             // The original stays exactly as it was. This points at it.
             reversesEntryId: $original?->id,
+            // Clearing alongside what it cancels, on the same date.
+            availableAt: $status === LedgerEntryStatus::Clearing ? $original->available_at : null,
             note: "Refund {$refund->reference}",
             currency: $allocation->currency,
             sourceKey: "refund:{$refund->id}:earning:{$allocation->order_item_id}",
