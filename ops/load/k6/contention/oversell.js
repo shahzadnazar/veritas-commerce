@@ -100,6 +100,20 @@ export default function contend() {
         console.error(`VU ${__VU}: checkout answered ${response.status}`);
     } else if (response.url.includes('/payment')) {
         placed.add(1);
+
+        /*
+         * The winners go on to ask for a payment intent, which is what a
+         * browser does next and what leaves a payment attempt for the
+         * webhook drill to replay. It cannot mark anything paid — only a
+         * verified provider event does that.
+         */
+        const reference = response.url.split('/checkout/')[1].split('/')[0];
+
+        http.post(
+            `${BASE}/checkout/${reference}/payment/prepare`,
+            { _token: csrf },
+            { jar, tags: { name: 'payment:prepare' } },
+        );
     } else {
         refused.add(1);
     }

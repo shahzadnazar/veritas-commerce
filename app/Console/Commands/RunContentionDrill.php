@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Modules\Inventory\Actions\AdjustInventory;
 use App\Modules\Inventory\Enums\InventoryMovementReason;
 use App\Modules\Offers\Models\Offer;
+use App\Modules\Payments\Adapters\FakePaymentProvider;
 use App\Support\Performance\PerformanceDataset;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,8 @@ final class RunContentionDrill extends Command
     protected $signature = 'veritas:contention-drill
         {--prepare : Put a known quantity on the shelf and record the opening books}
         {--verify : Read the books back and report what the burst did}
+        {--prepare-webhook : Sign one payment event and record the opening financial position}
+        {--verify-webhook : Check that delivering it many times over paid the order once}
         {--units=5 : How many units to leave available}
         {--state=ops/load/.run/contention.json : Where the drill state lives}';
 
@@ -48,7 +51,9 @@ final class RunContentionDrill extends Command
         return match (true) {
             (bool) $this->option('prepare') => $this->prepare($adjust),
             (bool) $this->option('verify') => $this->verify(),
-            default => $this->fail('Pass --prepare or --verify.'),
+            (bool) $this->option('prepare-webhook') => $this->prepareWebhook(),
+            (bool) $this->option('verify-webhook') => $this->verifyWebhook(),
+            default => $this->fail('Pass --prepare, --verify, --prepare-webhook or --verify-webhook.'),
         };
     }
 
@@ -251,6 +256,163 @@ final class RunContentionDrill extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Sign one `payment_intent.succeeded` and write down the books.
+     *
+     * The event is signed with the configured provider's own secret, so
+     * the burst goes through real signature verification. Nothing here
+     * marks anything paid: the drill posts the event and the application
+     * decides, which is the whole point of the exercise.
+     */
+    private function prepareWebhook(): int
+    {
+        if (config('veritas.payments.provider') !== 'fake') {
+            $this->error('This drill signs its own events, so it needs the fake provider. Set PAYMENT_GATEWAY=fake.');
+
+            return self::FAILURE;
+        }
+
+        // The container's own instance, so the secret this signs with is
+        // the secret the endpoint verifies against.
+        $provider = app(FakePaymentProvider::class);
+
+        $attempt = DB::table('payment_attempts as a')
+            ->join('marketplace_orders as o', 'o.id', '=', 'a.marketplace_order_id')
+            ->where('o.status', 'pending_payment')
+            ->whereNotNull('a.provider_reference')
+            ->orderByDesc('a.id')
+            ->first([
+                'a.id', 'a.provider_reference', 'a.marketplace_order_id',
+                'a.amount_minor', 'a.currency', 'o.reference',
+            ]);
+
+        if ($attempt === null) {
+            $this->error('No pending payment attempt to replay. Run the checkout burst first.');
+
+            return self::FAILURE;
+        }
+
+        $orderId = (int) $attempt->marketplace_order_id;
+
+        /*
+         * The object is built here rather than asked of the provider: the
+         * fake one keeps its payments in memory, and the attempt being
+         * replayed was created by the web process, not this one. These are
+         * the fields the adapter reads back out of the payload.
+         */
+        $signed = $provider->signedEvent('payment_intent.succeeded', [
+            'id' => (string) $attempt->provider_reference,
+            'status' => 'succeeded',
+            'amount' => (int) $attempt->amount_minor,
+            'amount_received' => (int) $attempt->amount_minor,
+            'currency' => strtolower((string) $attempt->currency),
+            'metadata' => ['order_reference' => (string) $attempt->reference],
+        ]);
+
+        $this->write([
+            'event_id' => (string) $signed['event']['id'],
+            'payload' => $signed['payload'],
+            'signature' => $signed['signature'],
+            'order_id' => $orderId,
+            'amount_minor' => (int) $attempt->amount_minor,
+            'before' => $this->financialPosition($orderId),
+        ], $this->webhookPath());
+
+        $this->info(sprintf(
+            'Event %s is signed for order %d (%d minor units). Send the burst, then --verify-webhook.',
+            $signed['event']['id'],
+            $orderId,
+            $attempt->amount_minor,
+        ));
+
+        return self::SUCCESS;
+    }
+
+    private function verifyWebhook(): int
+    {
+        $state = $this->read($this->webhookPath());
+        $orderId = (int) $state['order_id'];
+        $before = $state['before'];
+        $after = $this->financialPosition($orderId);
+
+        $findings = [];
+
+        // One delivery or fifty, the customer paid once.
+        if ($after['payments'] > 1) {
+            $findings[] = sprintf('%d payment rows for one order', $after['payments']);
+        }
+
+        if ($after['paid_minor'] > (int) $state['amount_minor']) {
+            $findings[] = sprintf(
+                'the order is recorded as paid %d minor units against an authorised %d',
+                $after['paid_minor'],
+                $state['amount_minor'],
+            );
+        }
+
+        // The event is stored once whatever the delivery count, which is
+        // what makes the retry safe rather than merely tolerated.
+        if ($after['events'] - (int) $before['events'] > 1) {
+            $findings[] = sprintf('the same event was stored %d times', $after['events'] - (int) $before['events']);
+        }
+
+        // Sellers are credited from the payment, so a payment counted
+        // twice would show up here as money the platform does not have.
+        if ($after['ledger_minor'] > (int) $state['amount_minor']) {
+            $findings[] = sprintf(
+                'sellers were credited %d minor units from a %d payment',
+                $after['ledger_minor'],
+                $state['amount_minor'],
+            );
+        }
+
+        $this->table(['', 'before', 'after'], [
+            ['order status', $before['status'], $after['status']],
+            ['payment rows', $before['payments'], $after['payments']],
+            ['paid (minor)', $before['paid_minor'], $after['paid_minor']],
+            ['stored events', $before['events'], $after['events']],
+            ['seller ledger (minor)', $before['ledger_minor'], $after['ledger_minor']],
+        ]);
+
+        if ($findings !== []) {
+            foreach ($findings as $finding) {
+                $this->error('  '.$finding);
+            }
+
+            return self::FAILURE;
+        }
+
+        $this->info('One payment, credited once, from however many deliveries arrived at once.');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @return array{status: string, payments: int, paid_minor: int, events: int, ledger_minor: int}
+     */
+    private function financialPosition(int $orderId): array
+    {
+        $sellerOrderIds = DB::table('seller_orders')->where('marketplace_order_id', $orderId)->pluck('id');
+
+        return [
+            'status' => (string) DB::table('marketplace_orders')->where('id', $orderId)->value('status'),
+            'payments' => (int) DB::table('payments')->where('marketplace_order_id', $orderId)->count(),
+            'paid_minor' => (int) DB::table('payments')
+                ->where('marketplace_order_id', $orderId)
+                ->where('status', 'succeeded')
+                ->sum('amount_minor'),
+            'events' => (int) DB::table('provider_webhook_events')->count(),
+            'ledger_minor' => (int) DB::table('seller_ledger_entries')
+                ->whereIn('seller_order_id', $sellerOrderIds)
+                ->sum('amount_minor'),
+        ];
+    }
+
+    private function webhookPath(): string
+    {
+        return dirname($this->path()).'/webhook.json';
+    }
+
     /** @return array{on_hand: int, reserved: int, available: int} */
     private function balance(int $offerId): array
     {
@@ -304,9 +466,9 @@ final class RunContentionDrill extends Command
     }
 
     /** @param array<string, mixed> $state */
-    private function write(array $state): void
+    private function write(array $state, ?string $path = null): void
     {
-        $path = $this->path();
+        $path ??= $this->path();
 
         if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0o755, true);
@@ -316,9 +478,9 @@ final class RunContentionDrill extends Command
     }
 
     /** @return array<string, mixed> */
-    private function read(): array
+    private function read(?string $path = null): array
     {
-        $path = $this->path();
+        $path ??= $this->path();
 
         if (! is_file($path)) {
             throw new RuntimeException("No drill state at {$path}. Run --prepare first.");
