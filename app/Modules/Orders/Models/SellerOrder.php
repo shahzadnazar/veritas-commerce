@@ -43,6 +43,9 @@ use Illuminate\Support\Carbon;
  * @property int $commission_total_minor
  * @property int $seller_earning_total_minor
  * @property Carbon|null $confirmed_at
+ * @property Carbon|null $processing_at
+ * @property Carbon|null $packed_at
+ * @property Carbon|null $earnings_clear_at
  * @property Carbon|null $shipped_at
  * @property Carbon|null $delivered_at
  * @property Carbon|null $completed_at
@@ -79,6 +82,9 @@ final class SellerOrder extends Model
         return [
             'status' => SellerOrderStatus::class,
             'confirmed_at' => 'datetime',
+            'processing_at' => 'datetime',
+            'packed_at' => 'datetime',
+            'earnings_clear_at' => 'datetime',
             'shipped_at' => 'datetime',
             'delivered_at' => 'datetime',
             'completed_at' => 'datetime',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Invariants;
 
 use App\Modules\Orders\Enums\SellerOrderStatus;
+use App\Modules\Orders\Enums\ShipmentStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
 use App\Support\StatusRegistry;
 use App\Support\StatusTransitions;
@@ -112,23 +113,64 @@ final class StateMachineTest extends TestCase
     #[Test]
     public function shipping_declares_that_it_requires_tracking(): void
     {
-        $this->assertTrue(SellerOrderStatus::Shipped->requiresTracking());
-        $this->assertFalse(SellerOrderStatus::Packed->requiresTracking());
+        /*
+         * Tracking belongs to the parcel, not the seller order: an order
+         * can go out in two boxes with two carriers, and a single tracking
+         * requirement on the order could only describe one of them.
+         */
+        $this->assertTrue(ShipmentStatus::Shipped->hasLeft());
+        $this->assertFalse(ShipmentStatus::Ready->hasLeft());
+        $this->assertTrue(ShipmentStatus::Draft->contentsAreMutable());
+        $this->assertFalse(ShipmentStatus::Shipped->contentsAreMutable());
     }
 
     #[Test]
-    public function earning_posts_at_delivered_not_at_capture(): void
+    public function earning_clears_at_delivered_not_at_capture(): void
     {
-        $posting = array_filter(
+        /*
+         * M0 assumed the earning would be *posted* on delivery. M5
+         * settled it differently and better: the earning is recorded the
+         * moment payment is verified, from the purchase snapshot, and sits
+         * PENDING — so the money is on the books from the start and
+         * nothing has to be recomputed later. What delivery starts is the
+         * clearing clock, which is what this asserts.
+         */
+        $clearing = array_filter(
             SellerOrderStatus::cases(),
-            static fn (SellerOrderStatus $s): bool => $s->postsEarning(),
+            static fn (SellerOrderStatus $s): bool => $s->startsEarningsClearing(),
         );
 
         $this->assertSame(
             [SellerOrderStatus::Delivered],
-            array_values($posting),
-            'Decision 5: the earning posts on delivery, then clears.',
+            array_values($clearing),
+            'Delivery starts clearing; payment recorded the money, and a partial delivery starts nothing.',
         );
+
+        $this->assertFalse(SellerOrderStatus::Paid->startsEarningsClearing());
+        $this->assertFalse(SellerOrderStatus::PartiallyDelivered->startsEarningsClearing());
+    }
+
+    #[Test]
+    public function fulfilment_is_impossible_before_payment(): void
+    {
+        $this->assertFalse(SellerOrderStatus::PendingPayment->isActionable());
+        $this->assertTrue(SellerOrderStatus::Paid->isActionable());
+
+        // Nothing leaves a cancelled or fully refunded order either.
+        $this->assertFalse(SellerOrderStatus::Cancelled->isActionable());
+        $this->assertFalse(SellerOrderStatus::Refunded->isActionable());
+    }
+
+    #[Test]
+    public function a_shipment_cannot_leave_a_terminal_state(): void
+    {
+        $this->assertSame([], ShipmentStatus::Delivered->allowedTransitions());
+        $this->assertSame([], ShipmentStatus::Cancelled->allowedTransitions());
+        $this->assertTrue(ShipmentStatus::Delivered->isTerminal());
+
+        // And a parcel cannot be delivered without having been sent.
+        $this->assertNotContains(ShipmentStatus::Delivered, ShipmentStatus::Draft->allowedTransitions());
+        $this->assertNotContains(ShipmentStatus::Delivered, ShipmentStatus::Ready->allowedTransitions());
     }
 
     #[Test]

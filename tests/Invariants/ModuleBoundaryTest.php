@@ -148,7 +148,16 @@ final class ModuleBoundaryTest extends TestCase
              * validation and snapshotting, which is what a checkout is.
              */
             'Checkout' => ['Cart', 'Offers', 'Catalog', 'Orders', 'Inventory', 'Identity', 'Payments', 'Stores'],
-            'Orders' => ['Identity', 'Offers', 'Catalog'],
+            /*
+             * Fulfilment made Orders read two more things. The seller
+             * account is read to resolve that seller's clearing period —
+             * an override on their account, or the platform's default —
+             * and the ledger is read to move a delivered order's earnings
+             * from pending to clearing. Both writes still go through the
+             * owning module's action: PostLedgerEntry remains the only
+             * thing that inserts a ledger row.
+             */
+            'Orders' => ['Identity', 'Offers', 'Catalog', 'Sellers', 'Ledger'],
             /*
              * Payment is the moment an order's money becomes real, so the
              * payment module reads the order it is settling and writes the

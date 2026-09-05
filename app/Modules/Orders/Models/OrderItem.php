@@ -45,6 +45,8 @@ use RuntimeException;
  * @property string $currency
  * @property int $unit_price_snapshot_minor
  * @property int $quantity
+ * @property int $allocated_quantity
+ * @property int $delivered_quantity
  * @property int $discount_snapshot_minor
  * @property int $line_total_minor
  * @property int $tax_amount_minor
@@ -101,6 +103,8 @@ final class OrderItem extends Model
         return [
             'commission_scope_snapshot' => CommissionScope::class,
             'quantity' => 'integer',
+            'allocated_quantity' => 'integer',
+            'delivered_quantity' => 'integer',
             'unit_price_snapshot_minor' => 'integer',
             'line_total_minor' => 'integer',
             'commission_amount_minor' => 'integer',

@@ -241,9 +241,17 @@ export const STATUS_PRESENTATION = {
             "tone": "pending",
             "label": "Packed"
         },
+        "partially_shipped": {
+            "tone": "pending",
+            "label": "Partially shipped"
+        },
         "shipped": {
             "tone": "pending",
             "label": "Shipped"
+        },
+        "partially_delivered": {
+            "tone": "pending",
+            "label": "Partially delivered"
         },
         "delivered": {
             "tone": "neutral",
@@ -268,6 +276,58 @@ export const STATUS_PRESENTATION = {
         "disputed": {
             "tone": "critical",
             "label": "Disputed"
+        }
+    },
+    "shipment": {
+        "draft": {
+            "tone": "pending",
+            "label": "Draft"
+        },
+        "ready": {
+            "tone": "pending",
+            "label": "Ready to ship"
+        },
+        "shipped": {
+            "tone": "pending",
+            "label": "Shipped"
+        },
+        "in_transit": {
+            "tone": "pending",
+            "label": "In transit"
+        },
+        "delivered": {
+            "tone": "neutral",
+            "label": "Delivered"
+        },
+        "exception": {
+            "tone": "critical",
+            "label": "Delivery problem"
+        },
+        "cancelled": {
+            "tone": "inactive",
+            "label": "Cancelled"
+        }
+    },
+    "fulfilment_issue": {
+        "out_of_stock_after_sale": {
+            "tone": "critical",
+            "label": "Out of stock after sale"
+        },
+        "damaged_before_shipment": {
+            "tone": "critical",
+            "label": "Damaged before shipment"
+        },
+        "address_problem": {
+            "tone": "pending",
+            "label": "Address problem"
+        },
+        "carrier_problem": {
+            "tone": "pending",
+            "label": "Carrier problem"
+        },
+        "other": {
+            "tone": "inactive",
+            "label": "Other"
         }
     },
     "payment": {

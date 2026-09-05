@@ -13,8 +13,10 @@ use App\Modules\Inventory\Enums\StockState;
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
 use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Offers\Enums\OfferStatus;
+use App\Modules\Orders\Enums\FulfilmentIssueReason;
 use App\Modules\Orders\Enums\MarketplaceOrderStatus;
 use App\Modules\Orders\Enums\SellerOrderStatus;
+use App\Modules\Orders\Enums\ShipmentStatus;
 use App\Modules\Payments\Enums\PaymentAttemptStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Enums\ProviderEventStatus;
@@ -56,6 +58,8 @@ final class StatusRegistry
             'offer' => OfferStatus::class,
             'marketplace_order' => MarketplaceOrderStatus::class,
             'seller_order' => SellerOrderStatus::class,
+            'shipment' => ShipmentStatus::class,
+            'fulfilment_issue' => FulfilmentIssueReason::class,
             'payment' => PaymentStatus::class,
             'payment_attempt' => PaymentAttemptStatus::class,
             'refund' => RefundStatus::class,
