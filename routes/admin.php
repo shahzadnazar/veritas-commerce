@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\AdminPortal\Http\Controllers\AdminDashboardController;
+use App\Modules\AdminPortal\Http\Controllers\AdminFulfilmentController;
 use App\Modules\AdminPortal\Http\Controllers\AdminLoginController;
 use App\Modules\AdminPortal\Http\Controllers\AdminOrderController;
 use App\Modules\AdminPortal\Http\Controllers\AdminPaymentController;
@@ -146,6 +147,26 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
                     ->middleware('admin.can:payments.view')->name('show');
                 Route::post('{reference}/refunds', [AdminPaymentController::class, 'refund'])
                     ->middleware(['admin.can:orders.refund', 'throttle:30,1'])->name('refund');
+            });
+
+            /*
+             * Fulfilment across every seller.
+             *
+             * Reading it is support's job; correcting a customer's
+             * tracking and deciding that a parcel arrived are the
+             * platform contradicting a seller's own record of their own
+             * shipment, so each takes its own permission and a written
+             * reason. There is deliberately no "set status" route.
+             */
+            Route::prefix('fulfilment')->name('fulfilment.')->group(function (): void {
+                Route::get('/', [AdminFulfilmentController::class, 'index'])
+                    ->middleware('admin.can:fulfilment.view')->name('index');
+                Route::get('{reference}', [AdminFulfilmentController::class, 'show'])
+                    ->middleware('admin.can:fulfilment.view')->name('show');
+                Route::post('{reference}/shipments/{shipment}/deliver', [AdminFulfilmentController::class, 'deliver'])
+                    ->middleware(['admin.can:fulfilment.override', 'throttle:60,1'])->name('deliver');
+                Route::post('{reference}/shipments/{shipment}/tracking', [AdminFulfilmentController::class, 'correctTracking'])
+                    ->middleware(['admin.can:fulfilment.tracking.correct', 'throttle:60,1'])->name('tracking');
             });
 
             Route::prefix('inventory')->name('inventory.')->group(function (): void {
