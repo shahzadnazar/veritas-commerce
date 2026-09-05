@@ -9,10 +9,11 @@ use App\Modules\Catalog\Jobs\ProcessProductImage;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductMedia;
 use App\Modules\Media\Contracts\ObjectStore;
+use App\Modules\Media\Data\StoredObject;
 use App\Modules\Media\Enums\Visibility;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 /**
  * Adds an image to a canonical product.
  *
@@ -23,7 +24,8 @@ use Illuminate\Support\Facades\DB;
  *
  * The row exists immediately in a `pending` state, so the seller sees
  * their upload straight away and the storefront knows not to show it yet.
- */
+ */ use Throwable;
+
 final class AttachProductImage
 {
     public function __construct(
@@ -51,37 +53,43 @@ final class AttachProductImage
             Visibility::Public,
         );
 
-        $media = DB::transaction(function () use ($product, $stored, $altText, $actorType, $actorId): ProductMedia {
-            $isFirst = ! ProductMedia::query()->where('product_id', $product->id)->exists();
+        try {
+            $media = DB::transaction(function () use ($product, $stored, $altText, $actorType, $actorId): ProductMedia {
+                $isFirst = ! ProductMedia::query()->where('product_id', $product->id)->exists();
 
-            $media = ProductMedia::query()->create([
-                'product_id' => $product->id,
-                'disk' => $stored->disk,
-                'path' => $stored->key,
-                'mime' => $stored->mime,
-                'bytes' => $stored->bytes,
-                'width' => $stored->width,
-                'height' => $stored->height,
-                'checksum' => $stored->checksum,
-                'alt_text' => $altText,
-                'position' => (int) ProductMedia::query()->where('product_id', $product->id)->max('position') + 1,
-                // The first image a product gets leads by default; a
-                // gallery with no first image has to pick one arbitrarily.
-                'is_primary' => $isFirst,
-                'processing_state' => ProductMedia::STATE_PENDING,
-            ]);
+                $media = ProductMedia::query()->create([
+                    'product_id' => $product->id,
+                    'disk' => $stored->disk,
+                    'path' => $stored->key,
+                    'mime' => $stored->mime,
+                    'bytes' => $stored->bytes,
+                    'width' => $stored->width,
+                    'height' => $stored->height,
+                    'checksum' => $stored->checksum,
+                    'alt_text' => $altText,
+                    'position' => (int) ProductMedia::query()->where('product_id', $product->id)->max('position') + 1,
+                    // The first image a product gets leads by default; a
+                    // gallery with no first image has to pick one arbitrarily.
+                    'is_primary' => $isFirst,
+                    'processing_state' => ProductMedia::STATE_PENDING,
+                ]);
 
-            ($this->audit)(
-                action: 'catalogue.product.image_added',
-                actorType: $actorType,
-                actorId: $actorId,
-                subjectType: Product::class,
-                subjectId: $product->id,
-                changes: ['media_public_id' => $media->public_id, 'mime' => $stored->mime, 'bytes' => $stored->bytes],
-            );
+                ($this->audit)(
+                    action: 'catalogue.product.image_added',
+                    actorType: $actorType,
+                    actorId: $actorId,
+                    subjectType: Product::class,
+                    subjectId: $product->id,
+                    changes: ['media_public_id' => $media->public_id, 'mime' => $stored->mime, 'bytes' => $stored->bytes],
+                );
 
-            return $media;
-        });
+                return $media;
+            });
+        } catch (Throwable $e) {
+            $this->discard($stored);
+
+            throw $e;
+        }
 
         // After commit: a worker must never be handed the id of a row a
         // rollback removed.
@@ -90,5 +98,35 @@ final class AttachProductImage
         });
 
         return $media;
+    }
+
+    /**
+     * Remove bytes that no row will ever point at.
+     *
+     * The upload happens before the transaction, deliberately: writing to
+     * remote storage is not something a rollback can undo, and holding a
+     * database transaction open across it exhausts connections under
+     * load. The cost of that choice is this window — the object is
+     * written, the transaction fails, and the object is left with nothing
+     * referencing it.
+     *
+     * A product image left behind is wasted storage and nothing worse, but the same code path in the seller-document upload leaves a private identity document sitting in a bucket with no record of it, so both compensate the same way.
+     *
+     * Best effort, and it has to be: if the failure was storage being
+     * away, the delete will fail too. Then it is logged with the key and
+     * nothing else, so an operator can remove it by hand rather than
+     * never knowing it existed.
+     */
+    private function discard(StoredObject $stored): void
+    {
+        try {
+            $this->objects->delete($stored);
+        } catch (Throwable $e) {
+            Log::error('An orphaned object could not be removed after a failed upload.', [
+                'disk' => $stored->disk,
+                'key' => $stored->key,
+                'reason' => $e::class,
+            ]);
+        }
     }
 }
