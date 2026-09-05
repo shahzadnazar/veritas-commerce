@@ -6,6 +6,7 @@ namespace App\Support\Diagnostics;
 
 use App\Modules\Payouts\Support\PayoutPolicy;
 use App\Modules\Search\Adapters\PostgresSearchIndex;
+use App\Support\Operations\Heartbeat;
 use App\Support\Performance\PerformanceDataset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -190,6 +191,35 @@ final class ProductionReadiness
         } catch (Throwable $exception) {
             $checks[] = Check::fail('database', 'migrations', 'could not be determined', $this->safeReason($exception));
         }
+
+        /*
+         * Has the scheduler run recently?
+         *
+         * A warning rather than a failure, because this check also runs
+         * at deploy time on a machine where the scheduler has legitimately
+         * never run. What it catches is the other case: a deployment that
+         * has been up for hours with nothing driving the clearing sweep
+         * or the expiry jobs, which degrades safely and completely
+         * silently. `ops:queue-health` is the version of this an operator
+         * runs on a schedule.
+         */
+        $silentFor = Heartbeat::minutesSince(Heartbeat::SCHEDULER);
+
+        $checks[] = match (true) {
+            $silentFor === null => Check::warn(
+                'database',
+                'scheduler heartbeat',
+                'never recorded',
+                'Nothing has driven a scheduled task yet. Earnings clearing and reservation expiry both depend on it.',
+            ),
+            $silentFor > 15 => Check::warn(
+                'database',
+                'scheduler heartbeat',
+                "silent for {$silentFor} minutes",
+                'Run php artisan ops:queue-health. Earnings will not clear and expired holds will not be released.',
+            ),
+            default => Check::pass('database', 'scheduler heartbeat', "{$silentFor} minute(s) ago"),
+        };
 
         /*
          * The three timeouts PostgreSQL ships disabled.

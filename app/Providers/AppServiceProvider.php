@@ -60,8 +60,10 @@ use App\Modules\Sellers\Models\SellerMembership;
 use App\Support\Database\ConfigurePostgresSession;
 use App\Support\Diagnostics\DestructiveDatabaseGuard;
 use App\Support\Diagnostics\DestructiveDatabaseRefused;
+use App\Support\Operations\Heartbeat;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -132,6 +134,18 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /*
+         * The scheduler says it is alive by finishing work.
+         *
+         * A heartbeat command of its own would only prove that one
+         * command runs; binding to the framework's own "a scheduled task
+         * finished" event means the beat is a true statement about the
+         * scheduler, and it costs one small upsert per tick.
+         */
+        Event::listen(ScheduledTaskFinished::class, static function (ScheduledTaskFinished $event): void {
+            Heartbeat::record(Heartbeat::SCHEDULER, $event->task->getSummaryForDisplay());
+        });
+
         /*
          * Every PostgreSQL session is told what the search adapter means
          * by "close enough" before it is used, because the fuzzy
