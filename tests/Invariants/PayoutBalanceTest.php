@@ -8,10 +8,11 @@ use App\Modules\Ledger\Actions\PostLedgerEntry;
 use App\Modules\Ledger\Enums\LedgerEntryStatus;
 use App\Modules\Ledger\Enums\LedgerEntryType;
 use App\Modules\Ledger\Models\SellerLedgerEntry;
-use App\Modules\Ledger\Queries\GetSellerBalance;
 use App\Modules\Payouts\Actions\RequestPayout;
 use App\Modules\Payouts\Exceptions\PayoutNotPermitted;
+use App\Modules\Payouts\Models\PayoutAccount;
 use App\Modules\Payouts\Models\PayoutRequest;
+use App\Modules\Payouts\Queries\GetSellerFinancialPosition;
 use App\Modules\Sellers\Models\SellerAccount;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,8 +22,14 @@ use RuntimeException;
 use Tests\TestCase;
 
 /**
- * Invariant 4 — a payout can never exceed the seller's available balance,
- * and the balance is derived from the ledger rather than a stored column.
+ * Invariant 4 — a payout can never exceed the seller's withdrawable
+ * balance, and that balance is derived from the ledger rather than a
+ * stored column.
+ *
+ * M7 moved the source of truth from a three-figure balance to
+ * GetSellerFinancialPosition, which also nets settled payouts and
+ * subtracts open reservations. The assertions below are the same facts
+ * asked of the authoritative projection.
  *
  * Also covers Decision 5: an earning clears for a configured number of days
  * before it becomes withdrawable, so a refund arriving after delivery
@@ -31,6 +38,15 @@ use Tests\TestCase;
 final class PayoutBalanceTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * A destination, because Phase-1 policy requires one before a
+     * withdrawal. It carries no credential — see the PayoutAccount model.
+     */
+    private function destination(SellerAccount $seller): PayoutAccount
+    {
+        return PayoutAccount::factory()->create(['seller_account_id' => $seller->id]);
+    }
 
     private function credit(SellerAccount $seller, int $minor, LedgerEntryStatus $status = LedgerEntryStatus::Available): SellerLedgerEntry
     {
@@ -48,6 +64,7 @@ final class PayoutBalanceTest extends TestCase
     {
         ['seller' => $seller] = $this->makeSeller();
         $this->credit($seller, 20_000);
+        $this->destination($seller);
 
         $this->expectException(PayoutNotPermitted::class);
         $this->expectExceptionMessage('only $200.00 is available');
@@ -67,10 +84,13 @@ final class PayoutBalanceTest extends TestCase
             amountMinor: 50_000,
         );
 
-        $balance = app(GetSellerBalance::class)($seller->id);
+        $position = app(GetSellerFinancialPosition::class)($seller->id);
 
-        $this->assertSame(50_000, $balance->clearing->minor, 'The earning is clearing, not available.');
-        $this->assertSame(0, $balance->available->minor);
+        $this->assertSame(50_000, $position->clearingMinor, 'The earning is clearing, not available.');
+        $this->assertSame(0, $position->availableMinor);
+        $this->assertSame(0, $position->withdrawableMinor(), 'Clearing money is not withdrawable.');
+
+        $this->destination($seller);
 
         $this->expectException(PayoutNotPermitted::class);
         app(RequestPayout::class)($seller, 10_000);
@@ -121,11 +141,18 @@ final class PayoutBalanceTest extends TestCase
         ['seller' => $seller] = $this->makeSeller();
         $this->credit($seller, 30_000);
 
-        $request = app(RequestPayout::class)($seller, 20_000);
-        $balance = app(GetSellerBalance::class)($seller->id);
+        $this->destination($seller);
 
-        $this->assertSame(20_000, $balance->held->minor, 'The requested amount is held.');
-        $this->assertSame(10_000, $balance->available->minor, 'Only the remainder stays available.');
+        $request = app(RequestPayout::class)($seller, 20_000);
+        $position = app(GetSellerFinancialPosition::class)($seller->id);
+
+        $this->assertSame(20_000, $position->reservedMinor, 'The requested amount is held.');
+        $this->assertSame(
+            30_000,
+            $position->availableMinor,
+            'The available ledger value is unchanged — a reservation is a hold, not a movement.',
+        );
+        $this->assertSame(10_000, $position->withdrawableMinor(), 'Only the remainder can be requested.');
         $this->assertStringStartsWith('PO-', $request->reference);
     }
 
@@ -134,11 +161,12 @@ final class PayoutBalanceTest extends TestCase
     {
         ['seller' => $seller] = $this->makeSeller();
         $this->credit($seller, 40_000);
+        $this->destination($seller);
 
         app(RequestPayout::class)($seller, 10_000);
 
         $this->expectException(PayoutNotPermitted::class);
-        $this->expectExceptionMessage('already has an open payout request');
+        $this->expectExceptionMessage('already have a payout in progress');
 
         app(RequestPayout::class)($seller, 10_000);
     }
@@ -168,6 +196,7 @@ final class PayoutBalanceTest extends TestCase
     {
         ['seller' => $seller] = $this->makeSeller();
         $this->credit($seller, 100_000);
+        $this->destination($seller);
 
         $this->expectException(PayoutNotPermitted::class);
         $this->expectExceptionMessage('minimum payout is $50.00');
@@ -180,9 +209,10 @@ final class PayoutBalanceTest extends TestCase
     {
         $seller = SellerAccount::factory()->suspended()->create();
         $this->credit($seller, 100_000);
+        $this->destination($seller);
 
         $this->expectException(PayoutNotPermitted::class);
-        $this->expectExceptionMessage('Suspended store cannot request a payout');
+        $this->expectExceptionMessage('cannot request payouts at the moment');
 
         app(RequestPayout::class)($seller, 10_000);
     }

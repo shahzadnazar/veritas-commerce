@@ -19,7 +19,6 @@ enum LedgerEntryType: string implements HasStatusTone
     case Commission = 'commission';
     case RefundReversal = 'refund_reversal';
     case Adjustment = 'adjustment';
-    case PayoutReservation = 'payout_reservation';
     case Payout = 'payout';
     case Reversal = 'reversal';
 
@@ -28,24 +27,24 @@ enum LedgerEntryType: string implements HasStatusTone
     {
         return match ($this) {
             self::SaleEarning => 1,
-            self::Commission, self::RefundReversal, self::PayoutReservation, self::Payout => -1,
+            self::Commission, self::RefundReversal, self::Payout => -1,
             self::Reversal => 1,
             self::Adjustment => 0,
         };
     }
 
-    /** Reservations are a hold, not a movement of the balance total. */
-    public function isHold(): bool
+    /** Whether this entry is money the platform actually sent out. */
+    public function isSettlement(): bool
     {
-        return $this === self::PayoutReservation;
+        return $this === self::Payout;
     }
 
     public function tone(): StatusTone
     {
         return match ($this) {
             self::SaleEarning, self::Reversal => StatusTone::Neutral,
-            self::PayoutReservation => StatusTone::Pending,
-            self::Commission, self::RefundReversal, self::Payout => StatusTone::Inactive,
+            self::Payout => StatusTone::Pending,
+            self::Commission, self::RefundReversal => StatusTone::Inactive,
             self::Adjustment => StatusTone::Critical,
         };
     }
@@ -57,7 +56,6 @@ enum LedgerEntryType: string implements HasStatusTone
             self::Commission => 'Commission',
             self::RefundReversal => 'Refund reversal',
             self::Adjustment => 'Adjustment',
-            self::PayoutReservation => 'Payout reservation',
             self::Payout => 'Payout',
             self::Reversal => 'Reversal',
         };

@@ -24,9 +24,22 @@ enum PayoutStatus: string implements HasStatusTone, StatusTransitions
         return match ($this) {
             self::Requested => [self::UnderReview, self::Approved, self::Rejected, self::Cancelled],
             self::UnderReview => [self::Approved, self::Rejected],
-            self::Approved => [self::Processing, self::Paid, self::Failed],
+            /*
+             * Approved is authorised, not sent. Rejection and
+             * cancellation stay open from here on purpose: an approval
+             * that turns out to be wrong — a refund landed, the
+             * destination was queried — needs an exit, and without one the
+             * seller's money would be held against a payout nobody is
+             * ever going to make.
+             */
+            self::Approved => [
+                self::Processing, self::Paid, self::Failed,
+                self::Rejected, self::Cancelled,
+            ],
             self::Processing => [self::Paid, self::Failed],
-            self::Failed => [self::Processing, self::Cancelled],
+            // A failed settlement can be tried again, or ended. Ending it
+            // is what releases the money — see retainsReservation().
+            self::Failed => [self::Processing, self::Cancelled, self::Rejected],
             self::Rejected, self::Paid, self::Cancelled => [],
         };
     }
@@ -36,10 +49,54 @@ enum PayoutStatus: string implements HasStatusTone, StatusTransitions
         return in_array($this, [self::Rejected, self::Paid, self::Cancelled], true);
     }
 
-    /** While open, the requested amount is held out of the available balance. */
+    /**
+     * While open, the request's allocations hold money out of withdrawable.
+     *
+     * These four are also exactly the statuses in the database's partial
+     * unique index (`payout_requests_one_open_per_seller`), which is what
+     * actually enforces one open request per seller. The two lists must
+     * agree; the invariant suite asserts that they do, because a status
+     * added here and forgotten there would silently let a seller open two.
+     */
     public function holdsBalance(): bool
     {
         return in_array($this, [self::Requested, self::UnderReview, self::Approved, self::Processing], true);
+    }
+
+    /** @return array<int, string> */
+    public static function openValues(): array
+    {
+        return array_values(array_map(
+            static fn (self $status): string => $status->value,
+            array_filter(self::cases(), static fn (self $status): bool => $status->holdsBalance()),
+        ));
+    }
+
+    /**
+     * Whether finance may still record a settlement against this request.
+     *
+     * Approved and Processing only. A rejected or cancelled request has
+     * released its money, and paying one out would send money the seller's
+     * balance no longer holds.
+     */
+    public function isSettleable(): bool
+    {
+        return in_array($this, [self::Approved, self::Processing], true);
+    }
+
+    /**
+     * Whether a failed settlement leaves the money still reserved.
+     *
+     * §30, decided explicitly: FAILED keeps the reservation. A manual
+     * transfer that bounced is retried far more often than it is
+     * abandoned, and releasing the money in between would let the seller
+     * request it again while finance is still chasing the first attempt —
+     * which is how a seller gets paid twice. Finance ends it deliberately
+     * by rejecting or cancelling, and that is what releases the hold.
+     */
+    public function retainsReservation(): bool
+    {
+        return $this === self::Failed;
     }
 
     /** Rejection is shown to the seller verbatim, so a reason is mandatory. */

@@ -105,7 +105,37 @@ return [
 
     'payouts' => [
         'seller_clearing_period_days' => (int) env('VERITAS_SELLER_CLEARING_PERIOD_DAYS', 7),
+
+        /*
+         * The smallest withdrawal the platform will process.
+         *
+         * A minimum exists because every manual settlement costs a person
+         * a few minutes and a bank a fee, and a $0.30 payout costs more to
+         * make than it moves. $50.00 is the Phase-1 default and it is
+         * configuration, not a literal in an action — a business that
+         * decides on $10, or on none at all, changes an environment
+         * variable. Setting it to 0 allows any positive amount.
+         */
         'minimum_minor' => (int) env('VERITAS_MINIMUM_PAYOUT_MINOR', 5000),
+
+        /*
+         * The currency payouts operate in.
+         *
+         * Phase 1 is USD only and says so; the domain stays currency-aware
+         * throughout so adding a second one is a list change rather than a
+         * rewrite. A seller holding a currency that is not here sees their
+         * balance and is told payouts are not available in it yet — the
+         * money is not hidden, it is just not withdrawable.
+         */
+        'currency' => env('VERITAS_PAYOUT_CURRENCY', 'USD'),
+        'supported_currencies' => array_map(
+            'trim',
+            explode(',', (string) env('VERITAS_PAYOUT_CURRENCIES', 'USD')),
+        ),
+
+        // Whether a seller must name where the money goes before asking
+        // for it. See Payouts\Support\PayoutPolicy for why it is on.
+        'require_destination' => (bool) env('VERITAS_PAYOUT_REQUIRE_DESTINATION', true),
     ],
 
     'inventory' => [

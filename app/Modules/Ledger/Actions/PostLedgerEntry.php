@@ -120,7 +120,6 @@ final class PostLedgerEntry
     {
         return match ($type) {
             LedgerEntryType::SaleEarning => LedgerEntryStatus::Clearing,
-            LedgerEntryType::PayoutReservation => LedgerEntryStatus::ReservedForPayout,
             LedgerEntryType::Payout => LedgerEntryStatus::Paid,
             default => LedgerEntryStatus::Available,
         };

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Modules\Payouts\Enums\PayoutAccountType;
 use App\Modules\Payouts\Enums\PayoutStatus;
 use App\Modules\Payouts\Models\PayoutRequest;
 use App\Modules\Sellers\Models\SellerAccount;
@@ -23,6 +24,9 @@ final class PayoutRequestFactory extends Factory
             'amount_minor' => 10_000,
             'status' => PayoutStatus::Requested->value,
             'requested_at' => now(),
+            'destination_label' => 'Business account ····4242',
+            'destination_type' => PayoutAccountType::Manual->value,
+            'seller_name_snapshot' => $this->faker->company(),
         ];
     }
 }

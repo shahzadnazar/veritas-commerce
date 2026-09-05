@@ -95,6 +95,22 @@ final readonly class Money
         ];
     }
 
+    /**
+     * A signed amount, formatted.
+     *
+     * Money itself refuses to be negative — a negative Money is almost
+     * always a sign error rather than a debt — but a seller's net position
+     * genuinely can be below zero once a refund lands behind a payout that
+     * already left. That figure is carried as a signed integer and printed
+     * here, so exactly one place decides where the minus sign goes.
+     */
+    public static function formatSigned(int $minor, string $currency = 'USD'): string
+    {
+        $formatted = self::of(abs($minor), $currency)->format();
+
+        return $minor < 0 ? '-'.$formatted : $formatted;
+    }
+
     public function format(): string
     {
         return sprintf('%s%s%s', $this->currency === 'USD' ? '$' : '', number_format(intdiv($this->minor, 100)), '.'.str_pad((string) ($this->minor % 100), 2, '0', STR_PAD_LEFT));

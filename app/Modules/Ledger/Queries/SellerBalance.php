@@ -10,7 +10,17 @@ use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 /**
- * What a seller has, derived from the ledger and from nothing else.
+ * The raw ledger buckets: how much sits in each status, and nothing more.
+ *
+ * NOT the answer to "what may this seller withdraw". That is
+ * Payouts\Queries\GetSellerFinancialPosition, which is the single
+ * authoritative projection (M7 §3) — it folds settled payouts into the
+ * available figure and subtracts open payout reservations, neither of
+ * which this query knows about. Once a seller has been paid, the
+ * `available` bucket here and the available position there deliberately
+ * differ: this one still shows the earning, that one shows what is left of
+ * it. Use this to see where money is sitting; use the position to decide
+ * anything.
  *
  * §68. Not "sum the delivered orders" and not "sum seller_earning_total on
  * the seller orders": those are summaries of intent, and they drift the
@@ -32,7 +42,7 @@ use Illuminate\Support\Facades\DB;
 final class SellerBalance
 {
     /**
-     * @return array{pending: Money, clearing: Money, available: Money, reserved: Money, paid: Money, currency: string}
+     * @return array{pending: Money, clearing: Money, available: Money, paid: Money, currency: string}
      */
     public function __invoke(int $sellerAccountId, string $currency = 'USD'): array
     {
@@ -58,7 +68,6 @@ final class SellerBalance
             'pending' => $of(LedgerEntryStatus::Pending),
             'clearing' => $of(LedgerEntryStatus::Clearing),
             'available' => $of(LedgerEntryStatus::Available),
-            'reserved' => $of(LedgerEntryStatus::ReservedForPayout),
             'paid' => $of(LedgerEntryStatus::Paid),
             'currency' => $currency,
         ];

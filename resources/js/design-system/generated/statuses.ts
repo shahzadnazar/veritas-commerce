@@ -456,6 +456,48 @@ export const STATUS_PRESENTATION = {
             "label": "Cancelled"
         }
     },
+    "payout_allocation": {
+        "held": {
+            "tone": "pending",
+            "label": "Held"
+        },
+        "settled": {
+            "tone": "neutral",
+            "label": "Settled"
+        },
+        "released": {
+            "tone": "inactive",
+            "label": "Released"
+        }
+    },
+    "payout_account_type": {
+        "manual": {
+            "tone": "pending",
+            "label": "Manual transfer"
+        },
+        "bank_transfer": {
+            "tone": "neutral",
+            "label": "Bank transfer"
+        },
+        "provider": {
+            "tone": "neutral",
+            "label": "Payment provider"
+        }
+    },
+    "payout_settlement_attempt": {
+        "initiated": {
+            "tone": "pending",
+            "label": "Initiated"
+        },
+        "succeeded": {
+            "tone": "neutral",
+            "label": "Succeeded"
+        },
+        "failed": {
+            "tone": "critical",
+            "label": "Failed"
+        }
+    },
     "ledger_entry_status": {
         "pending": {
             "tone": "pending",
@@ -468,10 +510,6 @@ export const STATUS_PRESENTATION = {
         "available": {
             "tone": "neutral",
             "label": "Available"
-        },
-        "reserved_for_payout": {
-            "tone": "pending",
-            "label": "Reserved for payout"
         },
         "paid": {
             "tone": "neutral",
@@ -499,12 +537,8 @@ export const STATUS_PRESENTATION = {
             "tone": "critical",
             "label": "Adjustment"
         },
-        "payout_reservation": {
-            "tone": "pending",
-            "label": "Payout reservation"
-        },
         "payout": {
-            "tone": "inactive",
+            "tone": "pending",
             "label": "Payout"
         },
         "reversal": {

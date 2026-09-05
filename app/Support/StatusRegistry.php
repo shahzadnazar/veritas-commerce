@@ -21,7 +21,10 @@ use App\Modules\Payments\Enums\PaymentAttemptStatus;
 use App\Modules\Payments\Enums\PaymentStatus;
 use App\Modules\Payments\Enums\ProviderEventStatus;
 use App\Modules\Payments\Enums\RefundStatus;
+use App\Modules\Payouts\Enums\PayoutAccountType;
+use App\Modules\Payouts\Enums\PayoutAllocationStatus;
 use App\Modules\Payouts\Enums\PayoutStatus;
+use App\Modules\Payouts\Enums\SettlementAttemptStatus;
 use App\Modules\Sellers\Enums\InvitationStatus;
 use App\Modules\Sellers\Enums\SellerApplicationStatus;
 use App\Modules\Sellers\Enums\SellerStatus;
@@ -65,6 +68,9 @@ final class StatusRegistry
             'refund' => RefundStatus::class,
             'provider_event' => ProviderEventStatus::class,
             'payout' => PayoutStatus::class,
+            'payout_allocation' => PayoutAllocationStatus::class,
+            'payout_account_type' => PayoutAccountType::class,
+            'payout_settlement_attempt' => SettlementAttemptStatus::class,
             'ledger_entry_status' => LedgerEntryStatus::class,
             'ledger_entry_type' => LedgerEntryType::class,
             'inventory_movement_reason' => InventoryMovementReason::class,
