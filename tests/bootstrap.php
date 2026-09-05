@@ -151,9 +151,22 @@ final class TestDatabaseLock
         }
 
         $parsed = [];
-        $path = __DIR__.'/../.env';
 
-        if (! is_readable($path)) {
+        // `.env.testing` first, because that is the file a test run
+        // actually resolves against — phpunit.xml sets APP_ENV=testing and
+        // Laravel replaces `.env` with `.env.$APP_ENV`. Falling back to
+        // `.env` would key this lock on the *development* database, which
+        // is both wrong and the exact confusion M9 §0 exists to end.
+        $path = null;
+
+        foreach ([__DIR__.'/../.env.testing', __DIR__.'/../.env'] as $candidate) {
+            if (is_readable($candidate)) {
+                $path = $candidate;
+                break;
+            }
+        }
+
+        if ($path === null) {
             return $parsed;
         }
 

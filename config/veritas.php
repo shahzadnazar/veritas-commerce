@@ -103,6 +103,27 @@ return [
         'max_rate_percent' => '30.00',
     ],
 
+    /*
+     * Which databases refuse to be destroyed.
+     *
+     * Read from config rather than straight from the environment on
+     * purpose: once `config:cache` has run, `env()` no longer sees the
+     * `.env` file, and a protection list that silently emptied itself in
+     * production would be worse than no list at all. Baked in at
+     * config-build time, it survives.
+     *
+     * Deliberately not a default list of names. One deployment's
+     * "veritas" is another developer's scratch database, so the
+     * environment that knows declares it. `APP_ENV=production` is
+     * protected on its own, without needing to be named here.
+     */
+    'database' => [
+        'protected' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('VERITAS_PROTECTED_DATABASES', '')),
+        ))),
+    ],
+
     'payouts' => [
         'seller_clearing_period_days' => (int) env('VERITAS_SELLER_CLEARING_PERIOD_DAYS', 7),
 

@@ -55,7 +55,11 @@ use App\Modules\Search\Contracts\IndexableProductSource;
 use App\Modules\Search\Contracts\SearchIndex;
 use App\Modules\Sellers\Events\SellerApproved;
 use App\Modules\Sellers\Listeners\NotifyApprovedSeller;
+use App\Support\Diagnostics\DestructiveDatabaseGuard;
+use App\Support\Diagnostics\DestructiveDatabaseRefused;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
@@ -264,5 +268,100 @@ final class AppServiceProvider extends ServiceProvider
         // Failing loudly outside production is how it gets caught in review.
         Model::preventLazyLoading(! $this->app->environment('production'));
         Model::preventSilentlyDiscardingAttributes(! $this->app->environment('production'));
+
+        $this->guardDestructiveDatabaseCommands();
+    }
+
+    /**
+     * Nothing drops a database without naming it first.
+     *
+     * From a real M9 mistake: `migrate:fresh --seed --env=testing` dropped
+     * the development database, because the repository had no
+     * `.env.testing` and so `--env=testing` resolved to whatever `.env`
+     * said. PHPUnit gets its database from `phpunit.xml`; an artisan
+     * command does not inherit that, and the flag proves nothing.
+     *
+     * The repository now ships `.env.testing` so the flag means what
+     * people assume. This is the belt: every destructive command
+     * announces the database, host and environment it is about to act on
+     * before it acts, and refuses outright on production or on a database
+     * the environment has declared protected.
+     *
+     * Announcing is most of the value. Nobody misreads a database name
+     * they were shown.
+     */
+    private function guardDestructiveDatabaseCommands(): void
+    {
+        $this->ensureCommandEventsAreDispatched();
+
+        Event::listen(CommandStarting::class, static function (CommandStarting $event): void {
+            $guard = DestructiveDatabaseGuard::forCurrentRequest();
+
+            if (! $guard->isDestructive((string) $event->command)) {
+                return;
+            }
+
+            $event->output->writeln('<comment>'.$guard->announcement().'</comment>');
+
+            $refusal = $guard->refusalReason();
+
+            if ($refusal === null) {
+                return;
+            }
+
+            $event->output->writeln('<error>'.$refusal.'</error>');
+            $event->output->writeln(
+                '<comment>Set '.DestructiveDatabaseGuard::OVERRIDE.'=1 only if you are certain.</comment>'
+            );
+
+            // Thrown rather than exited, so a test can observe the refusal
+            // and a caller sees a non-zero status either way.
+            throw new DestructiveDatabaseRefused($refusal);
+        });
+    }
+
+    /**
+     * Make `CommandStarting` fire on the CLI even when APP_ENV is testing.
+     *
+     * This is a framework behaviour worth stating plainly, because it
+     * turned the guard above into decoration and the tests that "proved"
+     * it into theatre. `Illuminate\Foundation\Console\Kernel` only
+     * re-routes Symfony's console events to Laravel's when
+     * `runningUnitTests()` is false — and `runningUnitTests()` is nothing
+     * more than `environment('testing')`. So on any CLI run with
+     * `APP_ENV=testing`, including every `php artisan --env=testing`,
+     * `CommandStarting` is never dispatched and every listener on it is
+     * silently inert.
+     *
+     * Which is to say: the guard against the `--env=testing` accident was
+     * itself disabled by `--env=testing`. That is worse than having no
+     * guard, because it looks like one.
+     *
+     * The framework's intent is to leave PHPUnit's `$this->artisan()`
+     * alone, so that is what is preserved here — the reroute is restored
+     * for CLI runs, and only for CLI runs. Inside PHPUnit nothing changes.
+     * The call is idempotent; the kernel already ignores a second one.
+     */
+    private function ensureCommandEventsAreDispatched(): void
+    {
+        if (! $this->app->runningInConsole() || ! $this->app->runningUnitTests()) {
+            return;
+        }
+
+        // `runningUnitTests()` means "APP_ENV is testing", which is not the
+        // same question. This one is: has PHPUnit actually loaded?
+        // A literal, and no autoload: PHPUnit is a dev dependency, and
+        // application code should not hold a reference to it.
+        if (class_exists('PHPUnit\\Framework\\TestCase', false)) {
+            return;
+        }
+
+        $this->app->booted(function (): void {
+            // The contract, not the concrete class: the concrete class is
+            // not what the container has bound, so resolving it would
+            // build a second kernel and re-route events on the one that
+            // is not running. The CLI test below caught exactly that.
+            $this->app->make(ConsoleKernel::class)->rerouteSymfonyCommandEvents();
+        });
     }
 }

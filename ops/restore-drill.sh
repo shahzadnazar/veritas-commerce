@@ -39,6 +39,59 @@ export PGDATABASE="${PGDATABASE:-$(env_value DB_DATABASE veritas)}"
 : "${PGPASSWORD:=$(env_value DB_PASSWORD)}"
 export PGPASSWORD
 
+# ---------------------------------------------------------------------
+# The safety gate, before anything is dropped.
+#
+# This drill's one catastrophic failure mode is restoring "into" the
+# database it read from, which is not a restore — it is deleting the
+# marketplace and hoping the dump is good. So the target is checked
+# against the source by name and against the protected list, and the
+# check happens before the artifact is even opened.
+#
+# The same override the PHP guard uses, spelled the same way, so there is
+# one thing to know and one thing to grep for.
+# ---------------------------------------------------------------------
+OVERRIDDEN=no
+case "$(printf '%s' "${VERITAS_ALLOW_DESTRUCTIVE_DB:-}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes) OVERRIDDEN=yes ;;
+esac
+
+printf 'restore_source=%s\n' "$PGDATABASE"
+printf 'restore_intended_target=%s\n' "$TARGET"
+
+if [ "$OVERRIDDEN" != "yes" ]; then
+    if [ "$TARGET" = "$PGDATABASE" ]; then
+        echo "restore_error=target_is_source"
+        echo "Refusing: the restore target \"$TARGET\" is the database this drill reads from." >&2
+        exit 1
+    fi
+
+    # The protected list is comma-separated and shared with the PHP guard.
+    OLD_IFS="$IFS"
+    IFS=','
+    for PROTECTED in ${VERITAS_PROTECTED_DATABASES:-}; do
+        PROTECTED="$(printf '%s' "$PROTECTED" | tr -d '[:space:]')"
+        [ -n "$PROTECTED" ] || continue
+        if [ "$TARGET" = "$PROTECTED" ]; then
+            IFS="$OLD_IFS"
+            echo "restore_error=target_is_protected"
+            echo "Refusing: \"$TARGET\" is listed in VERITAS_PROTECTED_DATABASES." >&2
+            exit 1
+        fi
+    done
+    IFS="$OLD_IFS"
+
+    case "$(printf '%s' "$TARGET" | tr '[:upper:]' '[:lower:]')" in
+        *prod*|*production*|*live*)
+            echo "restore_error=target_looks_production"
+            echo "Refusing: \"$TARGET\" reads like a production database." >&2
+            exit 1
+            ;;
+    esac
+else
+    echo "restore_guard=overridden_by_VERITAS_ALLOW_DESTRUCTIVE_DB"
+fi
+
 [ -f "$ARTIFACT" ] || { echo "restore_error=artifact_missing"; exit 1; }
 
 # The checksum written at backup time. A dump that arrived corrupted

@@ -29,5 +29,16 @@ Thumbs.db
 # Veritas
 /.phpunit.cache
 /storage/framework/testing
-.env.testing
 /tools/phpstan.phar
+
+# .env.testing is deliberately NOT ignored.
+#
+# It exists because of a real M9 mistake: without it, --env=testing
+# loaded .env, and `migrate:fresh --seed --env=testing` dropped the
+# development database. The file must reach every developer and CI or the
+# trap comes back for whoever clones next.
+#
+# It holds local test-database values that already appear in .env.example
+# and match phpunit.xml, and DestructiveDatabaseGuardTest asserts the two
+# stay in step. No production secret belongs in it.
+!.env.testing

@@ -93,6 +93,77 @@ Product media and private seller documents are not in the database dump.
 R2 recovery has not been exercised in this environment; see the M9 report
 under ENVIRONMENT-UNVERIFIED.
 
+## The destructive-command guard
+
+This section exists because M9 lost the development database, and the way
+it happened is worth reading before you trust any flag.
+
+The command was `php artisan migrate:fresh --seed --env=testing`. The
+intent was to rebuild the PHPUnit database. There was no `.env.testing`
+in the repository at the time, so `--env=testing` fell back to `.env` and
+resolved to the development database, which was dropped. Three
+reconciliations were then run against an empty database and reported
+nothing wrong, because there was nothing left to be wrong.
+
+PHPUnit gets its database from `phpunit.xml`. An ordinary artisan command
+does not inherit that. **`--env=testing` is not evidence of anything.**
+
+Three things now stand between that mistake and the next person.
+
+**`.env.testing` is committed.** The flag now resolves where people
+assume. `DestructiveDatabaseGuardTest` asserts it names the same database
+`phpunit.xml` does, so the two cannot drift apart again.
+
+**Destructive artisan commands announce their target.** Before
+`migrate:fresh`, `migrate:refresh` or `db:wipe` runs, it prints the
+database, host, connection and `APP_ENV` it is about to act on:
+
+```
+Destructive command targeting database "veritas" on 127.0.0.1:5432 (connection pgsql, APP_ENV local).
+```
+
+Announcing is most of the protection. Nobody misreads a database name
+they were shown.
+
+**Protected databases refuse outright.** `APP_ENV=production` (or `prod`,
+or `live`) is refused unconditionally. Anything named in
+`VERITAS_PROTECTED_DATABASES` — comma-separated, read through config so
+it survives `config:cache` — is refused too. `ops/restore-drill.sh`
+applies the same list, and additionally refuses to restore into the
+database it read from, or into a target whose name reads like production.
+
+`migrate:rollback` is deliberately not guarded: it is bounded, the
+operator knows which batch they are undoing, and putting an override flag
+into routine deployment recovery would only teach people to type the
+override without reading it.
+
+### The override
+
+```
+VERITAS_ALLOW_DESTRUCTIVE_DB=1 php artisan migrate:fresh
+```
+
+Set it inline, on the single command that means it. Never export it into
+a shell profile, a Dockerfile or a CI job — a permanently-set override is
+the same as no guard, and it will be set by someone in a hurry and
+forgotten by everyone.
+
+### If you are adding a destructive command
+
+Add its name to `DestructiveDatabaseGuard::DESTRUCTIVE_COMMANDS`. And be
+aware of the framework behaviour the guard has to work around, because it
+is not obvious and it silently disables listeners: Laravel's console
+kernel only re-routes Symfony's command events to `CommandStarting` when
+`runningUnitTests()` is false, and `runningUnitTests()` means no more than
+"`APP_ENV` is testing". Left alone, the guard against the `--env=testing`
+accident was itself switched off by `--env=testing`.
+`AppServiceProvider::ensureCommandEventsAreDispatched()` restores the
+reroute for CLI runs only, and
+`DestructiveDatabaseGuardTest::the_guard_is_actually_wired_on_the_command_line`
+runs a real subprocess to prove it — an in-process test that dispatches
+the event by hand proves the handler and nothing about whether anything
+calls it.
+
 ## What never to do
 
 - Never restore a backup **over** the production database to "check it".
@@ -102,3 +173,7 @@ under ENVIRONMENT-UNVERIFIED.
 - Never skip the post-restore reconciliation because the restore
   "obviously worked". It has been wrong before, in every organisation
   that has said it.
+- Never export `VERITAS_ALLOW_DESTRUCTIVE_DB` anywhere persistent. Inline,
+  once, on the command that means it.
+- Never trust `--env` as proof of which database you are pointed at. Read
+  the line the command prints.
