@@ -38,7 +38,7 @@ jobs:
                     --health-retries=10
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - uses: shivammathur/setup-php@v2
               with:
@@ -47,7 +47,7 @@ jobs:
                   coverage: none
 
             - name: Cache Composer
-              uses: actions/cache@v4
+              uses: actions/cache@v6
               with:
                   path: ~/.composer/cache
                   key: composer-${{ hashFiles('composer.lock') }}
@@ -59,7 +59,7 @@ jobs:
             # well as in the frontend job. Skipping the test instead would
             # mean a green suite that quietly stopped checking the markup a
             # crawler actually receives.
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v7
               with:
                   node-version: '22'
                   cache: npm
@@ -124,9 +124,9 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v7
               with:
                   node-version: '22'
                   cache: npm
@@ -150,7 +150,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - name: Build images
               run: docker compose build
@@ -935,7 +935,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - uses: shivammathur/setup-php@v2
               with:
