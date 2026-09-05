@@ -48,8 +48,18 @@ use stdClass;
  */
 final class PostgresSearchIndex implements SearchIndex
 {
-    /** Below this, a trigram match is noise rather than a typo. */
-    private const FUZZY_THRESHOLD = 0.3;
+    /**
+     * Below this, a trigram match is noise rather than a typo.
+     *
+     * Public because it is not only this file's business any more: the
+     * fuzzy predicates below are written as `pg_trgm` operators so the
+     * GIN index can serve them, and an operator takes its cutoff from a
+     * session setting rather than from the query. {@see
+     * \App\Support\Database\ConfigurePostgresSession} applies this
+     * value to every connection, so this constant stays the one place
+     * the threshold is decided.
+     */
+    public const FUZZY_THRESHOLD = 0.3;
 
     public function index(IndexableProduct $product): void
     {
@@ -287,7 +297,24 @@ final class PostgresSearchIndex implements SearchIndex
                  * The threshold separates them; the whole-string version
                  * could not.
                  */
-                ->orWhereRaw('word_similarity(?, normalised_title) > ?', [$normalised, self::FUZZY_THRESHOLD]);
+                /*
+                 * The operator, not the function.
+                 *
+                 * `word_similarity(?, normalised_title) > 0.3` and
+                 * `? <% normalised_title` ask the same question, and only
+                 * the second can be answered by the trigram index — a
+                 * function over a column has to be evaluated per row. And
+                 * because this branch is OR'd with the two above it,
+                 * making it unindexable made all three unindexable: every
+                 * keyword search was a sequential scan of the whole
+                 * document table. Measured on ten thousand documents,
+                 * 25.7 ms became 0.2 ms and 1,434 page reads became 22.
+                 *
+                 * The cutoff comes from the session rather than the
+                 * query; ConfigurePostgresSession sets it from the
+                 * constant above.
+                 */
+                ->orWhereRaw('? <% normalised_title', [$normalised]);
         });
     }
 
@@ -498,7 +525,11 @@ final class PostgresSearchIndex implements SearchIndex
         $row = DB::table('product_search_documents')
             ->select('title')
             ->where('is_public', true)
-            ->whereRaw('similarity(normalised_title, ?) > ?', [$normalised, self::FUZZY_THRESHOLD])
+            // `%` for the same reason `<%` is used above: the function
+            // form cannot use the trigram index, and this runs precisely
+            // when a search found nothing — the moment a customer is
+            // least willing to wait.
+            ->whereRaw('normalised_title % ?', [$normalised])
             ->orderByRaw('word_similarity(?, normalised_title) desc', [$normalised])
             ->first();
 

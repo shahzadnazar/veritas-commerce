@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Diagnostics;
 
 use App\Modules\Payouts\Support\PayoutPolicy;
+use App\Modules\Search\Adapters\PostgresSearchIndex;
 use App\Support\Performance\PerformanceDataset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -188,6 +189,70 @@ final class ProductionReadiness
                 );
         } catch (Throwable $exception) {
             $checks[] = Check::fail('database', 'migrations', 'could not be determined', $this->safeReason($exception));
+        }
+
+        /*
+         * The three timeouts PostgreSQL ships disabled.
+         *
+         * Checked as configuration rather than as a session setting,
+         * because this command runs in the console and the console is
+         * deliberately exempt from two of them — reading the live session
+         * back here would report zero and mean nothing. What matters is
+         * that a web request will get a limit, and that is decided by
+         * config.
+         */
+        $timeouts = [
+            'statement' => (int) config('veritas.database.timeouts.statement_ms', 0),
+            'lock' => (int) config('veritas.database.timeouts.lock_ms', 0),
+            'idle transaction' => (int) config('veritas.database.timeouts.idle_in_transaction_ms', 0),
+        ];
+
+        $unbounded = array_keys(array_filter($timeouts, static fn (int $ms): bool => $ms === 0));
+
+        $checks[] = $unbounded === []
+            ? Check::pass('database', 'query timeouts', implode(', ', array_map(
+                static fn (int $ms, string $name): string => "{$name} {$ms}ms",
+                $timeouts,
+                array_keys($timeouts),
+            )))
+            : Check::warn(
+                'database',
+                'query timeouts',
+                implode(' and ', $unbounded).' unbounded',
+                'A statement with no time limit holds its connection until it finishes. With a hundred '
+                .'connections, a few of those are an outage. Set DB_STATEMENT_TIMEOUT_MS, DB_LOCK_TIMEOUT_MS '
+                .'and DB_IDLE_TRANSACTION_TIMEOUT_MS.',
+            );
+
+        /*
+         * Fuzzy search reads its cutoff from the session, so the session
+         * has to have one.
+         *
+         * The search adapter asks PostgreSQL for typo tolerance with the
+         * `pg_trgm` operators rather than the equivalent functions,
+         * because only the operators can use the trigram index — the
+         * difference was a sequential scan of the whole document table on
+         * every keyword search. The cost of that form is that the
+         * threshold lives in a session setting, and a connection that
+         * somehow missed it would search at PostgreSQL's default of 0.6
+         * and quietly return fewer typo matches. Nobody would file a bug
+         * for results that merely got narrower, so it is checked here.
+         */
+        try {
+            $expected = PostgresSearchIndex::FUZZY_THRESHOLD;
+            $actual = (float) DB::connection()->scalar("select current_setting('pg_trgm.word_similarity_threshold')");
+
+            $checks[] = abs($actual - $expected) < 0.0001
+                ? Check::pass('database', 'search threshold', sprintf('%.2F', $actual))
+                : Check::fail(
+                    'database',
+                    'search threshold',
+                    sprintf('%.2F, expected %.2F', $actual, $expected),
+                    'Fuzzy search will return fewer results than intended. ConfigurePostgresSession sets this on '
+                    .'every connection; check that the listener is registered.',
+                );
+        } catch (Throwable $exception) {
+            $checks[] = Check::warn('database', 'search threshold', 'could not be read', $this->safeReason($exception));
         }
 
         /*

@@ -132,6 +132,33 @@ return [
     ],
 
     'database' => [
+        /*
+         * The three timeouts PostgreSQL ships disabled.
+         *
+         * All default to zero, which means "wait forever", and forever is
+         * how a single slow query becomes an outage: with a hundred
+         * connections available, a handful of unbounded statements
+         * exhausts the pool and every other request queues behind them.
+         * The idle-in-transaction case is worse still — a worker that
+         * dies mid-transaction holds its locks and blocks VACUUM until
+         * somebody notices, which is where table bloat comes from.
+         *
+         * Web requests get real limits because a page nobody is waiting
+         * for any more should stop costing a connection. Console
+         * processes get none, because migrations, backups and the
+         * analytics rebuild are supposed to take minutes. The
+         * idle-in-transaction limit applies to both: no legitimate path
+         * sits inside an open transaction doing nothing for a minute.
+         *
+         * Zero disables any of them, which is the escape hatch for a
+         * deployment that needs one.
+         */
+        'timeouts' => [
+            'statement_ms' => max(0, (int) env('DB_STATEMENT_TIMEOUT_MS', 15_000)),
+            'lock_ms' => max(0, (int) env('DB_LOCK_TIMEOUT_MS', 5_000)),
+            'idle_in_transaction_ms' => max(0, (int) env('DB_IDLE_TRANSACTION_TIMEOUT_MS', 60_000)),
+        ],
+
         'protected' => array_values(array_filter(array_map(
             'trim',
             explode(',', (string) env('VERITAS_PROTECTED_DATABASES', '')),

@@ -57,6 +57,7 @@ use App\Modules\Sellers\Concerns\CurrentSeller;
 use App\Modules\Sellers\Events\SellerApproved;
 use App\Modules\Sellers\Listeners\NotifyApprovedSeller;
 use App\Modules\Sellers\Models\SellerMembership;
+use App\Support\Database\ConfigurePostgresSession;
 use App\Support\Diagnostics\DestructiveDatabaseGuard;
 use App\Support\Diagnostics\DestructiveDatabaseRefused;
 use Illuminate\Auth\Events\Login;
@@ -64,6 +65,7 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -130,6 +132,15 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /*
+         * Every PostgreSQL session is told what the search adapter means
+         * by "close enough" before it is used, because the fuzzy
+         * predicates are written as `pg_trgm` operators — the only form
+         * the trigram index can serve — and an operator reads its cutoff
+         * from a session setting.
+         */
+        Event::listen(ConnectionEstablished::class, [ConfigurePostgresSession::class, 'handle']);
+
         // Domain events are wired here rather than discovered, so the set
         // of listeners is readable in one place.
         Event::listen(SellerApproved::class, NotifyApprovedSeller::class);

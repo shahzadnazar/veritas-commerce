@@ -1321,6 +1321,84 @@ final class PerformanceDataset
             GROUP BY e.product_id, w.window_days
             SQL);
 
+        /*
+         * Associations derived from the dataset's own behaviour rather
+         * than invented. "Bought together" is a real self-join over the
+         * items of one marketplace order; "viewed together" a real
+         * self-join over one anonymous session's product views. Inventing
+         * the pairs would have been faster and would have produced a
+         * uniform graph — every product with the same number of
+         * neighbours — which is the one shape the recommendation queries
+         * will never meet.
+         */
+        $this->run('product_associations', <<<'SQL'
+            WITH pair AS (
+                SELECT a.product_id, b.product_id AS associated_product_id, count(*) AS support
+                FROM order_items a
+                JOIN seller_orders sa ON sa.id = a.seller_order_id
+                JOIN seller_orders sb ON sb.marketplace_order_id = sa.marketplace_order_id
+                JOIN order_items b ON b.seller_order_id = sb.id
+                WHERE a.product_id <> b.product_id AND a.product_id IS NOT NULL AND b.product_id IS NOT NULL
+                GROUP BY 1, 2
+            ),
+            ranked AS (
+                SELECT p.*, row_number() OVER (ORDER BY p.support DESC, p.product_id, p.associated_product_id) AS rn
+                FROM pair p
+            )
+            INSERT INTO product_associations (product_id, associated_product_id, kind, support, score, computed_at)
+            SELECT r.product_id, r.associated_product_id, 'bought_together', r.support, r.support * 100, :anchor
+            FROM ranked r
+            WHERE r.rn <= 60000
+            SQL, $scale);
+
+        $this->run('product_associations (viewed)', <<<'SQL'
+            WITH viewed AS (
+                SELECT DISTINCT anonymous_session_id, product_id
+                FROM interaction_events
+                WHERE event_type = 'product_view' AND anonymous_session_id IS NOT NULL AND product_id IS NOT NULL
+            ),
+            pair AS (
+                SELECT a.product_id, b.product_id AS associated_product_id, count(*) AS support
+                FROM viewed a
+                JOIN viewed b ON b.anonymous_session_id = a.anonymous_session_id AND b.product_id <> a.product_id
+                GROUP BY 1, 2
+            ),
+            ranked AS (
+                SELECT p.*, row_number() OVER (ORDER BY p.support DESC, p.product_id, p.associated_product_id) AS rn
+                FROM pair p
+            )
+            INSERT INTO product_associations (product_id, associated_product_id, kind, support, score, computed_at)
+            SELECT r.product_id, r.associated_product_id, 'viewed_together', r.support, r.support * 10, :anchor
+            FROM ranked r
+            WHERE r.rn <= 60000
+            ON CONFLICT DO NOTHING
+            SQL, $scale);
+
+        $this->run('daily_product_metrics', <<<'SQL'
+            WITH busiest AS (
+                SELECT product_id, row_number() OVER (ORDER BY count(*) DESC, product_id) AS rn
+                FROM interaction_events
+                WHERE product_id IS NOT NULL
+                GROUP BY product_id
+            )
+            INSERT INTO daily_product_metrics (
+                day, product_id, views, search_impressions, search_clicks, wishlist_adds,
+                cart_adds, purchases, units_sold, gross_minor, computed_at
+            )
+            SELECT (:anchor - (d || ' days')::interval)::date, b.product_id,
+                   :h((b.product_id * 200) + d) % 500,
+                   :h((b.product_id * 200) + d) % 1200,
+                   :h((b.product_id * 200) + d) % 120,
+                   :h2((b.product_id * 200) + d) % 30,
+                   :h2((b.product_id * 200) + d) % 60,
+                   :h2((b.product_id * 200) + d) % 12,
+                   :h2((b.product_id * 200) + d) % 25,
+                   (:h((b.product_id * 200) + d) % 90000)::bigint,
+                   :anchor
+            FROM busiest b, generate_series(1, 30) d
+            WHERE b.rn <= 2000
+            SQL, $scale);
+
         $this->run('daily_seller_metrics', <<<'SQL'
             INSERT INTO daily_seller_metrics (
                 day, seller_account_id, store_views, offer_impressions, offer_clicks, orders,
