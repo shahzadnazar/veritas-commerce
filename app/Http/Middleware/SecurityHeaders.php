@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Modules\Catalog\Support\Indexability;
+use App\Support\Security\ContentSecurityPolicy;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,20 +13,25 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Response headers that hold for every surface.
  *
- * Deliberately the conservative set. A content policy that enumerates
- * script sources belongs with a nonce pipeline, which M1 does not have —
- * writing one now would either break the Vite client or be so loose it
- * meant nothing. What is here is what can be set correctly today:
+ * The content policy is built by ContentSecurityPolicy from what the
+ * application actually loads — audited from rendered HTML rather than
+ * written from a template — and it is strict: same-origin scripts, no
+ * inline execution, nothing framed, and Stripe's origins only on the page
+ * that renders Stripe.
  *
- *  - Framing is refused outright. A seller portal or an admin console
- *    inside someone else's iframe is a clickjacking primitive, and the
- *    storefront has no reason to be framed either.
+ * The rest of the set:
+ *
+ *  - Framing is refused outright, in the policy and in the legacy header
+ *    for browsers that predate it.
  *  - MIME sniffing is off, so an upload that slipped through as the wrong
  *    type is not re-interpreted as script by the browser.
  *  - Referrers cross-origin carry the origin only; a store URL should not
  *    leak a customer's full path to a third party.
  *  - Camera, microphone and geolocation are denied. Nothing here asks for
  *    them, and a compromised script should not be able to either.
+ *  - Anything holding one person's data is marked no-store, so a shared
+ *    cache or a CDN in front of the application cannot keep a copy of
+ *    somebody's address, order total or paperwork.
  *
  * HSTS is set only on an HTTPS response: sending it over plain HTTP is
  * ignored by browsers and would pin a developer's localhost to a scheme
@@ -33,27 +39,6 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class SecurityHeaders
 {
-    /**
-     * The policy, one directive at a time.
-     *
-     * `frame-src` is here because of Stripe, and it is a tightening rather
-     * than a loosening: with no directive at all a page could frame
-     * anything, and enumerating the two Stripe origins Elements actually
-     * uses — js.stripe.com for the card fields, hooks.stripe.com for the
-     * 3-D Secure challenge — closes that to everything else. Naming them
-     * is the whole point; a wildcard, or `unsafe-*` anywhere, would buy the
-     * integration at the cost of the policy meaning anything (§59).
-     *
-     * `script-src` is still deliberately absent, for the reason the class
-     * docblock gives: enumerating script sources needs a nonce pipeline
-     * this application does not have, and a `script-src` loose enough to
-     * pass Vite would be a directive that permits what it claims to stop.
-     */
-    private const CONTENT_POLICY = [
-        "frame-ancestors 'none'",
-        "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
-    ];
-
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
@@ -61,7 +46,7 @@ final class SecurityHeaders
         $headers = $response->headers;
 
         $headers->set('X-Frame-Options', 'DENY');
-        $headers->set('Content-Security-Policy', implode('; ', self::CONTENT_POLICY));
+        $headers->set('Content-Security-Policy', ContentSecurityPolicy::forRequest($request));
         $headers->set('X-Content-Type-Options', 'nosniff');
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
@@ -100,6 +85,37 @@ final class SecurityHeaders
             $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
+        $this->refuseSharedCaching($request, $response);
+
         return $response;
+    }
+
+    /**
+     * Nothing belonging to one person is stored by a shared cache.
+     *
+     * Laravel's session middleware already sends `no-cache, private`,
+     * which requires revalidation but still permits a copy to be written
+     * to disk. For a cart, an order, a portal screen or a KYC document
+     * that is the wrong trade: `no-store` says do not keep it at all,
+     * which is what a CDN sitting in front of this application has to be
+     * told before it caches somebody's address.
+     *
+     * Deliberately scoped rather than global. The catalogue is the
+     * product, it is identical for everybody, and making the whole site
+     * uncacheable to protect the parts that need it would be paying for
+     * this everywhere.
+     */
+    private function refuseSharedCaching(Request $request, Response $response): void
+    {
+        $private = $request->is(
+            ...Indexability::privatePaths(),
+            ...['admin', 'admin/*', 'seller', 'seller/*'],
+        );
+
+        if (! $private) {
+            return;
+        }
+
+        $response->headers->set('Cache-Control', 'no-store, no-cache, private, max-age=0');
     }
 }
