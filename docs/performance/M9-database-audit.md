@@ -310,6 +310,24 @@ that cannot be used, and the next real query reports the real error.
 `DatabaseSessionTest::an_unreachable_database_fails_rather_than_recursing`
 holds that shut.
 
+## Keeping this true
+
+Two things stop the audit rotting into a document about a database that
+no longer exists.
+
+`ReadSurfaceHarnessTest` runs all 31 surfaces against the ordinary test
+database on every suite run. The numbers are meaningless at that size and
+are not asserted; what is asserted is that each surface still *runs*, so
+a renamed method or a changed signature breaks the build rather than
+being discovered the next time somebody needs a measurement.
+
+`DatabaseConstraintTest` holds the four schema guarantees above.
+
+Query *counts* were measured here but are not pinned here: they already
+are, by the bounded-read tests in the cart, catalogue, discovery,
+fulfilment, order and finance suites, which is where the fixtures for
+them live.
+
 ## Recommendations, not done here
 
 1. **A search page evaluates the same predicate five times.** Even now
