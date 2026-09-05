@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Diagnostics;
 
 use App\Modules\Payouts\Support\PayoutPolicy;
+use App\Support\Performance\PerformanceDataset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
@@ -187,6 +188,36 @@ final class ProductionReadiness
                 );
         } catch (Throwable $exception) {
             $checks[] = Check::fail('database', 'migrations', 'could not be determined', $this->safeReason($exception));
+        }
+
+        /*
+         * The scale dataset must never be here.
+         *
+         * `veritas:seed-performance` writes six hundred thousand
+         * fictional rows — sellers, orders, a ledger — and refuses to run
+         * anywhere production-looking. This is the other half of that:
+         * the command's guard can only stop what it is asked to do, and
+         * a database restored from the wrong dump was never asked. Four
+         * small tables are probed rather than all thirteen, so the check
+         * stays cheap enough to run on every deployment.
+         */
+        try {
+            $marked = PerformanceDataset::contamination(DB::connection(), PerformanceDataset::SENTINEL_TABLES);
+
+            $checks[] = $marked === []
+                ? Check::pass('database', 'generated data', 'none present')
+                : Check::fail(
+                    'database',
+                    'generated data',
+                    sprintf('%s marked rows', implode(', ', array_map(
+                        static fn (int $count, string $table): string => "{$count} in {$table}",
+                        $marked,
+                        array_keys($marked),
+                    ))),
+                    'This database holds rows from veritas:seed-performance. It is a scale-test database, not a production one.',
+                );
+        } catch (Throwable $exception) {
+            $checks[] = Check::warn('database', 'generated data', 'could not be determined', $this->safeReason($exception));
         }
 
         return $checks;
